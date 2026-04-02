@@ -1,6 +1,7 @@
 # 迭代设计文档
 
-> 与 [PRD.md](./PRD.md) 配合：PRD 管长期需求，**具体每个迭代的记录放在 [change/](./change/) 下单独文件**。
+> 与 [PRD.md](./PRD.md) 配合：PRD 管产品范围，**每个迭代的变更记录放在 [change/](./change/) 下单独文件**。  
+> 当前产品：**家庭记账**（Next.js 移动端 + Supabase）。
 
 ## 存放位置
 
