@@ -1,0 +1,20 @@
+# 迭代设计文档
+
+> 与 [PRD.md](./PRD.md) 配合：PRD 管长期需求，**具体每个迭代的记录放在 [change/](./change/) 下单独文件**。
+
+## 存放位置
+
+- 目录：`docs/change/`
+- 每个迭代新建一个 `.md`（勿把多轮迭代混在同一文件，除非你们约定「仅当前迭代」覆盖更新）。
+- 新文件请复制 [change/iteration-template.md](./change/iteration-template.md) 后按 [change/README.md](./change/README.md) 的命名建议改名。
+- **索引表**在 [change/README.md](./change/README.md) 维护，便于按时间查找。
+
+## 与主设计文档的关系
+
+| 内容 | 文档 |
+|------|------|
+| 接口变更与错误码 | [api.md](./api.md) |
+| 表结构 / 迁移 | [database-design.md](./database-design.md) |
+| 缓存 Key / 策略 | [cache-design.md](./cache-design.md) |
+
+迭代文中以摘要 + 链接为主，避免与主文档长期重复；主文档在里程碑合并后更新「正式版」设计。

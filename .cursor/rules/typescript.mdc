@@ -1,0 +1,26 @@
+---
+description: 本项目的 TypeScript 约定
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+# TypeScript
+
+- 在边界处写清类型（导出、对外 API）。少用 `any`，优先 `unknown` 再收窄。
+- 错误要有交代：记录日志或带上下文再抛出，不要用空 `catch` 吞掉。
+- 异步要可读：该 `await` 就 `await`，避免无处理的 floating promise（除非显式 `void`）。
+
+```typescript
+// 不好：静默失败
+try {
+  await save();
+} catch {}
+
+// 好：失败可观测
+try {
+  await save();
+} catch (e) {
+  console.error("save failed", e);
+  throw e;
+}
+```

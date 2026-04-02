@@ -1,0 +1,21 @@
+---
+description: React 与 Next.js 组件约定
+globs: "**/*.tsx"
+alwaysApply: false
+---
+
+# React / Next.js
+
+- 使用函数组件与 Hooks；可复用的有状态逻辑抽到自定义 Hook。
+- App Router 下默认用服务端组件；仅当需要浏览器 API、事件处理或仅限客户端的 Hook 时，再在对应文件顶部加 `"use client"`。
+- 小型 UI 与路由或功能就近放置；共享基础组件放在明确目录（如 `components/`）。
+
+```tsx
+"use client";
+import { useState } from "react";
+
+export function Counter() {
+  const [n, setN] = useState(0);
+  return <button onClick={() => setN(n + 1)}>{n}</button>;
+}
+```
