@@ -76,7 +76,7 @@ export default async function MembersPage() {
               className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
             >
               <div className="flex items-start gap-3">
-                <MemberAvatar name={member.name} size="lg" />
+                <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-semibold text-stone-800">
                     {member.name}

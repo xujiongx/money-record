@@ -81,7 +81,7 @@ export function DashboardClient({
         <div className="mt-3 flex justify-around gap-3">
           {stats.map(({ member, count, income: inc, expense: exp }) => (
             <div key={member.id} className="flex flex-col items-center text-center">
-              <MemberAvatar name={member.name} size="lg" />
+              <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
               <p className="mt-2 font-medium text-stone-800">{member.name}</p>
               <p className="text-xs text-stone-500">{count} 笔记账</p>
               <p className="mt-1 text-[11px] text-emerald-600">+{formatMoney(inc)}</p>

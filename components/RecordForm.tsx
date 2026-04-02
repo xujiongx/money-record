@@ -66,6 +66,8 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
       }
     });
   };
+  console.log(222, members);
+
 
   return (
     <div className="space-y-5">
@@ -151,7 +153,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
                   : "border-transparent bg-stone-50"
               }`}
             >
-              <MemberAvatar name={m.name} size="sm" />
+              <MemberAvatar name={m.name} avatarUrl={m.avatar_url} size="sm" />
               <span className="mt-2 text-sm font-medium text-stone-800">
                 {m.name}
               </span>
