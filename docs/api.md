@@ -1,81 +1,95 @@
 # 接口与数据访问说明
 
-> 本项目**无独立 REST Base URL**；对外逻辑由 **Next.js Server Actions** 与 **Supabase 客户端（PostgREST + Realtime）** 组成。  
+> 本项目**无独立 REST Base URL**；数据访问由 **Next.js Server Actions** + Supabase **Service Role（服务端）** 完成。  
 > 更新日期：2026-04-02
 
 ## 1. 设计说明
 
 | 能力 | 实现方式 | 调用方 |
 |------|----------|--------|
-| 读成员 / 读流水（首屏） | Server Actions：`fetchMembers`、`fetchTransactions` | Server Components |
-| 新增 / 删除流水 | Server Actions：`createTransaction`、`deleteTransaction` | Client Components（表单、按钮） |
-| 实时感知流水变更 | Supabase Realtime：`postgres_changes` on `transactions` | Client（`DashboardClient`） |
+| 会话：加入家庭 | `setHouseholdSession(code)` | 登录页 |
+| 会话：创建家庭并登录 | `createHouseholdAndLogin({ name, codeRaw })` | 登录页「创建新家」 |
+| 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
+| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie） |
+| 写流水 | `createTransaction`、`deleteTransaction` | Client |
+
+**当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
+
+客户端另将编码写入 **localStorage**（`ledger_household_code`）用于在 Cookie 丢失时尝试恢复会话（调用 `setHouseholdSession`）。
+
+**多端列表刷新**：不使用 Supabase Realtime；首页与统计页客户端 **定时轮询** `fetchTransactions()`。
 
 ### 1.1 为何不用开放 HTTP API
 
-- 减少密钥暴露面：写入仅服务端持有 **Service Role**。
-- 与 Next 缓存协作：`revalidatePath` 在写入后刷新相关路由。
+- Service Role 仅存服务端；家庭边界由 Cookie + 服务端校验编码保证。
 
 ### 1.2 与「传统接口文档」的对应关系
 
-若需对接第三方系统，可后续增加 `app/api/*` Route Handlers，并在此文档补充路径、鉴权与错误码；当前版本以本文件 **§2 Server Actions** 为契约。
+若需第三方对接，可新增 `app/api/*`；当前以本文件 **§2、§3** 为契约。
 
-## 2. Server Actions（`app/actions/ledger.ts`）
+## 2. Server Actions — 会话（`app/actions/household.ts`）
 
-以下函数均可在服务端或标记为 `"use client"` 的组件中 `await` 调用（Next 会序列化请求）。
+### 2.1 `setHouseholdSession(raw: string)`
 
-### 2.1 `fetchMembers()`
+- 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，存在则写入 Cookie 并 `revalidatePath`。
+- 不存在则抛错（文案供 UI 展示）。
 
-- **返回**：`Promise<MemberRow[]>`，按 `sort_order` 升序。
-- **数据范围**：`household_id = HOUSEHOLD_ID`（见 `lib/constants.ts`）。
-- **错误**：Supabase 错误时 `throw new Error(message)`。
+### 2.2 `createHouseholdAndLogin(input)`
 
-### 2.2 `fetchTransactions()`
+| 字段 | 说明 |
+|------|------|
+| `name` | 家庭名称，trim 后 1～60 字 |
+| `codeRaw` | 原始输入，规范后为 6 位数字 `code` |
 
-- **返回**：`Promise<TransactionRow[]>`，按 `occurred_at` 降序；每条含嵌套 `members: { id, name }`。
-- **错误**：同上。
+- 若 `code` 已存在则抛错。  
+- `insert households` 后 `insert members`：**布布**（`sort_order` 1）、**一二**（2）。成员插入失败则删除刚插入的家庭行。  
+- 成功后写入与 `setHouseholdSession` 相同的 Cookie。
 
-### 2.3 `createTransaction(input)`
+### 2.3 `clearHouseholdSession()`
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| memberId | string | 是 | `members.id` |
-| type | `'income' \| 'expense'` | 是 | 收支类型 |
-| category | string | 是 | 与前端分类常量一致 |
-| amount | number | 是 | > 0 |
-| note | string | 否 | trim 后入库，空则 `null` |
-| occurredAt | string (ISO) | 否 | 默认当前时间 |
+- 删除 Cookie；`revalidatePath`。客户端需同步 `localStorage.removeItem`。
 
-- **成功**：插入一行；并对 `/`、`/record`、`/stats`、`/members` 执行 `revalidatePath`。
-- **错误**：金额无效或 DB 错误时抛错。
+## 3. Server Actions — 账本（`app/actions/ledger.ts`）
 
-### 2.4 `deleteTransaction(id)`
+均先 `requireHouseholdId()`：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。
 
-- **行为**：按 `id` + `household_id` 删除，防止跨家庭误删。
-- **成功**：`revalidatePath` 首页、统计、成员页。
+### 3.1 `fetchMembers()` / `fetchTransactions()`
 
-## 3. Supabase 直连（仅说明，非业务对外 API）
+- 仅返回 **当前 Cookie 对应家庭** 的数据。
 
-### 3.1 匿名客户端（浏览器）
+### 3.2 `createTransaction(input)`
 
-- 使用 `NEXT_PUBLIC_SUPABASE_ANON_KEY`，受 **RLS** 限制，仅可对种子家庭相关行 **SELECT**。
-- **Realtime**：订阅 `public.transactions`，`filter` 形如 `household_id=eq.<UUID>`（与 `HOUSEHOLD_ID` 一致）。
-
-### 3.2 Service 客户端（服务端）
-
-- 使用 `SUPABASE_SERVICE_ROLE_KEY`，**不得**出现在浏览器。
-- 用于上述 Server Actions 内所有 `insert` / `delete` / `select`（开发上也可用于服务端查询）。
-
-## 4. 接口设计决策（备忘）
-
-| 议题 | 结论 | 理由 |
+| 字段 | 类型 | 必填 |
 |------|------|------|
-| 是否暴露 REST CRUD | 否 | MVP 家庭场景，Server Actions + RLS 足够 |
-| 写入是否走浏览器 Supabase | 否 | 避免 anon 需放开写权限，降低泄露风险 |
-| 多家庭扩展 | 预留 `household_id` + 环境变量 | 后续可接 Auth 与动态 household |
+| memberId | string | 是 |
+| type | `'income' \| 'expense'` | 是 |
+| category | string | 是 |
+| amount | number | 是，> 0 |
+| note | string | 否 |
+| occurredAt | ISO 字符串 | 否 |
 
-## 5. 变更记录
+- 成功：`revalidatePath` 相关路由。
+
+### 3.3 `deleteTransaction(id)`
+
+- 按 `id` + 当前 `household_id` 删除。
+
+## 4. 路由与中间件
+
+- [`middleware.ts`](../middleware.ts)：访问 `/`、`/record`、`/stats`、`/members` 时，若 Cookie 中无合法 6 位编码，**302 → `/login`**。  
+- `/login`：若已有合法 Cookie，服务端可 **redirect('/')**（见 `app/login/page.tsx`）。
+
+## 5. 接口设计决策（备忘）
+
+| 议题 | 结论 |
+|------|------|
+| 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
+| 浏览器直连 Supabase | 不使用（无 anon 业务读） |
+| 实时推送 | 多租户下弃用 Realtime；用轮询 |
+
+## 6. 变更记录
 
 | 日期 | 说明 |
 |------|------|
-| 2026-04-02 | 首版：与当前 `ledger.ts` 实现一致 |
+| 2026-04-02 | 多家庭、`household.ts`、Cookie 会话、弃用 Realtime 描述 |
+| 2026-04-02 | 首版 ledger 契约 |

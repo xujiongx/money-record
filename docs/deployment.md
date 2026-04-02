@@ -9,74 +9,71 @@ flowchart TB
   user[用户浏览器]
   edge[Vercel 或同类平台]
   next[Next.js 服务端]
-  supa[Supabase 托管 PostgreSQL]
+  supa[Supabase PostgreSQL]
   user --> edge
   edge --> next
   next -->|Service Role| supa
-  user -->|Anon + Realtime| supa
 ```
 
-- **应用**：Next.js 全栈（SSR / Server Actions）。
-- **数据**：Supabase（数据库 + Realtime）；**不**随 Next 部署迁移。
+- **应用**：Next.js（SSR、Server Actions、**middleware** 会话校验）。  
+- **数据**：Supabase PostgreSQL；迁移在控制台执行，不随前端构建发布。
 
 ## 2. 环境说明
 
 | 环境 | 用途 | 说明 |
 |------|------|------|
-| 本地 | 开发 | `.env.local`，连接开发用 Supabase 项目（可与生产同项目，慎用） |
-| 生产 | 对外使用 | 托管平台环境变量 + 独立 Supabase 生产项目（推荐） |
+| 本地 | 开发 | `.env.local` |
+| 生产 | 对外 | 平台环境变量 + 建议独立 Supabase 项目 |
 
 ## 3. 配置与密钥（环境变量）
-
-在部署平台（如 Vercel **Settings → Environment Variables**）配置：
 
 | 变量 | 必填 | 说明 |
 |------|------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | 是 | Supabase 项目 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 是 | anon public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | 是 | **仅服务端**，勿加 `NEXT_PUBLIC_` |
-| `NEXT_PUBLIC_HOUSEHOLD_ID` | 否 | 与数据库种子家庭 UUID 一致；换家庭需同步改库与变量 |
+| `SUPABASE_SERVICE_ROLE_KEY` | 是 | **仅服务端**；**禁止** `NEXT_PUBLIC_` 前缀 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 否 | 当前版本业务链路径未使用；预留扩展 |
 
-**密钥管理**：生产环境使用平台密钥存储；禁止将 Service Role 提交到 Git 或发给前端。
+**密钥管理**：Service Role 仅存部署平台密钥区；勿提交 Git。
+
+**说明**：已移除对 `NEXT_PUBLIC_HOUSEHOLD_ID` 的依赖；家庭由 **Cookie 中的编码** 与库表 `households.code` 决定。
 
 ## 4. 构建产物
 
 | 命令 | 说明 |
 |------|------|
-| `npm run build` | 生产构建（本地 CI 与线上一致） |
-| `npm run start` | 本地验证构建产物 |
-
-输出目录：`.next/`（由平台构建命令自动使用）。
+| `npm run build` | 生产构建 |
+| `npm run start` | 本地验证产物 |
 
 ## 5. 部署步骤（以 Vercel 为例）
 
 ### 5.1 首次部署
 
-1. 在 Supabase 创建**生产**项目，执行 `supabase/migrations/001_init.sql`，并开启 `transactions` 的 **Realtime**。  
-2. 将 Git 仓库连接 Vercel，Framework Preset 选 **Next.js**。  
-3. 填入 §3 环境变量，执行 Deploy。  
-4. 部署完成后用真实手机访问生产 URL，验证记账与多端同步。
+1. Supabase 执行 `001_init.sql`（及按需 `002_*.sql`）。  
+2. **无需**为 Realtime 开启 `transactions`（当前未使用）。  
+3. 连接 Git，Framework 选 Next.js，配置 §3 变量后 Deploy。  
+4. 访问站点应跳转 `/login`；用种子编码 `000001` 或自建家庭验证全流程。
 
 ### 5.2 常规发布
 
-1. `main`（或生产分支）推送触发自动构建。  
-2. 若仅有文档/SQL 变更不涉及应用代码，按团队流程决定是否跳过构建。
+推送生产分支触发构建即可。
 
 ### 5.3 回滚
 
-在 Vercel **Deployments** 中选择上一成功版本 **Promote to Production**。
+在平台将上一稳定 Deployment 提升为 Production。
 
 ## 6. 数据库与迁移
 
-- **迁移**：在 Supabase SQL Editor 执行新迁移文件；生产变更前先在**副本或 staging 项目**验证。  
-- **可逆性**：删除列/表类迁移需自备回滚脚本；当前 MVP 以向前迁移为主。
+- 生产变更前先于 staging / 副本验证 SQL。  
+- 多家庭、编码相关见 [database-design.md](./database-design.md)。
 
 ## 7. 健康检查与监控
 
-- Next 无单独 `/health`；可通过平台 **Deployment** 状态与 Supabase **Database** 面板观察。  
-- 建议开启：Vercel Analytics（可选）、Supabase 项目日志与用量告警。
+- 依赖平台与 Supabase 控制台；可配日志与告警。
 
 ## 8. 灾备
 
-- 数据库 RPO/RTO 依赖 Supabase 套餐与备份设置。  
-- 应用无状态，恢复重点是 **环境变量** 与 **数据库备份**。
+- 数据库按 Supabase 套餐备份；应用无状态，会话在客户端 Cookie，恢复后用户需重新登录编码（localStorage 可减轻影响）。
+
+## 9. 公开部署注意
+
+- 登录页 **创建新家** 对全网开放，存在刷库风险；生产可配合 WAF、速率限制或产品层关闭创建入口。
