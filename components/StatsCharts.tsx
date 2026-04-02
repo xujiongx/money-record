@@ -14,7 +14,6 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-import { motion } from "framer-motion";
 import { sumByCategory, memberExpenseTotals } from "@/lib/aggregates";
 import {
   type StatsPeriod,
@@ -94,8 +93,6 @@ export function StatsCharts({
     () => formatStatsPeriodLabel(period, anchorDate),
     [period, anchorDate],
   );
-
-  const rangeAnimKey = `${period}-${rangeStart.getTime()}`;
 
   const expenseByCat = useMemo(
     () => sumByCategory(scopedTransactions, "expense"),
@@ -187,21 +184,17 @@ export function StatsCharts({
         </p>
       </div>
 
-      <motion.div
-        key={rangeAnimKey}
-        initial={{ opacity: 0.85 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        className="space-y-5"
-      >
-        <ChartCard title="支出分类" delay={0}>
+      {/* 不要用含时间戳的 key，否则每次切期都会卸载整块 Recharts，ResponsiveContainer 重测 DOM 很慢 */}
+      <div className="space-y-5">
+        <ChartCard title="支出分类">
           {expenseByCat.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56 w-full">
+            <div className="h-56 w-full min-h-[224px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
+                    isAnimationActive={false}
                     data={expenseByCat}
                     dataKey="value"
                     nameKey="name"
@@ -227,14 +220,15 @@ export function StatsCharts({
           )}
         </ChartCard>
 
-        <ChartCard title="收入来源占比" delay={0.05}>
+        <ChartCard title="收入来源占比">
           {incomeByCat.length === 0 ? (
             <Empty />
           ) : (
-            <div className="h-56 w-full">
+            <div className="h-56 w-full min-h-[224px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
+                    isAnimationActive={false}
                     data={incomeByCat}
                     dataKey="value"
                     nameKey="name"
@@ -260,11 +254,11 @@ export function StatsCharts({
           )}
         </ChartCard>
 
-        <ChartCard title="成员支出对比" delay={0.1}>
+        <ChartCard title="成员支出对比">
           {memberBars.every((b) => b.total === 0) ? (
             <Empty />
           ) : (
-            <div className="h-56 w-full pt-2">
+            <div className="h-56 w-full min-h-[224px] pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={memberBars} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f4" vertical={false} />
@@ -276,7 +270,7 @@ export function StatsCharts({
                     }
                     contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
                   />
-                  <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                  <Bar isAnimationActive={false} dataKey="total" radius={[8, 8, 0, 0]}>
                     {memberBars.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
@@ -286,7 +280,7 @@ export function StatsCharts({
             </div>
           )}
         </ChartCard>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -294,22 +288,15 @@ export function StatsCharts({
 function ChartCard({
   title,
   children,
-  delay,
 }: {
   title: string;
   children: React.ReactNode;
-  delay: number;
 }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
-    >
+    <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
       <h2 className="text-sm font-semibold text-stone-800">{title}</h2>
       <div className="mt-2">{children}</div>
-    </motion.section>
+    </section>
   );
 }
 

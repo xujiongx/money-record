@@ -10,7 +10,7 @@ import { formatMoney } from "@/lib/format";
 import type { MemberRow, TransactionRow } from "@/lib/types";
 import { MemberAvatar } from "@/components/MemberAvatar";
 
-const POLL_MS = 4000;
+const POLL_MS = 10000;
 
 export function DashboardClient({
   householdCode,
