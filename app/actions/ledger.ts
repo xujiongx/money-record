@@ -1,8 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { HOUSEHOLD_ID } from "@/lib/constants";
+import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
+import {
+  HOUSEHOLD_CODE_COOKIE,
+  normalizeHouseholdCode,
+} from "@/lib/household";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/types";
 import { parseAmount } from "@/lib/types";
 
@@ -32,26 +36,50 @@ function mapTransaction(row: {
   };
 }
 
+async function requireHouseholdId(): Promise<string> {
+  const jar = await cookies();
+  const raw = jar.get(HOUSEHOLD_CODE_COOKIE)?.value ?? "";
+  const code = normalizeHouseholdCode(raw);
+  if (!code) {
+    throw new Error("请先输入家庭编码");
+  }
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("households")
+    .select("id")
+    .eq("code", code)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("家庭编码已失效，请重新输入");
+  return data.id;
+}
+
 export async function fetchMembers(): Promise<MemberRow[]> {
+  const householdId = await requireHouseholdId();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("members")
     .select("*")
-    .eq("household_id", HOUSEHOLD_ID)
+    .eq("household_id", householdId)
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as MemberRow[];
 }
 
 export async function fetchTransactions(): Promise<TransactionRow[]> {
+  const householdId = await requireHouseholdId();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("transactions")
-    .select("id, household_id, member_id, type, category, amount, note, occurred_at, members ( id, name )")
-    .eq("household_id", HOUSEHOLD_ID)
+    .select(
+      "id, household_id, member_id, type, category, amount, note, occurred_at, members ( id, name )",
+    )
+    .eq("household_id", householdId)
     .order("occurred_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map((row) => mapTransaction(row as Parameters<typeof mapTransaction>[0]));
+  return (data ?? []).map((row) =>
+    mapTransaction(row as Parameters<typeof mapTransaction>[0]),
+  );
 }
 
 export async function createTransaction(input: {
@@ -65,9 +93,10 @@ export async function createTransaction(input: {
   if (input.amount <= 0 || !Number.isFinite(input.amount)) {
     throw new Error("金额无效");
   }
+  const householdId = await requireHouseholdId();
   const supabase = createServiceClient();
   const { error } = await supabase.from("transactions").insert({
-    household_id: HOUSEHOLD_ID,
+    household_id: householdId,
     member_id: input.memberId,
     type: input.type,
     category: input.category,
@@ -83,12 +112,13 @@ export async function createTransaction(input: {
 }
 
 export async function deleteTransaction(id: string) {
+  const householdId = await requireHouseholdId();
   const supabase = createServiceClient();
   const { error } = await supabase
     .from("transactions")
     .delete()
     .eq("id", id)
-    .eq("household_id", HOUSEHOLD_ID);
+    .eq("household_id", householdId);
   if (error) throw new Error(error.message);
   revalidatePath("/");
   revalidatePath("/stats");

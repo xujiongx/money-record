@@ -1,11 +1,11 @@
 # 家庭记账（Next.js 移动端 + Supabase）
 
-布布与一二共用的家庭账本：移动端视口、橙粉渐变 UI、收支记账、成员统计、图表分析与 Supabase 实时同步。
+布布与一二共用的家庭账本：移动端视口、橙粉渐变 UI、多家庭编码隔离、收支记账、成员统计与图表。
 
 ## 技术栈
 
 - Next.js 16（App Router）+ TypeScript + Tailwind CSS 4
-- Supabase（PostgreSQL + Realtime）
+- Supabase（PostgreSQL）
 - Recharts、Framer Motion、date-fns
 
 ## 本地运行
@@ -16,20 +16,23 @@
 
 `supabase/migrations/001_init.sql`
 
-### 2. 打开 Realtime
+### 2. 环境变量
 
-在 Supabase 控制台：**Database → Publications**（或 Replication），为表 `transactions` 启用 `supabase_realtime`（若 SQL 末尾注释中的 `ALTER PUBLICATION` 无权限执行，可在控制台界面勾选）。
-
-### 3. 环境变量
-
-复制 `.env.example` 为 `.env.local`，填入：
+复制 `.env.example` 为 `.env.local`，至少配置：
 
 | 变量 | 说明 |
 |------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | 项目 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 匿名公钥（客户端 Realtime 只读） |
-| `SUPABASE_SERVICE_ROLE_KEY` | **仅服务端**，用于记账写入，勿提交或暴露 |
-| `NEXT_PUBLIC_HOUSEHOLD_ID` | 默认与迁移脚本中种子家庭 UUID 一致即可 |
+| `SUPABASE_SERVICE_ROLE_KEY` | **仅服务端**，所有读写经 Server Actions，勿提交或暴露 |
+
+### 3. 家庭编码与登录
+
+首次访问会跳转到 **`/login`**：
+
+- **加入家庭**：输入已有 **6 位数字家庭编码**（示例 **`000001`**、**`000002`** 见迁移脚本）。
+- **创建新家**：填写家庭名称与 **6 位数字编码**（未被占用即可），系统将创建家庭并自动添加成员 **布布**、**一二**，然后直接进入账本。
+
+验证或创建成功后，编码会写入 **httpOnly Cookie** 与 **localStorage**。在 **成员** 页底部可「切换家庭 / 重新输入编码」。
 
 ### 4. 安装与启动
 
@@ -38,16 +41,19 @@ npm install
 npm run dev
 ```
 
-浏览器打开 [http://localhost:3000](http://localhost:3000)，建议使用移动端调试或窄屏查看。
+浏览器打开 [http://localhost:3000](http://localhost:3000)（无有效家庭 Cookie 时会跳转 `/login`），建议使用移动端调试或窄屏查看。
+
+多设备数据同步：首页与统计页约 **每 4～5 秒** 自动拉取最新流水（轮询）；非毫秒级实时。
 
 ## 路由说明
 
 | 路径 | 功能 |
 |------|------|
+| `/login` | 输入 6 位家庭编码（无 Cookie 时由中间件跳转） |
 | `/` | 仪表盘：汇总、最近账单、成员头像墙 |
 | `/record` | 智能记账 |
 | `/stats` | 支出分类饼图、收入占比、成员支出柱状图 |
-| `/members` | 成员列表与各人明细 |
+| `/members` | 成员列表与各人明细；底部可切换家庭 |
 
 ## 部署
 
@@ -55,7 +61,7 @@ npm run dev
 
 ## 安全说明
 
-当前 RLS 允许匿名用户**只读**本家庭数据（用于 Realtime）；**写入**仅通过服务端 Service Role。若应用将公开发布，建议后续接入登录并收紧 RLS。
+当前 **RLS 无 anon 读策略**，账本数据**仅**通过服务端 **Service Role** 访问；浏览器携带的 **家庭编码** 相当于家庭口令，请勿向无关人员泄露。若应用对公网开放，建议后续接入账号体系并改为按用户鉴权。
 
 ## 项目文档（中文）
 

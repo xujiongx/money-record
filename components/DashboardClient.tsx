@@ -5,17 +5,19 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { fetchTransactions, deleteTransaction } from "@/app/actions/ledger";
-import { HOUSEHOLD_ID } from "@/lib/constants";
-import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { summarizeLedger, memberStats } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
 import type { MemberRow, TransactionRow } from "@/lib/types";
 import { MemberAvatar } from "@/components/MemberAvatar";
 
+const POLL_MS = 4000;
+
 export function DashboardClient({
+  householdCode,
   initialMembers,
   initialTransactions,
 }: {
+  householdCode: string;
   initialMembers: MemberRow[];
   initialTransactions: TransactionRow[];
 }) {
@@ -38,29 +40,8 @@ export function DashboardClient({
   }, [initialTransactions]);
 
   useEffect(() => {
-    let supabase;
-    try {
-      supabase = createBrowserSupabase();
-    } catch {
-      return;
-    }
-    const channel = supabase
-      .channel("ledger-tx")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "transactions",
-          filter: `household_id=eq.${HOUSEHOLD_ID}`,
-        },
-        () => refresh(),
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    const id = window.setInterval(() => refresh(), POLL_MS);
+    return () => window.clearInterval(id);
   }, [refresh]);
 
   const { income, expense, balance } = useMemo(
@@ -80,6 +61,9 @@ export function DashboardClient({
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
           温暖小账本
         </h1>
+        <p className="mt-1 font-mono text-xs text-white/80">
+          家庭编码 {householdCode}
+        </p>
       </header>
 
       <motion.section

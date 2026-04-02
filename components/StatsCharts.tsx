@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { fetchTransactions } from "@/app/actions/ledger";
 import {
   ResponsiveContainer,
   PieChart,
@@ -28,13 +29,40 @@ const COLORS = [
   "#f87171",
 ];
 
+const POLL_MS = 5000;
+
 export function StatsCharts({
-  transactions,
+  householdCode,
+  transactions: initialTransactions,
   members,
 }: {
+  householdCode: string;
   transactions: TransactionRow[];
   members: MemberRow[];
 }) {
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [, startTransition] = useTransition();
+
+  const refresh = useCallback(() => {
+    startTransition(async () => {
+      try {
+        const next = await fetchTransactions();
+        setTransactions(next);
+      } catch {
+        /* ignore */
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    setTransactions(initialTransactions);
+  }, [initialTransactions]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => refresh(), POLL_MS);
+    return () => window.clearInterval(id);
+  }, [refresh]);
+
   const expenseByCat = useMemo(
     () => sumByCategory(transactions, "expense"),
     [transactions],
@@ -55,6 +83,9 @@ export function StatsCharts({
         <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
           收支统计
         </h1>
+        <p className="mt-1 font-mono text-xs text-white/80">
+          家庭编码 {householdCode}
+        </p>
       </header>
 
       <ChartCard title="支出分类" delay={0}>

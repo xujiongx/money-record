@@ -1,12 +1,15 @@
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { SetupPrompt } from "@/components/SetupPrompt";
+import { SwitchHouseholdButton } from "@/components/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { memberStats, summarizeLedger } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
 import { MemberAvatar } from "@/components/MemberAvatar";
+import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 
 export default async function MembersPage() {
+  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   let members;
   let transactions;
   try {
@@ -30,6 +33,9 @@ export default async function MembersPage() {
         <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
           成员与明细
         </h1>
+        <p className="mt-1 font-mono text-xs text-white/80">
+          家庭编码 {householdCode}
+        </p>
       </header>
 
       <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
@@ -117,6 +123,10 @@ export default async function MembersPage() {
           );
         })}
       </ul>
+
+      <section className="pt-2">
+        <SwitchHouseholdButton />
+      </section>
     </div>
   );
 }
