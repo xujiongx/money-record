@@ -59,7 +59,9 @@ flowchart LR
 │   ├── stats/
 │   │   ├── loading.tsx     # 统计页专用轻量骨架
 │   │   └── page.tsx
-│   ├── members/page.tsx
+│   ├── members/
+│   │   ├── page.tsx         # 成员列表
+│   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
 │   └── layout.tsx          # MobileShell 包裹主内容
 ├── components/
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
@@ -70,6 +72,7 @@ flowchart LR
 │   │   └── StatsChartsSkeleton.tsx
 │   └── features/           # 按业务域划分的功能组件
 │       ├── household/      # 登录、切换家庭、无数据提示
+│       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
 │       ├── stats/          # StatsCharts + Gate（dynamic 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）

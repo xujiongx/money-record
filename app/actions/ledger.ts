@@ -108,12 +108,50 @@ export async function fetchTransactions(): Promise<TransactionRow[]> {
   return getCachedTransactions(householdId);
 }
 
+/** 单成员流水（分页，按发生时间倒序）。校验成员属于当前家庭。 */
+export async function fetchMemberTransactionsPage(
+  memberId: string,
+  offset: number,
+  limit: number,
+): Promise<{ items: TransactionRow[]; hasMore: boolean }> {
+  const householdId = await requireHouseholdId();
+  const supabase = createServiceClient();
+  const { data: mem, error: memErr } = await supabase
+    .from("members")
+    .select("id")
+    .eq("id", memberId)
+    .eq("household_id", householdId)
+    .maybeSingle();
+  if (memErr) throw new Error(memErr.message);
+  if (!mem) throw new Error("成员不存在");
+
+  const take = Math.min(Math.max(limit, 1), 50);
+  const want = take + 1;
+  const { data, error } = await supabase
+    .from("transactions")
+    .select(
+      "id, household_id, member_id, type, category, amount, note, occurred_at, members ( id, name )",
+    )
+    .eq("household_id", householdId)
+    .eq("member_id", memberId)
+    .order("occurred_at", { ascending: false })
+    .range(offset, offset + want - 1);
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []).map((row) =>
+    mapTransaction(row as Parameters<typeof mapTransaction>[0]),
+  );
+  const hasMore = rows.length > take;
+  const items = hasMore ? rows.slice(0, take) : rows;
+  return { items, hasMore };
+}
+
 function invalidateLedger() {
   revalidateTag("ledger", "max");
   revalidatePath("/");
   revalidatePath("/record");
   revalidatePath("/stats");
   revalidatePath("/members");
+  revalidatePath("/members", "layout");
 }
 
 export async function createTransaction(input: {
@@ -187,4 +225,5 @@ export async function deleteTransaction(id: string) {
   revalidatePath("/");
   revalidatePath("/stats");
   revalidatePath("/members");
+  revalidatePath("/members", "layout");
 }

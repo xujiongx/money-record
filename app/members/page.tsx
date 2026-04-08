@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
@@ -75,22 +76,45 @@ export default async function MembersPage() {
               key={member.id}
               className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
             >
-              <div className="flex items-start gap-3">
-                <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold text-stone-800">
-                    {member.name}
-                  </h2>
-                  <p className="text-xs text-stone-500">{count} 笔记账</p>
-                  <div className="mt-2 flex gap-3 text-sm">
-                    <span className="text-emerald-600">
-                      收入 {formatMoney(income)}
-                    </span>
-                    <span className="text-rose-600">
-                      支出 {formatMoney(expense)}
-                    </span>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-lg font-semibold text-stone-800">
+                      {member.name}
+                    </h2>
+                    <p className="text-xs text-stone-500">{count} 笔记账</p>
+                    <div className="mt-2 flex gap-3 text-sm">
+                      <span className="text-emerald-600">
+                        收入 {formatMoney(income)}
+                      </span>
+                      <span className="text-rose-600">
+                        支出 {formatMoney(expense)}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <Link
+                  href={`/members/${member.id}`}
+                  className="shrink-0 rounded-xl p-2 text-stone-400 ring-1 ring-stone-200/80 transition hover:bg-orange-50 hover:text-orange-600 hover:ring-orange-200"
+                  aria-label={`查看 ${member.name} 的全部账单`}
+                  title="全部账单"
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden
+                  >
+                    <path
+                      d="M8 6h12M8 10h12M8 14h8M8 18h8M4 6h.01M4 10h.01M4 14h.01M4 18h.01"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </Link>
               </div>
               {mine.length > 0 && (
                 <ul className="mt-4 space-y-2 border-t border-stone-100 pt-3">

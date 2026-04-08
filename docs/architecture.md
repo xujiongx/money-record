@@ -97,7 +97,7 @@ flowchart TB
 | `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗） |
 | `/record` | 拉成员 | `RecordForm` |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
-| `/members` | 拉成员+流水 | 成员列表与明细展示 |
+| `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`） |
 
 全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。
 

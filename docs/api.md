@@ -10,7 +10,7 @@
 | 会话：加入家庭 | `setHouseholdSession(code)` | 登录页 |
 | 会话：创建家庭并登录 | `createHouseholdAndLogin({ name, codeRaw })` | 登录页「创建新家」 |
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
-| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie）；服务端经 `unstable_cache`（标签 `ledger`） |
+| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage` | Server / Client（依赖 Cookie）；后者用于成员账单分页，不走 `unstable_cache` |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 | 小布对话 / 本月小结 | `mistralChatAction`、`generateMonthlySummaryAction` 等 | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
@@ -60,6 +60,11 @@
 - 仅返回 **当前 Cookie 对应家庭** 的数据。  
 - 服务端经 **`unstable_cache`** 缓存（缓存键含 `household_id`），标签 **`ledger`**；变更流水或会话时需配合 **`revalidateTag`** 失效。
 
+### 3.1b `fetchMemberTransactionsPage(memberId, offset, limit)`
+
+- 返回指定成员的流水分页（`occurred_at` 倒序）；先校验 `member_id` 属于当前家庭。  
+- **不经** `unstable_cache`，供成员账单页与下拉/触底加载；`limit` 单次上限 50，内部多取 1 条用于判断 `hasMore`。
+
 ### 3.2 `createTransaction(input)`
 
 | 字段 | 类型 | 必填 |
@@ -71,7 +76,7 @@
 | note | string | 否 |
 | occurredAt | ISO 字符串 | 否 |
 
-- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members`）。
+- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members` 及 `/members` **layout**）。
 
 ### 3.3 `updateTransaction(id, input)`
 
@@ -81,7 +86,7 @@
 ### 3.4 `deleteTransaction(id)`
 
 - 按 `id` + 当前 `household_id` 删除。  
-- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members`）。
+- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members` 及 `/members` **layout**）。
 
 ## 4. Server Actions — 小布助手
 
