@@ -1,7 +1,7 @@
 import { DashboardClient } from "@/components/features/record/DashboardClient";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household-server";
+import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 export default async function HomePage() {
   const householdCode = (await getHouseholdCodeFromCookies()) ?? "";

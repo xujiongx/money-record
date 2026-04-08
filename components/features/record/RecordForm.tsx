@@ -4,8 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { createTransaction } from "@/app/actions/ledger";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
-import type { LedgerType, MemberRow } from "@/lib/types";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
+import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 
 export function RecordForm({ members }: { members: MemberRow[] }) {

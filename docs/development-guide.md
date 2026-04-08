@@ -36,7 +36,7 @@ flowchart LR
 - **读缓存**：`ledger.ts` 中成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
-- **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话（**`mistralLedgerChatAction`**：结构化 JSON、缺槽追问、就绪后服务端 **`createTransaction`**）与「本月小结」走 **`app/actions/mistral-chat.ts`**，契约见 **`lib/chat-ledger.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；出站 LLM 经 **`lib/xiaobu-llm.ts`**（**`xiaobuChatCompletion`**）：优先 Mistral（**`lib/mistral-fetch.ts`**，undici + 可选代理），失败或未配 Mistral 密钥时可走 **OpenRouter**（`openai` SDK，默认 `deepseek/deepseek-chat:free`）；**密钥仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（实现为 `components/features/chat/panel/ChatVoiceInput.tsx`：`ChatVoiceInputProvider`、`ChatVoiceMicButton`、`ChatVoiceStatusLine`）；开始识别前会先调用 **`getUserMedia({ audio: true })`** 触发**麦克风权限**（与语音识别同源权限），拿到流后立即 `stop` 轨道以免占用设备；无 `mediaDevices` 的环境则跳过预检直接走识别。`zh-CN` 识别需 **HTTPS 或 localhost**；**iOS WebKit**、**微信内置页**等仍可能无法授权或报 `service-not-allowed`；**Android Chrome** 多依赖云端识别与网络。触控端使用**非连续**识别。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
+- **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话（**`mistralLedgerChatAction`**：结构化 JSON、缺槽追问、就绪后服务端 **`createTransaction`**）与「本月小结」走 **`app/actions/mistral-chat.ts`**，契约见 **`lib/llm/chat-ledger.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；出站 LLM 经 **`lib/llm/xiaobu-llm.ts`**（**`xiaobuChatCompletion`**）：优先 Mistral（**`lib/llm/mistral-fetch.ts`**，undici + 可选代理），失败或未配 Mistral 密钥时可走 **OpenRouter**（`openai` SDK，默认 `deepseek/deepseek-chat:free`）；**密钥仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（实现为 `components/features/chat/panel/ChatVoiceInput.tsx`：`ChatVoiceInputProvider`、`ChatVoiceMicButton`、`ChatVoiceStatusLine`）；开始识别前会先调用 **`getUserMedia({ audio: true })`** 触发**麦克风权限**（与语音识别同源权限），拿到流后立即 `stop` 轨道以免占用设备；无 `mediaDevices` 的环境则跳过预检直接走识别。`zh-CN` 识别需 **HTTPS 或 localhost**；**iOS WebKit**、**微信内置页**等仍可能无法授权或报 `service-not-allowed`；**Android Chrome** 多依赖云端识别与网络。触控端使用**非连续**识别。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
 - **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
@@ -84,15 +84,10 @@ flowchart LR
 │           ├── trigger/              # DraggableFab 入口
 │           └── mascot/               # ChatBotMascot
 ├── lib/
-│   ├── household.ts        # 编码规范化、Cookie/Storage 键名
-│   ├── household-server.ts # RSC 读 Cookie 编码
-│   ├── supabase/service.ts
-│   ├── mistral-fetch.ts    # Mistral HTTP（readEnv、ProxyAgent、超时）
-│   ├── xiaobu-llm.ts       # 小布统一出站：Mistral 优先，失败回退 OpenRouter
-│   ├── chat-ledger.ts      # 小布结构化记账：Zod、提示词、归一化入参
-│   ├── categories.ts
-│   ├── aggregates.ts
-│   └── types.ts
+│   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
+│   ├── ledger/             # 账本领域：类型、分类白名单、聚合、统计周期、金额格式
+│   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`、`chat-ledger`
+│   └── supabase/service.ts # Service Role 客户端
 ├── supabase/migrations/
 └── docs/
 ```
@@ -138,7 +133,7 @@ cp .env.example .env.local
 - **Server Actions**：`app/actions/*.ts`。  
 - **依赖**：`react-draggable`（浮动按钮拖动）、`undici`（Mistral 上游 fetch）、`openai`（OpenRouter 兼容调用）、`framer-motion`（如输入中动画）。  
 - **Lint**：避免在 `try/catch` 内直接 `return <JSX />`（见历史 eslint 规则）。  
-- **金额**：`lib/format.ts` 展示。
+- **金额**：`lib/ledger/format.ts` 展示。
 
 ## 8. 测试
 

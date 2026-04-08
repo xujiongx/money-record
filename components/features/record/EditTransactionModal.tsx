@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { updateTransaction } from "@/app/actions/ledger";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
-import type { LedgerType, MemberRow, TransactionRow } from "@/lib/types";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
+import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 
 function toDatetimeLocalValue(iso: string) {

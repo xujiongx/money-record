@@ -5,7 +5,7 @@ import {
   fetchMembers,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household-server";
+import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 const PAGE_SIZE = 10;
 

@@ -93,7 +93,7 @@ erDiagram
 | income | 收入 |
 | expense | 支出 |
 
-### 5.2 分类（应用层 `lib/categories.ts`）
+### 5.2 分类（应用层 `lib/ledger/categories.ts`）
 
 **支出**：餐饮、购物、交通、教育、医疗、娱乐、其他。  
 **收入**：工资、奖金、投资、红包、其他。

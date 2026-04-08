@@ -19,7 +19,7 @@ import {
   subYears,
 } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import type { TransactionRow } from "@/lib/types";
+import type { TransactionRow } from "@/lib/ledger/types";
 
 /** 中国习惯：周一开始 */
 const WEEK_OPTS = { weekStartsOn: 1 as const };

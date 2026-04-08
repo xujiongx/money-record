@@ -15,8 +15,8 @@ import {
   deleteTransaction,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
-import { formatMoney } from "@/lib/format";
-import type { MemberRow, TransactionRow } from "@/lib/types";
+import { formatMoney } from "@/lib/ledger/format";
+import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";

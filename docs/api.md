@@ -92,7 +92,7 @@
 
 ### 4.0 分层说明
 
-- **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`** 统一出站：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/mistral-fetch.ts`**）；任一失败（HTTP、网络、空内容）且配置了 **`OPEN_ROUTER_API_KEY`** 时，自动改用 OpenRouter（`openai` SDK，`baseURL` 为 `https://openrouter.ai/api/v1`，默认模型 **`deepseek/deepseek-chat:free`**）。环境变量 **`XIAOBU_LLM_PROVIDER=openrouter`** 时跳过 Mistral、仅 OpenRouter（须已配 **`OPEN_ROUTER_API_KEY`**，用于验证备用模型）。仅配 OpenRouter 时直接使用备用通道。两者均未配置则返回配置类错误文案。Mistral 非 2xx 经 **`formatMistralHttpErrorForUser`**、网络经 **`formatMistralNetworkErrorForUser`**；备用通道错误在封装内单独格式化；双通道皆失败时错误信息合并展示。  
+- **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`** 统一出站：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；任一失败（HTTP、网络、空内容）且配置了 **`OPEN_ROUTER_API_KEY`** 时，自动改用 OpenRouter（`openai` SDK，`baseURL` 为 `https://openrouter.ai/api/v1`，默认模型 **`deepseek/deepseek-chat:free`**）。环境变量 **`XIAOBU_LLM_PROVIDER=openrouter`** 时跳过 Mistral、仅 OpenRouter（须已配 **`OPEN_ROUTER_API_KEY`**，用于验证备用模型）。仅配 OpenRouter 时直接使用备用通道。两者均未配置则返回配置类错误文案。Mistral 非 2xx 经 **`formatMistralHttpErrorForUser`**、网络经 **`formatMistralNetworkErrorForUser`**；备用通道错误在封装内单独格式化；双通道皆失败时错误信息合并展示。  
 - **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
 
 ### 4.1 返回类型 `MistralTextResult`
@@ -123,7 +123,7 @@ type MistralTextResult =
 
 - **小布浮层主对话**使用本 Action。底层请求带 **`response_format: { type: "json_object" }`**（Mistral 与 OpenRouter 均尽量兼容），`temperature` 约 `0.35`。  
 - 成功：`{ ok: true, reply: string, ledgerCreated?: boolean }`。`reply` 写入 UI 与 **`persistChatExchangeAction`**；**不**把模型原始 JSON 落库。  
-- 模型输出契约与校验见 **`lib/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（缺槽追问）| `ready`（可执行）。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类不在白名单则归 **「其他」** 并把原描述并入 `note`。  
+- 模型输出契约与校验见 **`lib/llm/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（缺槽追问）| `ready`（可执行）。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类不在白名单则归 **「其他」** 并把原描述并入 `note`。  
 - 执行或校验失败时仍可能 `ok: true`，在 `reply` 末尾追加说明（避免 throw 导致整页 500）。解析/网络失败：`{ ok: false, error }`。
 
 ### 4.3 `generateMonthlySummaryAction()`
@@ -158,7 +158,7 @@ type MistralTextResult =
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
 | 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` / `revalidateTag("ledger")` 刷新 |
-| LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `xiaobu-llm` 封装；客户端只收 `MistralTextResult` 文本结果 |
+| LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `lib/llm/xiaobu-llm` 封装；客户端只收 `MistralTextResult` 文本结果 |
 
 ## 7. 变更记录
 
@@ -169,5 +169,6 @@ type MistralTextResult =
 | 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |
 | 2026-04-08 | `mistral-chat.ts`：`mistralChatAction`、`generateMonthlySummaryAction`、`MistralTextResult`、`buildMonthlyLedgerDigest` |
 | 2026-04-08 | `chat-history.ts`：`fetchChatMessagesAction`、`persistChatExchangeAction`；迁移 `003_chat_messages` |
-| 2026-04-08 | `mistralLedgerChatAction` + `lib/chat-ledger.ts`（Zod）；浮层对话可结构化记账并 `createTransaction` |
-| 2026-04-08 | `lib/xiaobu-llm.ts`：Mistral 失败时回退 OpenRouter（默认 `deepseek/deepseek-chat:free`）；环境变量见 deployment / `.env.example` |
+| 2026-04-08 | `mistralLedgerChatAction` + `lib/llm/chat-ledger.ts`（Zod）；浮层对话可结构化记账并 `createTransaction` |
+| 2026-04-08 | `lib/llm/xiaobu-llm.ts`：Mistral 失败时回退 OpenRouter；环境变量见 deployment / `.env.example` |
+| 2026-04-08 | 重组 `lib/`：`ledger/`、`household/`、`llm/`（见 development-guide 目录树） |

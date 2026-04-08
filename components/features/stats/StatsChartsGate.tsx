@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { StatsChartsSkeleton } from "@/components/common/StatsChartsSkeleton";
-import type { MemberRow, TransactionRow } from "@/lib/types";
+import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 
 const StatsChartsLazy = dynamic(
   () =>

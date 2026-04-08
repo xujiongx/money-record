@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
-} from "@/lib/categories";
-import type { LedgerType, MemberRow } from "@/lib/types";
+} from "@/lib/ledger/categories";
+import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 
 const ledgerIntentSchema = z.enum(["none", "collect", "ready"]);
 

@@ -50,7 +50,7 @@ flowchart TB
 | 图表 | Recharts（统计页经 **`StatsChartsGate` 客户端 `dynamic` + `ssr: false`** 分包） |
 | 动效 | Framer Motion（局部使用） |
 | 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
-| 外部 LLM | Mistral：`undici`（`lib/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/xiaobu-llm.ts`） |
+| 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/llm/xiaobu-llm.ts`） |
 | 日期 | date-fns |
 
 ## 3. 渲染模型：服务端与客户端如何分工
@@ -104,7 +104,7 @@ flowchart TB
 ## 7. 小布助手（LLM 对话）
 
 - **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月小结」）等子目录组件。  
-- **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/xiaobu-llm.ts`**（**`xiaobuChatCompletion`**）出站：优先 **`lib/mistral-fetch.ts`** → Mistral `chat/completions`，失败或未配 Mistral 密钥时可用 **OpenRouter**（`openai` SDK，`https://openrouter.ai/api/v1`，默认 `deepseek/deepseek-chat:free`）；结构化记账契约见 **`lib/chat-ledger.ts`**。  
+- **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/llm/xiaobu-llm.ts`**（**`xiaobuChatCompletion`**）出站：优先 **`lib/llm/mistral-fetch.ts`** → Mistral `chat/completions`，失败或未配 Mistral 密钥时可用 **OpenRouter**（`openai` SDK，`https://openrouter.ai/api/v1`，默认 `deepseek/deepseek-chat:free`）；结构化记账契约见 **`lib/llm/chat-ledger.ts`**。  
 - **密钥**：**`MISTRAL_API_KEY`** 与 **`OPEN_ROUTER_API_KEY`** 至少其一（同配时 Mistral 优先）；及可选模型名、代理、OpenRouter 头，**永不**下发浏览器。  
 - **错误契约**：返回 **`MistralTextResult`**（`{ ok: true, data } | { ok: false, error }`），避免预期失败 **`throw`** 触发 Next Server Action 整页 **500**。  
 - **本月小结**：`buildMonthlyLedgerDigest` 与统计页一致按 **`occurred_at`** 当月过滤，并含成员维度数据供提示词点评（见 Action 内提示词）。
@@ -135,4 +135,5 @@ flowchart TB
 |------|------|
 | 2026-04-08 | 初版：RSC/CSR 分工、多家庭、缓存摘要、统计分包、安全边界 |
 | 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
-| 2026-04-08 | `xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |
+| 2026-04-08 | `lib/llm/xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |
+| 2026-04-08 | `lib/` 分层：`ledger/`、`household/`、`llm/`、`supabase/` |

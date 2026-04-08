@@ -1,4 +1,4 @@
-import type { LedgerType, MemberRow, TransactionRow } from "@/lib/types";
+import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 
 export function summarizeLedger(transactions: TransactionRow[]) {
   let income = 0;

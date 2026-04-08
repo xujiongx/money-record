@@ -9,7 +9,7 @@ import {
   formatMistralHttpErrorForUser,
   formatMistralNetworkErrorForUser,
   readEnv,
-} from "@/lib/mistral-fetch";
+} from "@/lib/llm/mistral-fetch";
 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
@@ -27,7 +27,7 @@ export type XiaobuChatOptions = {
 };
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
-const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
+const OPENROUTER_DEFAULT_MODEL = "openrouter/free";
 /** OpenRouter 可选头；Node fetch/undici 要求值为 ByteString（Latin-1），中文会破坏 Headers.append。 */
 const OPENROUTER_DEFAULT_X_TITLE = "record-xiaobu";
 
