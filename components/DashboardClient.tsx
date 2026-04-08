@@ -9,6 +9,8 @@ import { summarizeLedger, memberStats } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
 import type { MemberRow, TransactionRow } from "@/lib/types";
 import { MemberAvatar } from "@/components/MemberAvatar";
+import { EditTransactionModal } from "@/components/EditTransactionModal";
+import { SwipeTransactionRow } from "@/components/SwipeTransactionRow";
 
 export function DashboardClient({
   householdCode,
@@ -20,6 +22,9 @@ export function DashboardClient({
   initialTransactions: TransactionRow[];
 }) {
   const [transactions, setTransactions] = useState(initialTransactions);
+  const [editing, setEditing] = useState<TransactionRow | null>(null);
+  /** 最近账单：左滑展开时仅一条保持打开 */
+  const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const refresh = useCallback(() => {
@@ -85,76 +90,95 @@ export function DashboardClient({
       </section>
 
       <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-stone-800">最近账单</h2>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-semibold text-stone-800">最近账单</h2>
+            <p className="mt-0.5 text-[10px] text-stone-400">向左滑动单条可编辑、删除</p>
+          </div>
           {pending && (
-            <span className="text-xs text-stone-400">处理中…</span>
+            <span className="shrink-0 text-xs text-stone-400">处理中…</span>
           )}
         </div>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-2 divide-y divide-stone-100">
           {recent.length === 0 && (
             <li className="py-8 text-center text-sm text-stone-500">暂无记录，去记一笔吧</li>
           )}
-          {recent.map((t, i) => (
-            <motion.li
-              key={t.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className="flex items-center justify-between gap-2 rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2.5"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={
-                      t.type === "income"
-                        ? "rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800"
-                        : "rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-medium text-rose-800"
-                    }
-                  >
-                    {t.type === "income" ? "收入" : "支出"}
-                  </span>
-                  <span className="truncate text-sm font-medium text-stone-800">
-                    {t.category}
-                  </span>
-                </div>
-                <p className="mt-0.5 truncate text-xs text-stone-500">
-                  {t.members?.name ?? "成员"} ·{" "}
-                  {format(new Date(t.occurred_at), "M月d日 HH:mm", { locale: zhCN })}
-                  {t.note ? ` · ${t.note}` : ""}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span
-                  className={
-                    t.type === "income"
-                      ? "text-sm font-semibold text-emerald-600"
-                      : "text-sm font-semibold text-rose-600"
-                  }
-                >
-                  {t.type === "income" ? "+" : "-"}
-                  {formatMoney(t.amount)}
-                </span>
-                <button
-                  type="button"
-                  className="rounded-lg p-1.5 text-stone-400 transition hover:bg-rose-50 hover:text-rose-600"
-                  aria-label="删除本条"
-                  onClick={() => {
-                    if (confirm("确定删除这条记录？")) {
-                      startTransition(async () => {
-                        await deleteTransaction(t.id);
-                        refresh();
-                      });
-                    }
+          {recent.map((t, i) => {
+            const isIn = t.type === "income";
+            return (
+              <motion.li
+                key={t.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.015, duration: 0.15 }}
+                className="py-0 first:pt-0"
+              >
+                <SwipeTransactionRow
+                  rowId={t.id}
+                  openSwipeId={swipeOpenId}
+                  setOpenSwipeId={setSwipeOpenId}
+                  onEdit={() => setEditing(t)}
+                  onDelete={() => {
+                    if (!confirm("确定删除这条记录？")) return;
+                    if (!confirm("删除后无法恢复，请再次确认。")) return;
+                    startTransition(async () => {
+                      await deleteTransaction(t.id);
+                      refresh();
+                    });
                   }}
                 >
-                  <TrashIcon />
-                </button>
-              </div>
-            </motion.li>
-          ))}
+                  <div className="flex cursor-grab gap-3 py-2.5 pl-1 pr-2 active:cursor-grabbing">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={
+                            isIn
+                              ? "shrink-0 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
+                              : "shrink-0 rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800"
+                          }
+                        >
+                          {isIn ? "收入" : "支出"}
+                        </span>
+                        <span className="truncate text-sm font-semibold text-stone-800">
+                          {t.category}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-[11px] leading-snug text-stone-500">
+                        {t.members?.name ?? "成员"} ·{" "}
+                        {format(new Date(t.occurred_at), "M月d日 HH:mm", {
+                          locale: zhCN,
+                        })}
+                        {t.note ? ` · ${t.note}` : ""}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 self-start pt-0.5 text-right text-sm font-bold tabular-nums tracking-tight ${
+                        isIn ? "text-emerald-600" : "text-rose-600"
+                      }`}
+                    >
+                      {isIn ? "+" : "-"}
+                      {formatMoney(t.amount)}
+                    </span>
+                  </div>
+                </SwipeTransactionRow>
+              </motion.li>
+            );
+          })}
         </ul>
       </section>
+
+      {editing && (
+        <EditTransactionModal
+          key={editing.id}
+          transaction={editing}
+          members={initialMembers}
+          onClose={() => {
+            setEditing(null);
+            setSwipeOpenId(null);
+          }}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
@@ -195,16 +219,3 @@ function SummaryCard({
   );
 }
 
-function TrashIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}

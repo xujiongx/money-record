@@ -111,6 +111,41 @@ export async function createTransaction(input: {
   revalidatePath("/members");
 }
 
+export async function updateTransaction(
+  id: string,
+  input: {
+    memberId: string;
+    type: LedgerType;
+    category: string;
+    amount: number;
+    note?: string;
+    occurredAt: string;
+  },
+) {
+  if (input.amount <= 0 || !Number.isFinite(input.amount)) {
+    throw new Error("金额无效");
+  }
+  const householdId = await requireHouseholdId();
+  const supabase = createServiceClient();
+  const { error } = await supabase
+    .from("transactions")
+    .update({
+      member_id: input.memberId,
+      type: input.type,
+      category: input.category,
+      amount: input.amount,
+      note: input.note?.trim() || null,
+      occurred_at: input.occurredAt,
+    })
+    .eq("id", id)
+    .eq("household_id", householdId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+  revalidatePath("/record");
+  revalidatePath("/stats");
+  revalidatePath("/members");
+}
+
 export async function deleteTransaction(id: string) {
   const householdId = await requireHouseholdId();
   const supabase = createServiceClient();
