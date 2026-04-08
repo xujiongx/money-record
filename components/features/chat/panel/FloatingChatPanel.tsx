@@ -15,6 +15,7 @@ export type FloatingChatPanelProps = {
   messages: ChatUiMessage[];
   pending: boolean;
   error: string | null;
+  onRequestRetry?: (() => void) | null;
   input: string;
   onInputChange: (value: string) => void;
   onMonthlyShortcut: () => void;
@@ -29,6 +30,7 @@ export function FloatingChatPanel({
   messages,
   pending,
   error,
+  onRequestRetry,
   input,
   onInputChange,
   onMonthlyShortcut,
@@ -57,6 +59,7 @@ export function FloatingChatPanel({
         />
         <ChatPanelFooter
           error={error}
+          onRequestRetry={onRequestRetry}
           pending={pending}
           historyLoading={historyLoading}
           input={input}

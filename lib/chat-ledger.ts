@@ -39,11 +39,17 @@ export function parseLedgerChatResponse(
   try {
     json = JSON.parse(extractJsonFromModelContent(raw));
   } catch {
-    return { ok: false, error: "模型返回不是合法 JSON，请重试" };
+    return {
+      ok: false,
+      error: "小布这次回复格式异常，请点击「重试」或换一句话再说。",
+    };
   }
   const parsed = ledgerChatResponseSchema.safeParse(json);
   if (!parsed.success) {
-    return { ok: false, error: "模型 JSON 字段不符合约定，请重试" };
+    return {
+      ok: false,
+      error: "小布回复不完整，请点击「重试」或简化说法后再试。",
+    };
   }
   return { ok: true, data: parsed.data };
 }

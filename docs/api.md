@@ -92,7 +92,7 @@
 
 ### 4.0 分层说明
 
-- **对话模型调用**：`app/actions/mistral-chat.ts` — 仅只读账本拼提示词，**不直接写** `chat_messages`；需 **`MISTRAL_API_KEY`**，HTTP 见 **`lib/mistral-fetch.ts`**。  
+- **对话模型调用**：`app/actions/mistral-chat.ts` — 仅只读账本拼提示词，**不直接写** `chat_messages`；需 **`MISTRAL_API_KEY`**，HTTP 见 **`lib/mistral-fetch.ts`**。非 2xx 响应经 **`formatMistralHttpErrorForUser`** 转为用户可见中文（不暴露原始 JSON）；连接类异常用 **`formatMistralNetworkErrorForUser`**。  
 - **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
 
 ### 4.1 返回类型 `MistralTextResult`

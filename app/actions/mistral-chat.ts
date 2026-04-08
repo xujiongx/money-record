@@ -13,6 +13,8 @@ import {
 import { formatMoney } from "@/lib/format";
 import {
   fetchUpstream,
+  formatMistralHttpErrorForUser,
+  formatMistralNetworkErrorForUser,
   formatUpstreamDevDetail,
   isProxyConfigured,
   mistralConnectHint,
@@ -135,7 +137,7 @@ async function callMistral(
 ) {
   const key = readEnv("MISTRAL_API_KEY");
   if (!key) {
-    throw new Error("未配置 MISTRAL_API_KEY，请在 .env.local 中设置");
+    throw new Error("对话服务未配置，暂时无法使用小布。");
   }
   const model = readEnv("MISTRAL_MODEL") ?? "mistral-small-latest";
   const temperature = options?.temperature ?? 0.6;
@@ -159,21 +161,25 @@ async function callMistral(
       body: JSON.stringify(body),
     });
   } catch (err) {
-    const { message, cause, code } = serializeFetchError(err);
-    const proxyUsed = isProxyConfigured();
-    const hint = mistralConnectHint(proxyUsed);
-    const dev = formatUpstreamDevDetail(cause, code);
-    throw new Error(`${message}${dev} ${hint}`);
+    const userMsg = formatMistralNetworkErrorForUser(err);
+    if (process.env.NODE_ENV === "development") {
+      const { cause, code } = serializeFetchError(err);
+      const proxyUsed = isProxyConfigured();
+      const hint = mistralConnectHint(proxyUsed);
+      const dev = formatUpstreamDevDetail(cause, code);
+      throw new Error(`${userMsg}${dev} ${hint}`);
+    }
+    throw new Error(userMsg);
   }
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Mistral 请求失败（${res.status}）：${text.slice(0, 200)}`);
+    throw new Error(formatMistralHttpErrorForUser(res.status, text));
   }
   const data = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
   };
   const content = data.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error("模型未返回有效内容");
+  if (!content) throw new Error("小布没有生成有效内容，请重试。");
   return content;
 }
 

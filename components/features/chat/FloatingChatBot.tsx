@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
   fetchChatMessagesAction,
   persistChatExchangeAction,
@@ -25,6 +25,8 @@ export function FloatingChatBot() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  /** 模型请求失败且最后一条为用户消息时，展示「重试」 */
+  const [requestNeedsRetry, setRequestNeedsRetry] = useState(false);
   const [pending, startTransition] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +54,7 @@ export function FloatingChatBot() {
       if (cancelled) return;
       setHistoryLoading(true);
       setError(null);
+      setRequestNeedsRetry(false);
       setMessages([]);
       const r = await fetchChatMessagesAction();
       if (cancelled) return;
@@ -97,10 +100,55 @@ export function FloatingChatBot() {
     return () => cancelAnimationFrame(id);
   }, [messages, open, pending]);
 
+  const retryLastRequest = useCallback(() => {
+    if (pending || historyLoading) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "user") return;
+    const text = last.content;
+    const prior: MistralChatMessage[] = messages.slice(0, -1).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    setError(null);
+    setRequestNeedsRetry(false);
+    startTransition(async () => {
+      const isMonthly = text === "帮我生成本月小结";
+      let reply: string;
+      if (isMonthly) {
+        const result = await generateMonthlySummaryAction();
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        reply = result.data;
+      } else {
+        const result = await mistralLedgerChatAction(prior, text);
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        reply = result.reply;
+      }
+      const assistantMsg: ChatUiMessage = {
+        id: newChatMessageId(),
+        role: "assistant",
+        content: reply,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      const saved = await persistChatExchangeAction(text, reply);
+      if (!saved.ok) {
+        setError(`对话已显示，但未写入历史：${saved.error}`);
+      }
+    });
+  }, [messages, pending, historyLoading]);
+
   const sendUserMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || pending || historyLoading) return;
     setError(null);
+    setRequestNeedsRetry(false);
     const userMsg: ChatUiMessage = {
       id: newChatMessageId(),
       role: "user",
@@ -116,7 +164,7 @@ export function FloatingChatBot() {
       const result = await mistralLedgerChatAction(prior, trimmed);
       if (!result.ok) {
         setError(result.error);
-        setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+        setRequestNeedsRetry(true);
         return;
       }
       const assistantMsg: ChatUiMessage = {
@@ -136,6 +184,7 @@ export function FloatingChatBot() {
     if (pending || historyLoading) return;
     const shortcutText = "帮我生成本月小结";
     setError(null);
+    setRequestNeedsRetry(false);
     const userMsg: ChatUiMessage = {
       id: newChatMessageId(),
       role: "user",
@@ -146,7 +195,7 @@ export function FloatingChatBot() {
       const result = await generateMonthlySummaryAction();
       if (!result.ok) {
         setError(result.error);
-        setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
+        setRequestNeedsRetry(true);
         return;
       }
       const assistantMsg: ChatUiMessage = {
@@ -170,6 +219,7 @@ export function FloatingChatBot() {
         onOpen={() => {
           setOpen(true);
           setError(null);
+          setRequestNeedsRetry(false);
         }}
       />
       <FloatingChatPanel
@@ -180,6 +230,7 @@ export function FloatingChatBot() {
         messages={messages}
         pending={pending}
         error={error}
+        onRequestRetry={requestNeedsRetry ? retryLastRequest : null}
         input={input}
         onInputChange={setInput}
         onMonthlyShortcut={onMonthlyShortcut}

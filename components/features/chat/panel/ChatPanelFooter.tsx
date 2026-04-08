@@ -9,6 +9,8 @@ import {
 
 type ChatPanelFooterProps = {
   error: string | null;
+  /** 与 error 同时出现时展示「重试」按钮（如模型请求失败但用户消息已保留） */
+  onRequestRetry?: (() => void) | null;
   pending: boolean;
   historyLoading: boolean;
   input: string;
@@ -19,6 +21,7 @@ type ChatPanelFooterProps = {
 
 export function ChatPanelFooter({
   error,
+  onRequestRetry,
   pending,
   historyLoading,
   input,
@@ -36,9 +39,19 @@ export function ChatPanelFooter({
   return (
     <>
       {error && (
-        <p className="shrink-0 border-t border-red-100 bg-red-50/80 px-4 py-2 text-center text-xs text-red-600">
-          {error}
-        </p>
+        <div className="shrink-0 flex flex-col items-center gap-2 border-t border-red-100 bg-red-50/80 px-4 py-2">
+          <p className="text-center text-xs text-red-600">{error}</p>
+          {onRequestRetry && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={onRequestRetry}
+              className="rounded-full border border-red-200 bg-white px-4 py-1.5 text-xs font-medium text-red-700 shadow-sm transition hover:bg-red-50 disabled:opacity-45"
+            >
+              重试
+            </button>
+          )}
+        </div>
       )}
 
       <ChatVoiceInputProvider
