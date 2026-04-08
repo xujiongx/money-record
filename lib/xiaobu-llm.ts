@@ -27,7 +27,39 @@ export type XiaobuChatOptions = {
 };
 
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
-const OPENROUTER_DEFAULT_MODEL = "deepseek/deepseek-chat:free";
+const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
+/** OpenRouter 可选头；Node fetch/undici 要求值为 ByteString（Latin-1），中文会破坏 Headers.append。 */
+const OPENROUTER_DEFAULT_X_TITLE = "record-xiaobu";
+
+/** true 表示可作 HTTP 头值（每码点 ≤255，与 Fetch ByteString 一致）。 */
+function isHeaderByteStringSafe(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    if (value.charCodeAt(i) > 255) return false;
+  }
+  return true;
+}
+
+function pickOpenRouterOptionalHeader(
+  name: string,
+  raw: string | undefined,
+): string | undefined {
+  if (raw === undefined) return undefined;
+  const t = raw.trim();
+  if (!t || !isHeaderByteStringSafe(t)) {
+    if (t && !isHeaderByteStringSafe(t) && process.env.NODE_ENV === "development") {
+      console.warn(
+        `[xiaobu-openrouter] skip header ${name}: use ASCII/Latin-1 only (HTTP ByteString; CJK not allowed).`,
+      );
+    }
+    return undefined;
+  }
+  return t;
+}
+
+/** 设为 `openrouter` 时跳过 Mistral，仅用 OpenRouter（便于本地验证备用通道）。 */
+function isUseOpenRouterOnly(): boolean {
+  return readEnv("XIAOBU_LLM_PROVIDER")?.toLowerCase() === "openrouter";
+}
 
 type TryResult =
   | { ok: true; content: string }
@@ -89,6 +121,57 @@ async function tryMistralCompletion(
   return { ok: true, content };
 }
 
+function safeJsonStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+/** 终端调试：不向用户暴露原始错误体，仅打服务端日志。 */
+function logOpenRouterFailure(
+  e: unknown,
+  ctx: { model: string; responseFormatJsonObject?: boolean },
+): void {
+  const base = {
+    tag: "xiaobu-openrouter",
+    model: ctx.model,
+    responseFormatJsonObject: ctx.responseFormatJsonObject ?? false,
+  };
+
+  if (e instanceof OpenAI.APIError) {
+    console.error("[xiaobu-openrouter] APIError", {
+      ...base,
+      status: e.status,
+      message: e.message,
+      code: e.code,
+      type: e.type,
+      param: e.param,
+      requestID: e.requestID,
+      errorBody: e.error,
+    });
+    return;
+  }
+
+  if (e instanceof Error) {
+    const cause =
+      e.cause instanceof Error
+        ? { name: e.cause.name, message: e.cause.message }
+        : e.cause;
+    console.error("[xiaobu-openrouter] Error", {
+      ...base,
+      name: e.name,
+      message: e.message,
+      cause: cause ?? undefined,
+      stack: process.env.NODE_ENV === "development" ? e.stack : undefined,
+    });
+    return;
+  }
+
+  console.error("[xiaobu-openrouter] unknown", { ...base, raw: safeJsonStringify(e) });
+}
+
 function formatOpenRouterError(e: unknown): string {
   if (e instanceof OpenAI.APIError) {
     const s = e.status;
@@ -117,8 +200,14 @@ function formatOpenRouterError(e: unknown): string {
 function getOpenRouterClient(): OpenAI | null {
   const apiKey = readEnv("OPEN_ROUTER_API_KEY");
   if (!apiKey) return null;
-  const referer = readEnv("OPEN_ROUTER_HTTP_REFERER");
-  const title = readEnv("OPEN_ROUTER_APP_TITLE") ?? "家庭记账小布";
+  const referer = pickOpenRouterOptionalHeader(
+    "HTTP-Referer",
+    readEnv("OPEN_ROUTER_HTTP_REFERER"),
+  );
+  const titleEnv = readEnv("OPEN_ROUTER_APP_TITLE");
+  const title =
+    pickOpenRouterOptionalHeader("X-Title", titleEnv) ??
+    OPENROUTER_DEFAULT_X_TITLE;
   return new OpenAI({
     apiKey,
     baseURL: OPENROUTER_BASE,
@@ -154,23 +243,42 @@ async function tryOpenRouterCompletion(
     });
     const content = completion.choices[0]?.message?.content?.trim();
     if (!content) {
+      console.error("[xiaobu-openrouter] empty assistant content", {
+        tag: "xiaobu-openrouter",
+        model,
+        choices: safeJsonStringify(completion.choices),
+        id: completion.id,
+        finishReason: completion.choices[0]?.finish_reason,
+      });
       return { ok: false, userMessage: "备用模型未返回有效内容，请重试。" };
     }
     return { ok: true, content };
   } catch (e) {
+    logOpenRouterFailure(e, {
+      model,
+      responseFormatJsonObject: options?.responseFormatJsonObject,
+    });
     return { ok: false, userMessage: formatOpenRouterError(e) };
   }
 }
 
 /**
- * 统一入口：有 Mistral 密钥则先请求 Mistral；失败或未配置密钥时，若存在 OPEN_ROUTER_API_KEY 则走 OpenRouter。
+ * 统一入口：默认有 Mistral 密钥则先请求 Mistral；失败或未配置密钥时，若存在 OPEN_ROUTER_API_KEY 则走 OpenRouter。
+ * 设置 `XIAOBU_LLM_PROVIDER=openrouter` 时忽略 Mistral，仅走 OpenRouter（须配置 OPEN_ROUTER_API_KEY）。
  */
 export async function xiaobuChatCompletion(
   messages: XiaobuChatMessage[],
   options?: XiaobuChatOptions,
 ): Promise<string> {
-  const hasMistral = Boolean(readEnv("MISTRAL_API_KEY"));
+  const openRouterOnly = isUseOpenRouterOnly();
+  const hasMistral = Boolean(readEnv("MISTRAL_API_KEY")) && !openRouterOnly;
   const hasOpenRouter = Boolean(readEnv("OPEN_ROUTER_API_KEY"));
+
+  if (openRouterOnly && !hasOpenRouter) {
+    throw new Error(
+      "已设置 XIAOBU_LLM_PROVIDER=openrouter，但未配置 OPEN_ROUTER_API_KEY。",
+    );
+  }
 
   if (!hasMistral && !hasOpenRouter) {
     throw new Error(

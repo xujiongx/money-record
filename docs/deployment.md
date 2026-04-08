@@ -39,7 +39,8 @@ flowchart TB
 | `OPEN_ROUTER_API_KEY` | 同上「至少其一」 | **仅服务端**；OpenRouter（`https://openrouter.ai/api/v1`）；作 Mistral 失败时的备用 |
 | `OPEN_ROUTER_MODEL` | 否 | 默认 `deepseek/deepseek-chat:free` |
 | `OPEN_ROUTER_HTTP_REFERER` | 否 | 可选；OpenRouter 统计用 `HTTP-Referer` |
-| `OPEN_ROUTER_APP_TITLE` | 否 | 可选；默认「家庭记账小布」，对应 `X-Title` |
+| `OPEN_ROUTER_APP_TITLE` | 否 | 可选；默认 `record-xiaobu`（对应 `X-Title`）。**须 ASCII/Latin-1**，不可填中文（HTTP 头 ByteString 限制）。 |
+| `XIAOBU_LLM_PROVIDER` | 否 | 设为 **`openrouter`** 时强制只用 OpenRouter、不请求 Mistral（仅调试）；须已配 `OPEN_ROUTER_API_KEY` |
 | `HTTPS_PROXY` / `HTTP_PROXY` 等 | 否 | Node 访问外网需代理时（与 Clash 等 HTTP 端口一致） |
 
 **密钥管理**：Service Role、Mistral / OpenRouter Key 仅存部署平台密钥区；勿提交 Git。详见根目录 [.env.example](../.env.example)。

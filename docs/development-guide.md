@@ -130,6 +130,7 @@ cp .env.example .env.local
 | `MISTRAL_PROXY_URL` / `HTTPS_PROXY` 等 | 服务端 | 可选；Node 访问 Mistral 走代理时配置（见 [.env.example](../.env.example)） |
 | `OPEN_ROUTER_API_KEY` | **仅服务端** | 小布备用；Mistral 失败时自动使用；单独配置时仅走 OpenRouter |
 | `OPEN_ROUTER_MODEL` 等 | 服务端 | 可选；默认 `deepseek/deepseek-chat:free`；Referer/Title 见 deployment |
+| `XIAOBU_LLM_PROVIDER` | 服务端 | 可选；设为 **`openrouter`** 时强制仅 OpenRouter（测通后去掉） |
 
 ## 7. 代码与约定
 
@@ -165,5 +166,5 @@ cp .env.example .env.local
 | 另一台设备更新不自动出现 | 刷新页面或切换路由；若需近实时可后续接 Realtime 或手动刷新按钮。 |
 | Tab 切换仍慢 | 生产环境看 Supabase 区域延迟；已做 `unstable_cache` + 统计页 Recharts 分包；可开 Network 看 RSC 与 JS chunk。 |
 | `ssr: false` 报错 | 勿在 Server Component 写 `dynamic(..., { ssr:false })`；统计页用 `StatsChartsGate` 客户端封装。 |
-| 小布请求失败 / 终端 `fetch failed` | 检查 `MISTRAL_API_KEY` / `OPEN_ROUTER_API_KEY`、本机网络；Mistral 限流时可配 OpenRouter 作回退；Node 访问 Mistral 需代理时在 `.env.local` 配置 `MISTRAL_PROXY_URL` 或 `HTTPS_PROXY` 后重启 dev。 |
+| 小布请求失败 / 终端 `fetch failed` | 检查 `MISTRAL_API_KEY` / `OPEN_ROUTER_API_KEY`、本机网络；Mistral 限流时可配 OpenRouter 作回退；Node 访问 Mistral 需代理时在 `.env.local` 配置 `MISTRAL_PROXY_URL` 或 `HTTPS_PROXY` 后重启 dev。**OpenRouter** 失败时请看运行 `next dev` 的终端：会以 **`[xiaobu-openrouter]`** 打印 `status`、`errorBody`、`requestID` 等（不经 UI 暴露给用户）。 |
 | 小布 Action 返回 500 | 业务错误应走 `MistralTextResult`，勿在 Action 内对预期失败 `throw`，否则 RSC POST 易报 500。 |
