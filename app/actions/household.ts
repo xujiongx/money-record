@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
 import {
@@ -20,6 +20,7 @@ async function writeHouseholdCookie(code: string) {
   });
   revalidatePath("/", "layout");
   revalidatePath("/login");
+  revalidateTag("ledger", "max");
 }
 
 /**
@@ -103,4 +104,5 @@ export async function clearHouseholdSession() {
   jar.delete(HOUSEHOLD_CODE_COOKIE);
   revalidatePath("/", "layout");
   revalidatePath("/login");
+  revalidateTag("ledger", "max");
 }

@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { cache as cacheReact } from "react";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
 import {
@@ -36,7 +37,8 @@ function mapTransaction(row: {
   };
 }
 
-async function requireHouseholdId(): Promise<string> {
+/** 同一次 RSC 请求内去重（如 Promise.all(fetchMembers, fetchTransactions) 只查一次 households） */
+const requireHouseholdId = cacheReact(async (): Promise<string> => {
   const jar = await cookies();
   const raw = jar.get(HOUSEHOLD_CODE_COOKIE)?.value ?? "";
   const code = normalizeHouseholdCode(raw);
@@ -52,10 +54,11 @@ async function requireHouseholdId(): Promise<string> {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("家庭编码已失效，请重新输入");
   return data.id;
-}
+});
 
-export async function fetchMembers(): Promise<MemberRow[]> {
-  const householdId = await requireHouseholdId();
+async function loadMembersForHousehold(
+  householdId: string,
+): Promise<MemberRow[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("members")
@@ -66,8 +69,15 @@ export async function fetchMembers(): Promise<MemberRow[]> {
   return (data ?? []) as MemberRow[];
 }
 
-export async function fetchTransactions(): Promise<TransactionRow[]> {
-  const householdId = await requireHouseholdId();
+const getCachedMembers = unstable_cache(
+  async (householdId: string) => loadMembersForHousehold(householdId),
+  ["ledger-members"],
+  { revalidate: 120, tags: ["ledger"] },
+);
+
+async function loadTransactionsForHousehold(
+  householdId: string,
+): Promise<TransactionRow[]> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("transactions")
@@ -80,6 +90,30 @@ export async function fetchTransactions(): Promise<TransactionRow[]> {
   return (data ?? []).map((row) =>
     mapTransaction(row as Parameters<typeof mapTransaction>[0]),
   );
+}
+
+const getCachedTransactions = unstable_cache(
+  async (householdId: string) => loadTransactionsForHousehold(householdId),
+  ["ledger-transactions"],
+  { revalidate: 120, tags: ["ledger"] },
+);
+
+export async function fetchMembers(): Promise<MemberRow[]> {
+  const householdId = await requireHouseholdId();
+  return getCachedMembers(householdId);
+}
+
+export async function fetchTransactions(): Promise<TransactionRow[]> {
+  const householdId = await requireHouseholdId();
+  return getCachedTransactions(householdId);
+}
+
+function invalidateLedger() {
+  revalidateTag("ledger", "max");
+  revalidatePath("/");
+  revalidatePath("/record");
+  revalidatePath("/stats");
+  revalidatePath("/members");
 }
 
 export async function createTransaction(input: {
@@ -105,10 +139,7 @@ export async function createTransaction(input: {
     occurred_at: input.occurredAt ?? new Date().toISOString(),
   });
   if (error) throw new Error(error.message);
-  revalidatePath("/");
-  revalidatePath("/record");
-  revalidatePath("/stats");
-  revalidatePath("/members");
+  invalidateLedger();
 }
 
 export async function updateTransaction(
@@ -140,10 +171,7 @@ export async function updateTransaction(
     .eq("id", id)
     .eq("household_id", householdId);
   if (error) throw new Error(error.message);
-  revalidatePath("/");
-  revalidatePath("/record");
-  revalidatePath("/stats");
-  revalidatePath("/members");
+  invalidateLedger();
 }
 
 export async function deleteTransaction(id: string) {
@@ -155,6 +183,7 @@ export async function deleteTransaction(id: string) {
     .eq("id", id)
     .eq("household_id", householdId);
   if (error) throw new Error(error.message);
+  revalidateTag("ledger", "max");
   revalidatePath("/");
   revalidatePath("/stats");
   revalidatePath("/members");

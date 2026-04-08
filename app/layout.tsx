@@ -13,8 +13,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "家庭记账",
   description: "布布和一二的家庭温暖小账本",
