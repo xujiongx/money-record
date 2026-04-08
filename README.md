@@ -6,7 +6,8 @@
 
 - Next.js 16（App Router）+ TypeScript + Tailwind CSS 4
 - Supabase（PostgreSQL）
-- Recharts、Framer Motion、date-fns
+- Recharts、Framer Motion、date-fns、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、undici（Mistral 上游请求）
+- **小布助手**：底部导航外的可拖动入口，多轮对话与「本月小结」（需配置 `MISTRAL_API_KEY`，见 `.env.example`）
 
 ## 本地运行
 
@@ -24,6 +25,7 @@
 |------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | 项目 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | **仅服务端**，所有读写经 Server Actions，勿提交或暴露 |
+| `MISTRAL_API_KEY` | （可选）启用小布对话 / 本月小结，**仅服务端**；代理相关变量见 `.env.example` |
 
 ### 3. 家庭编码与登录
 

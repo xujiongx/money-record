@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
 import {
   generateMonthlySummaryAction,
   mistralChatAction,
   type MistralChatMessage,
 } from "@/app/actions/mistral-chat";
+import { ChatBotMascot } from "@/components/ChatBotMascot";
+import { DraggableFab } from "@/components/DraggableFab";
 
 const OFFSET_STORAGE_KEY = "record-chatbot-offset-v1";
 
@@ -16,94 +19,45 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function RobotIcon({ className }: { className?: string }) {
+function TypingDots() {
   return (
-    <svg
-      className={className}
-      width="28"
-      height="28"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
+    <div
+      className="flex items-center gap-1.5 px-3 py-2"
+      role="status"
+      aria-label="正在回复"
     >
-      <rect
-        x="5"
-        y="7"
-        width="14"
-        height="12"
-        rx="3"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <circle cx="9.5" cy="12" r="1.2" fill="currentColor" />
-      <circle cx="14.5" cy="12" r="1.2" fill="currentColor" />
-      <path
-        d="M9 15.5h6"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 4v2M8 5l1 1.5M16 5l-1 1.5"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-      <path
-        d="M7 19h10"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        opacity="0.5"
-      />
-    </svg>
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="h-2 w-2 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 shadow-sm"
+          animate={{ y: [0, -5, 0], opacity: [0.45, 1, 0.45] }}
+          transition={{
+            duration: 0.75,
+            repeat: Infinity,
+            delay: i * 0.14,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
+/** 小布助手：可拖动入口 + 对话浮层 */
 export function FloatingChatBot() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
 
-  const dragRef = useRef<{
-    pointerId: number | null;
-    startClientX: number;
-    startClientY: number;
-    startOffsetX: number;
-    startOffsetY: number;
-    moved: boolean;
-  } | null>(null);
-
-  /* Portal 与 localStorage 需在 hydration 之后执行，避免 SSR 与首屏不一致 */
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setMounted(true);
-    try {
-      const raw = localStorage.getItem(OFFSET_STORAGE_KEY);
-      if (raw) {
-        const p = JSON.parse(raw) as { x?: number; y?: number };
-        if (typeof p.x === "number" && typeof p.y === "number") {
-          setOffset({ x: p.x, y: p.y });
-        }
-      }
-    } catch {
-      /* ignore */
-    }
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
-
-  function persistOffset(x: number, y: number) {
-    try {
-      localStorage.setItem(OFFSET_STORAGE_KEY, JSON.stringify({ x, y }));
-    } catch {
-      /* ignore */
-    }
-  }
 
   useEffect(() => {
     if (!open) return;
@@ -132,54 +86,6 @@ export function FloatingChatBot() {
     if (!listRef.current) return;
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages, open, pending]);
-
-  const onFabPointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = {
-      pointerId: e.pointerId,
-      startClientX: e.clientX,
-      startClientY: e.clientY,
-      startOffsetX: offset.x,
-      startOffsetY: offset.y,
-      moved: false,
-    };
-  };
-
-  const onFabPointerMove = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d || d.pointerId !== e.pointerId) return;
-    const dx = e.clientX - d.startClientX;
-    const dy = e.clientY - d.startClientY;
-    if (Math.hypot(dx, dy) > 8) d.moved = true;
-    const nx = d.startOffsetX + dx;
-    const ny = d.startOffsetY + dy;
-    const max = 160;
-    setOffset({
-      x: Math.max(-max, Math.min(max, nx)),
-      y: Math.max(-max, Math.min(max, ny)),
-    });
-  };
-
-  const onFabPointerUp = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d || d.pointerId !== e.pointerId) return;
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
-    }
-    dragRef.current = null;
-    if (!d.moved) {
-      setOpen(true);
-      setError(null);
-    } else {
-      setOffset((cur) => {
-        persistOffset(cur.x, cur.y);
-        return cur;
-      });
-    }
-  };
 
   const sendUserMessage = (text: string) => {
     const trimmed = text.trim();
@@ -233,75 +139,99 @@ export function FloatingChatBot() {
     });
   };
 
-  const shell = (
+  if (!mounted) return null;
+
+  return (
     <>
-      {/* 与主内容同宽的固定层，机器人相对该栏定位 */}
-      <div
-        className="pointer-events-none fixed inset-0 z-[45] flex justify-center"
+      <DraggableFab
+        storageKey={OFFSET_STORAGE_KEY}
+        aria-label="打开记账助手，可拖动位置"
+        className="size-16 rounded-full border border-white/60 bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 text-white shadow-[0_12px_40px_-8px_rgba(249,115,22,0.55),0_0_0_1px_rgba(255,255,255,0.25)_inset] ring-2 ring-white/40 backdrop-blur-sm transition-shadow hover:shadow-[0_14px_44px_-6px_rgba(244,63,94,0.45)] hover:ring-white/55"
+        onPress={() => {
+          setOpen(true);
+          setError(null);
+        }}
       >
-        <div className="pointer-events-none relative h-full w-full max-w-md">
-          <button
-            type="button"
-            aria-label="打开记账助手"
-            className="pointer-events-auto absolute bottom-28 right-4 flex h-14 w-14 touch-none items-center justify-center rounded-2xl border border-white/50 bg-gradient-to-br from-orange-400 to-pink-500 text-white shadow-lg shadow-orange-500/35 transition active:scale-95"
-            style={{
-              transform: `translate(${offset.x}px, ${offset.y}px)`,
-            }}
-            onPointerDown={onFabPointerDown}
-            onPointerMove={onFabPointerMove}
-            onPointerUp={onFabPointerUp}
-            onPointerCancel={onFabPointerUp}
-          >
-            <RobotIcon className="text-white" />
-          </button>
-        </div>
-      </div>
+        <span
+          className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.45),transparent_55%)]"
+          aria-hidden
+        />
+        <ChatBotMascot
+          variant="fab"
+          className="relative z-10 h-[3.35rem] w-[3.35rem] drop-shadow-md"
+        />
+      </DraggableFab>
 
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"
+            className="fixed inset-0 z-[100] flex items-end justify-center bg-stone-900/45 p-4 backdrop-blur-md sm:items-center"
             role="dialog"
             aria-modal="true"
             aria-labelledby="chatbot-title"
             onClick={() => setOpen(false)}
           >
             <div
-              className="flex max-h-[min(85dvh,640px)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-white/60 bg-white shadow-2xl"
+              className="flex max-h-[min(86dvh,640px)] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-white/70 bg-gradient-to-b from-white via-orange-50/35 to-white shadow-[0_25px_80px_-20px_rgba(249,115,22,0.35),0_0_1px_rgba(0,0,0,0.06)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <header className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 text-white">
-                    <RobotIcon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2
-                      id="chatbot-title"
-                      className="text-sm font-semibold text-stone-800"
-                    >
-                      小布助手
-                    </h2>
-                    <p className="text-xs text-stone-500">记账问答 · 本月小结</p>
+              <header className="relative overflow-hidden border-b border-orange-100/90 bg-gradient-to-r from-orange-50 via-white to-pink-50/90 px-4 py-3.5">
+                <div
+                  className="pointer-events-none absolute -right-8 -top-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl"
+                  aria-hidden
+                />
+                <div
+                  className="pointer-events-none absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-pink-200/20 blur-2xl"
+                  aria-hidden
+                />
+                <div className="relative flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/95 shadow-lg shadow-orange-200/40 ring-1 ring-orange-100/80">
+                      <ChatBotMascot
+                        variant="header"
+                        className="h-10 w-10"
+                      />
+                    </span>
+                    <div className="min-w-0">
+                      <h2
+                        id="chatbot-title"
+                        className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-base font-semibold text-transparent"
+                      >
+                        小布助手
+                      </h2>
+                      <p className="text-xs text-stone-500">
+                        记账问答 · 本月小结
+                      </p>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium text-stone-500 transition hover:bg-white/80 hover:text-stone-700"
+                    onClick={() => setOpen(false)}
+                  >
+                    关闭
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="rounded-full px-3 py-1.5 text-sm text-stone-500 hover:bg-stone-100"
-                  onClick={() => setOpen(false)}
-                >
-                  关闭
-                </button>
               </header>
 
               <div
                 ref={listRef}
-                className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3"
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-transparent to-orange-50/20 px-4 py-4"
               >
                 {messages.length === 0 && (
-                  <p className="text-center text-sm text-stone-400">
-                    问我记账相关的问题，或点下方快捷按钮生成本月小结。
-                  </p>
+                  <div className="flex flex-col items-center gap-4 py-6">
+                    <div className="rounded-3xl bg-white/80 p-4 shadow-inner shadow-orange-100/60 ring-1 ring-orange-100/50">
+                      <ChatBotMascot
+                        variant="header"
+                        className="h-20 w-20"
+                      />
+                    </div>
+                    <p className="max-w-[16rem] text-center text-sm leading-relaxed text-stone-500">
+                      问我记账相关的问题，或点下方按钮，让{" "}
+                      <span className="font-medium text-orange-600">小布</span>{" "}
+                      帮你生成本月小结～
+                    </p>
+                  </div>
                 )}
                 {messages.map((m) => (
                   <div
@@ -309,38 +239,60 @@ export function FloatingChatBot() {
                     className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[90%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                      className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                         m.role === "user"
-                          ? "bg-gradient-to-r from-orange-500 to-pink-500 text-white"
-                          : "bg-stone-100 text-stone-800"
+                          ? "bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-orange-300/30"
+                          : "border border-orange-100/80 bg-white/95 text-stone-800 shadow-orange-100/40"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words">
-                        {m.content}
-                      </p>
+                      <p className="whitespace-pre-wrap break-words">{m.content}</p>
                     </div>
                   </div>
                 ))}
                 {pending && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl bg-stone-100 px-3 py-2 text-sm text-stone-500">
-                      正在思考…
+                    <div className="flex items-center gap-2 rounded-2xl border border-orange-100/90 bg-white/95 px-2 py-1 shadow-sm shadow-orange-100/30">
+                      <TypingDots />
+                      <span className="pr-2 text-xs text-stone-400">思考中</span>
                     </div>
                   </div>
                 )}
               </div>
 
               {error && (
-                <p className="px-4 text-center text-xs text-red-600">{error}</p>
+                <p className="border-t border-red-100 bg-red-50/80 px-4 py-2 text-center text-xs text-red-600">
+                  {error}
+                </p>
               )}
 
-              <div className="border-t border-stone-100 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+              <div className="border-t border-orange-100/80 bg-gradient-to-t from-orange-50/50 to-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
                 <button
                   type="button"
                   disabled={pending}
-                  className="mb-2 w-full rounded-2xl border border-orange-200 bg-orange-50 py-2 text-sm font-medium text-orange-800 disabled:opacity-50"
+                  className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 py-2.5 text-sm font-medium text-orange-800 shadow-sm transition hover:border-orange-300 hover:from-orange-100/80 hover:to-amber-50 disabled:opacity-45"
                   onClick={onMonthlyShortcut}
                 >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="text-orange-500"
+                    aria-hidden
+                  >
+                    <path
+                      d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7h8M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M12 11v6M9.5 14.5h5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                   帮我生成本月小结
                 </button>
                 <form
@@ -354,15 +306,15 @@ export function FloatingChatBot() {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="输入消息…"
-                    className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm outline-none focus:border-orange-300"
+                    placeholder="和小布说点什么…"
+                    className="min-w-0 flex-1 rounded-2xl border border-stone-200/90 bg-white px-3.5 py-2.5 text-sm text-stone-800 shadow-inner shadow-stone-100 outline-none ring-orange-200/50 transition placeholder:text-stone-400 focus:border-orange-300 focus:ring-2"
                     disabled={pending}
                     autoComplete="off"
                   />
                   <button
                     type="submit"
                     disabled={pending || !input.trim()}
-                    className="shrink-0 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+                    className="shrink-0 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-300/40 transition hover:brightness-105 disabled:opacity-40"
                   >
                     发送
                   </button>
@@ -374,7 +326,4 @@ export function FloatingChatBot() {
         )}
     </>
   );
-
-  if (!mounted) return null;
-  return shell;
 }

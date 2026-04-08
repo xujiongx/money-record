@@ -12,6 +12,7 @@
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
 | 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie）；服务端经 `unstable_cache`（标签 `ledger`） |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
+| 小布对话 / 本月小结 | `mistralChatAction`、`generateMonthlySummaryAction` 等 | Client（`FloatingChatBot`） |
 
 **当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
 
@@ -81,23 +82,57 @@
 - 按 `id` + 当前 `household_id` 删除。  
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members`）。
 
-## 4. 路由与中间件
+## 4. Server Actions — 小布助手（`app/actions/mistral-chat.ts`）
+
+与账本不同：**不写入**业务表；仅只读 `fetchTransactions` / `fetchMembers` 等拼提示词，并调用外部 **Mistral Chat Completions**。需配置 **`MISTRAL_API_KEY`**（服务端）；HTTP 细节见 **`lib/mistral-fetch.ts`**（`readEnv` 读环境变量、可选 `MISTRAL_PROXY_URL` / `HTTPS_PROXY`、`AbortSignal.timeout` 等）。
+
+### 4.1 返回类型 `MistralTextResult`
+
+```ts
+type MistralTextResult =
+  | { ok: true; data: string }
+  | { ok: false; error: string };
+```
+
+- 网络 / API / 校验失败时返回 **`{ ok: false, error }`**，**不在 Action 边界 `throw`**，以免客户端收到整页 **500**（RSC POST）。
+
+### 4.2 `mistralChatAction(history, userMessage)`
+
+| 参数 | 说明 |
+|------|------|
+| `history` | 已完成的 `{ role: 'user' \| 'assistant', content }[]`（不含当前句） |
+| `userMessage` | 当前用户输入（trim 后） |
+
+- 成功：`{ ok: true, data: 助手回复文本 }`。
+
+### 4.3 `generateMonthlySummaryAction()`
+
+- 读取本月账本摘要（与统计「本月」一致的日期范围与成员拆分），调用模型生成「本月小结」文案。  
+- 成功：`{ ok: true, data: 小结文本 }`。
+
+### 4.4 `buildMonthlyLedgerDigest()`（导出，供扩展）
+
+- 返回当月汇总纯文本（总额、分类、各成员收支笔数等），供小结提示词使用。
+
+## 5. 路由与中间件
 
 - [`middleware.ts`](../middleware.ts)：访问 `/`、`/record`、`/stats`、`/members` 时，若 Cookie 中无合法 6 位编码，**302 → `/login`**。  
 - `/login`：若已有合法 Cookie，服务端可 **redirect('/')**（见 `app/login/page.tsx`）。
 
-## 5. 接口设计决策（备忘）
+## 6. 接口设计决策（备忘）
 
 | 议题 | 结论 |
 |------|------|
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
 | 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` / `revalidateTag("ledger")` 刷新 |
+| LLM | Mistral 仅服务端；客户端只收 `MistralTextResult` 文本结果 |
 
-## 6. 变更记录
+## 7. 变更记录
 
 | 日期 | 说明 |
 |------|------|
 | 2026-04-02 | 多家庭、`household.ts`、Cookie 会话、弃用 Realtime 描述 |
 | 2026-04-02 | 首版 ledger 契约 |
 | 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |
+| 2026-04-08 | `mistral-chat.ts`：`mistralChatAction`、`generateMonthlySummaryAction`、`MistralTextResult`、`buildMonthlyLedgerDigest` |

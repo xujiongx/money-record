@@ -1,6 +1,6 @@
 # 部署文档
 
-> 项目：家庭记账（Next.js + Supabase） · 更新日期：2026-04-02
+> 项目：家庭记账（Next.js + Supabase） · 更新日期：2026-04-08
 
 ## 1. 部署架构
 
@@ -32,8 +32,13 @@ flowchart TB
 | `NEXT_PUBLIC_SUPABASE_URL` | 是 | Supabase 项目 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | 是 | **仅服务端**；**禁止** `NEXT_PUBLIC_` 前缀 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 否 | 当前版本业务链路径未使用；预留扩展 |
+| `MISTRAL_API_KEY` | 使用小布时 **必填** | **仅服务端**；对话与本月小结 |
+| `MISTRAL_MODEL` | 否 | 默认 `mistral-small-latest` |
+| `MISTRAL_FETCH_TIMEOUT_MS` | 否 | 默认 `120000`（毫秒） |
+| `MISTRAL_PROXY_URL` | 否 | 仅 Mistral 请求走代理时；优先于 `HTTPS_PROXY` |
+| `HTTPS_PROXY` / `HTTP_PROXY` 等 | 否 | Node 访问外网需代理时（与 Clash 等 HTTP 端口一致） |
 
-**密钥管理**：Service Role 仅存部署平台密钥区；勿提交 Git。
+**密钥管理**：Service Role、Mistral Key 仅存部署平台密钥区；勿提交 Git。详见根目录 [.env.example](../.env.example)。
 
 **说明**：已移除对 `NEXT_PUBLIC_HOUSEHOLD_ID` 的依赖；家庭由 **Cookie 中的编码** 与库表 `households.code` 决定。
 

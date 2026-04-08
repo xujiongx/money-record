@@ -1,6 +1,6 @@
 # 系统架构说明
 
-> 项目：家庭记账 · 更新日期：2026-04-08  
+> 项目：家庭记账 · 更新日期：2026-04-08（含小布助手 / Mistral）  
 > 本文描述**当前实现**的技术架构、数据流与安全边界；细节契约见 [api.md](./api.md)，表结构见 [database-design.md](./database-design.md)，缓存见 [cache-design.md](./cache-design.md)。
 
 ## 1. 架构总览
@@ -37,7 +37,7 @@ flowchart TB
 | **middleware** | 业务路由需合法 **6 位数字** 家庭编码 Cookie，否则重定向 `/login` |
 | **RSC（`app/*/page.tsx`）** | 在服务端读 Cookie、调用 `fetchMembers` / `fetchTransactions` 等，将序列化结果下发给客户端 |
 | **Server Actions** | 鉴权（按 Cookie 解析 `household_id`）、写库、失效缓存与路由 |
-| **Client Components** | 交互 UI（记账表单、仪表盘列表、统计图表门闸、滑动行、弹窗等）；通过 Actions 或首屏 props 拿数据 |
+| **Client Components** | 交互 UI（记账表单、仪表盘列表、统计图表门闸、滑动行、弹窗、**小布浮动对话**等）；通过 Actions 或首屏 props 拿数据 |
 
 ## 2. 技术栈
 
@@ -49,6 +49,8 @@ flowchart TB
 | 服务端访问 DB | **仅** Service Role（`lib/supabase/service.ts`），不经 anon 业务读 |
 | 图表 | Recharts（统计页经 **`StatsChartsGate` 客户端 `dynamic` + `ssr: false`** 分包） |
 | 动效 | Framer Motion（局部使用） |
+| 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
+| 外部 LLM HTTP | `undici`（`lib/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages`） |
 | 日期 | date-fns |
 
 ## 3. 渲染模型：服务端与客户端如何分工
@@ -97,15 +99,26 @@ flowchart TB
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
 | `/members` | 拉成员+流水 | 成员列表与明细展示 |
 
-## 7. 安全边界（必读）
+全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。
+
+## 7. 小布助手（Mistral 对话）
+
+- **入口**：`components/FloatingChatBot.tsx`（`ChatBotMascot` 吉祥物、`DraggableFab` + react-draggable、消息列表与快捷「本月小结」）。  
+- **服务端**：`mistralChatAction` / `generateMonthlySummaryAction`（`app/actions/mistral-chat.ts`）在服务端组装消息或本月账本摘要，经 **`lib/mistral-fetch.ts`** 调用 `https://api.mistral.ai/v1/chat/completions`。  
+- **密钥**：仅 **`MISTRAL_API_KEY`**（及可选 `MISTRAL_MODEL`、代理相关变量），**永不**下发浏览器。  
+- **错误契约**：返回 **`MistralTextResult`**（`{ ok: true, data } | { ok: false, error }`），避免预期失败 **`throw`** 触发 Next Server Action 整页 **500**。  
+- **本月小结**：`buildMonthlyLedgerDigest` 与统计页一致按 **`occurred_at`** 当月过滤，并含成员维度数据供提示词点评（见 Action 内提示词）。
+
+## 8. 安全边界（必读）
 
 | 项 | 说明 |
 |----|------|
 | Service Role | **仅服务端**；勿以 `NEXT_PUBLIC_` 暴露 |
 | 家庭编码 | 等同**家庭口令**；泄露则他人可会话进入该家庭数据（在现有模型下） |
 | RLS | 业务表 **无 anon 读策略**；依赖「仅服务端持 Service Role」 |
+| Mistral Key | 仅存部署环境 / `.env.local`；勿提交 Git |
 
-## 8. 相关文档索引
+## 9. 相关文档索引
 
 | 文档 | 内容 |
 |------|------|
@@ -116,8 +129,9 @@ flowchart TB
 | [deployment.md](./deployment.md) | 部署与环境变量 |
 | [PRD.md](./PRD.md) | 产品需求 |
 
-## 9. 变更记录
+## 10. 变更记录
 
 | 日期 | 说明 |
 |------|------|
 | 2026-04-08 | 初版：RSC/CSR 分工、多家庭、缓存摘要、统计分包、安全边界 |
+| 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
