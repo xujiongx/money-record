@@ -2,7 +2,7 @@
 
 本目录为**家庭记账**（Next.js + Supabase）的中文项目文档，与根目录 [README.md](../README.md)（快速上手）配合使用。
 
-**当前能力摘要**：多家庭（6 位数字编码）、`/login` 加入或**创建新家**（默认成员布布/一二）、httpOnly Cookie + localStorage 编码缓存、中间件保护业务路由、数据随页面加载/导航刷新（无定时轮询、无 Realtime）。
+**当前能力摘要**：多家庭（6 位数字编码）、`/login` 加入或**创建新家**（默认成员布布/一二）、httpOnly Cookie + localStorage 编码缓存、中间件保护业务路由、数据随页面加载/导航刷新（无定时轮询、无 Realtime）。列表读接口带 **`unstable_cache`（`ledger` 标签）**；统计页 **Recharts 按需动态加载**；**`app/loading.tsx`** 与 **`app/stats/loading.tsx`** 改善切换感知。
 
 | 文档 | 说明 |
 |------|------|

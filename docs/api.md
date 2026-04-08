@@ -1,7 +1,7 @@
 # 接口与数据访问说明
 
 > 本项目**无独立 REST Base URL**；数据访问由 **Next.js Server Actions** + Supabase **Service Role（服务端）** 完成。  
-> 更新日期：2026-04-02
+> 更新日期：2026-04-08
 
 ## 1. 设计说明
 
@@ -10,8 +10,8 @@
 | 会话：加入家庭 | `setHouseholdSession(code)` | 登录页 |
 | 会话：创建家庭并登录 | `createHouseholdAndLogin({ name, codeRaw })` | 登录页「创建新家」 |
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
-| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie） |
-| 写流水 | `createTransaction`、`deleteTransaction` | Client |
+| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie）；服务端经 `unstable_cache`（标签 `ledger`） |
+| 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 
 **当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
 
@@ -31,7 +31,7 @@
 
 ### 2.1 `setHouseholdSession(raw: string)`
 
-- 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，存在则写入 Cookie 并 `revalidatePath`。
+- 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，存在则写入 Cookie 并 `revalidatePath`，且 **`revalidateTag("ledger", "max")`** 清空账本读缓存。
 - 不存在则抛错（文案供 UI 展示）。
 
 ### 2.2 `createHouseholdAndLogin(input)`
@@ -47,15 +47,16 @@
 
 ### 2.3 `clearHouseholdSession()`
 
-- 删除 Cookie；`revalidatePath`。客户端需同步 `localStorage.removeItem`。
+- 删除 Cookie；`revalidatePath`；**`revalidateTag("ledger", "max")`**。客户端需同步 `localStorage.removeItem`。
 
 ## 3. Server Actions — 账本（`app/actions/ledger.ts`）
 
-均先 `requireHouseholdId()`：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。
+均先 **`requireHouseholdId()`**（实现上用 React **`cache()`** 包裹，同一次 RSC 请求内多次调用只执行一次）：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。
 
 ### 3.1 `fetchMembers()` / `fetchTransactions()`
 
-- 仅返回 **当前 Cookie 对应家庭** 的数据。
+- 仅返回 **当前 Cookie 对应家庭** 的数据。  
+- 服务端经 **`unstable_cache`** 缓存（缓存键含 `household_id`），标签 **`ledger`**；变更流水或会话时需配合 **`revalidateTag`** 失效。
 
 ### 3.2 `createTransaction(input)`
 
@@ -68,11 +69,17 @@
 | note | string | 否 |
 | occurredAt | ISO 字符串 | 否 |
 
-- 成功：`revalidatePath` 相关路由。
+- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members`）。
 
-### 3.3 `deleteTransaction(id)`
+### 3.3 `updateTransaction(id, input)`
 
-- 按 `id` + 当前 `household_id` 删除。
+- 更新当前家庭下一条流水：`memberId`、`type`、`category`、`amount`、`note`、`occurredAt`（ISO）。  
+- 成功：同 3.2 的失效策略。
+
+### 3.4 `deleteTransaction(id)`
+
+- 按 `id` + 当前 `household_id` 删除。  
+- 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members`）。
 
 ## 4. 路由与中间件
 
@@ -85,7 +92,7 @@
 |------|------|
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
-| 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` 刷新 |
+| 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` / `revalidateTag("ledger")` 刷新 |
 
 ## 6. 变更记录
 
@@ -93,3 +100,4 @@
 |------|------|
 | 2026-04-02 | 多家庭、`household.ts`、Cookie 会话、弃用 Realtime 描述 |
 | 2026-04-02 | 首版 ledger 契约 |
+| 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |

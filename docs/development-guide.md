@@ -1,6 +1,6 @@
 # 开发指南
 
-> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-04-02
+> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-04-08
 
 ## 1. 环境要求
 
@@ -31,9 +31,11 @@ flowchart LR
 
 - **会话**：合法 **6 位家庭编码** 存 httpOnly Cookie；`ledger` 与 `household` Server Actions 据此解析 `household_id`。  
 - **登录页**：`setHouseholdSession`、`createHouseholdAndLogin`（新建家庭 + 默认成员布布/一二）。  
-- **写入流水**：仅 `createTransaction` / `deleteTransaction`；不经浏览器直连 Supabase。  
-- **列表刷新**：无定时轮询；`StatsCharts` 仅用服务端传入数据；`DashboardClient` 在删账后调用 `fetchTransactions()` 更新状态。  
-- **布局**：`app/layout.tsx` 中 `max-w-md`；`dynamic = "force-dynamic"`。
+- **写入流水**：`createTransaction` / `updateTransaction` / `deleteTransaction`；不经浏览器直连 Supabase。  
+- **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态。  
+- **读缓存**：`ledger.ts` 中成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。  
+- **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
+- **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
 
@@ -48,13 +50,21 @@ flowchart LR
 │   │   └── ledger.ts       # 账本读写（读 Cookie）
 │   ├── login/page.tsx      # 登录 / 创建新家（EnterHouseholdCode）
 │   ├── page.tsx            # 仪表盘
-│   ├── record/ stats/ members/
-│   ├── layout.tsx
-│   └── template.tsx
+│   ├── loading.tsx         # 通用路由切换骨架
+│   ├── record/page.tsx
+│   ├── stats/
+│   │   ├── loading.tsx     # 统计页专用轻量骨架
+│   │   └── page.tsx
+│   ├── members/page.tsx
+│   └── layout.tsx
 ├── components/
 │   ├── EnterHouseholdCode.tsx
 │   ├── SwitchHouseholdButton.tsx
-│   ├── DashboardClient.tsx
+│   ├── DashboardClient.tsx     # 最近账单左滑编辑/删除、编辑弹窗
+│   ├── StatsCharts.tsx         # 统计图表（由 Gate 动态加载）
+│   ├── StatsChartsGate.tsx     # Client：dynamic 加载 StatsCharts（ssr:false）
+│   ├── StatsChartsSkeleton.tsx
+│   ├── SwipeTransactionRow.tsx
 │   └── ...
 ├── lib/
 │   ├── household.ts        # 编码规范化、Cookie/Storage 键名
@@ -124,3 +134,5 @@ cp .env.example .env.local
 | 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`。 |
 | 无法连库 | `.env.local`、Supabase 项目状态、Service Role 是否正确。 |
 | 另一台设备更新不自动出现 | 刷新页面或切换路由；若需近实时可后续接 Realtime 或手动刷新按钮。 |
+| Tab 切换仍慢 | 生产环境看 Supabase 区域延迟；已做 `unstable_cache` + 统计页 Recharts 分包；可开 Network 看 RSC 与 JS chunk。 |
+| `ssr: false` 报错 | 勿在 Server Component 写 `dynamic(..., { ssr:false })`；统计页用 `StatsChartsGate` 客户端封装。 |
