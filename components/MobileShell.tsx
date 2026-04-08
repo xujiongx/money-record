@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { FloatingChatBot } from "@/components/FloatingChatBot";
 
 const tabs = [
   { href: "/", label: "首页", icon: HomeIcon },
@@ -63,6 +64,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         </ul>
       </nav>
       )}
+      {!hideNav && <FloatingChatBot />}
     </>
   );
 }
