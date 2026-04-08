@@ -12,7 +12,7 @@
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
 | 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage` | Server / Client（依赖 Cookie）；后者用于成员账单分页，不走 `unstable_cache` |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
-| 小布对话 / 本月小结 | `mistralChatAction`、`generateMonthlySummaryAction` 等 | Client（`FloatingChatBot`） |
+| 小布对话 / 本月小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`mistralChatAction`（纯文本，保留）、`generateMonthlySummaryAction` | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
 
 **当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
@@ -114,6 +114,18 @@ type MistralTextResult =
 
 - 成功：`{ ok: true, data: 助手回复文本 }`。
 
+### 4.2b `mistralLedgerChatAction(history, userMessage)`
+
+| 参数 | 说明 |
+|------|------|
+| `history` | 同 4.2（不含当前句） |
+| `userMessage` | 当前用户输入（trim 后） |
+
+- **小布浮层主对话**使用本 Action。Mistral 请求带 **`response_format: { type: "json_object" }`**，`temperature` 约 `0.35`。  
+- 成功：`{ ok: true, reply: string, ledgerCreated?: boolean }`。`reply` 写入 UI 与 **`persistChatExchangeAction`**；**不**把模型原始 JSON 落库。  
+- 模型输出契约与校验见 **`lib/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（缺槽追问）| `ready`（可执行）。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类不在白名单则归 **「其他」** 并把原描述并入 `note`。  
+- 执行或校验失败时仍可能 `ok: true`，在 `reply` 末尾追加说明（避免 throw 导致整页 500）。解析/网络失败：`{ ok: false, error }`。
+
 ### 4.3 `generateMonthlySummaryAction()`
 
 - 读取本月账本摘要（与统计「本月」一致的日期范围与成员拆分），调用模型生成「本月小结」文案。  
@@ -157,3 +169,4 @@ type MistralTextResult =
 | 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |
 | 2026-04-08 | `mistral-chat.ts`：`mistralChatAction`、`generateMonthlySummaryAction`、`MistralTextResult`、`buildMonthlyLedgerDigest` |
 | 2026-04-08 | `chat-history.ts`：`fetchChatMessagesAction`、`persistChatExchangeAction`；迁移 `003_chat_messages` |
+| 2026-04-08 | `mistralLedgerChatAction` + `lib/chat-ledger.ts`（Zod）；浮层对话可结构化记账并 `createTransaction` |

@@ -104,7 +104,7 @@ flowchart TB
 ## 7. 小布助手（Mistral 对话）
 
 - **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月小结」）等子目录组件。  
-- **服务端**：`mistralChatAction` / `generateMonthlySummaryAction`（`app/actions/mistral-chat.ts`）在服务端组装消息或本月账本摘要，经 **`lib/mistral-fetch.ts`** 调用 `https://api.mistral.ai/v1/chat/completions`。  
+- **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/mistral-fetch.ts`** 调用 `https://api.mistral.ai/v1/chat/completions`；结构化记账契约见 **`lib/chat-ledger.ts`**。  
 - **密钥**：仅 **`MISTRAL_API_KEY`**（及可选 `MISTRAL_MODEL`、代理相关变量），**永不**下发浏览器。  
 - **错误契约**：返回 **`MistralTextResult`**（`{ ok: true, data } | { ok: false, error }`），避免预期失败 **`throw`** 触发 Next Server Action 整页 **500**。  
 - **本月小结**：`buildMonthlyLedgerDigest` 与统计页一致按 **`occurred_at`** 当月过滤，并含成员维度数据供提示词点评（见 Action 内提示词）。

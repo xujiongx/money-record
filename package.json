@@ -18,7 +18,8 @@
     "react-draggable": "^4.5.0",
     "react-markdown": "^10.1.0",
     "recharts": "^3.8.1",
-    "undici": "^7.24.7"
+    "undici": "^7.24.7",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

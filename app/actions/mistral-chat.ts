@@ -1,6 +1,10 @@
 "use server";
 
-import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
+import {
+  createTransaction,
+  fetchMembers,
+  fetchTransactions,
+} from "@/app/actions/ledger";
 import {
   categoryBreakdown,
   memberPeriodBreakdown,
@@ -18,6 +22,11 @@ import {
 import { format, getDaysInMonth } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { filterTransactionsInRange, getStatsDateRange } from "@/lib/stats-period";
+import {
+  buildLedgerChatSystemPrompt,
+  normalizeReadyLedger,
+  parseLedgerChatResponse,
+} from "@/lib/chat-ledger";
 import type { TransactionRow } from "@/lib/types";
 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
@@ -115,12 +124,30 @@ function buildMonthSummaryTimeContext(anchor: Date): string {
   ].join("\n");
 }
 
-async function callMistral(messages: { role: ChatRole; content: string }[]) {
+type CallMistralOptions = {
+  temperature?: number;
+  responseFormatJsonObject?: boolean;
+};
+
+async function callMistral(
+  messages: { role: ChatRole; content: string }[],
+  options?: CallMistralOptions,
+) {
   const key = readEnv("MISTRAL_API_KEY");
   if (!key) {
     throw new Error("未配置 MISTRAL_API_KEY，请在 .env.local 中设置");
   }
   const model = readEnv("MISTRAL_MODEL") ?? "mistral-small-latest";
+  const temperature = options?.temperature ?? 0.6;
+  const body: Record<string, unknown> = {
+    model,
+    messages,
+    max_tokens: 2048,
+    temperature,
+  };
+  if (options?.responseFormatJsonObject) {
+    body.response_format = { type: "json_object" };
+  }
   let res: Awaited<ReturnType<typeof fetchUpstream>>;
   try {
     res = await fetchUpstream(MISTRAL_URL, {
@@ -129,12 +156,7 @@ async function callMistral(messages: { role: ChatRole; content: string }[]) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${key}`,
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens: 2048,
-        temperature: 0.6,
-      }),
+      body: JSON.stringify(body),
     });
   } catch (err) {
     const { message, cause, code } = serializeFetchError(err);
@@ -173,6 +195,76 @@ export async function mistralChatAction(
     ];
     const data = await callMistral(messages);
     return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: toActionError(e) };
+  }
+}
+
+export type MistralLedgerChatResult =
+  | { ok: true; reply: string; ledgerCreated?: boolean }
+  | { ok: false; error: string };
+
+/**
+ * 多轮对话 + 结构化记账：模型仅返回 JSON（reply + ledger 槽位）；
+ * intent=ready 且服务端校验通过时自动 createTransaction。
+ */
+export async function mistralLedgerChatAction(
+  history: MistralChatMessage[],
+  userMessage: string,
+): Promise<MistralLedgerChatResult> {
+  try {
+    const trimmed = userMessage.trim();
+    if (!trimmed) return { ok: false, error: "消息不能为空" };
+
+    const members = await fetchMembers();
+    const system = buildLedgerChatSystemPrompt(members);
+    const messages: { role: ChatRole; content: string }[] = [
+      { role: "system", content: system },
+      ...history.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user", content: trimmed },
+    ];
+
+    const raw = await callMistral(messages, {
+      responseFormatJsonObject: true,
+      temperature: 0.35,
+    });
+
+    const parsed = parseLedgerChatResponse(raw);
+    if (!parsed.ok) {
+      return { ok: false, error: parsed.error };
+    }
+
+    const { reply, ledger } = parsed.data;
+    const memberIdSet = new Set(members.map((m) => m.id));
+
+    if (ledger.intent !== "ready") {
+      return { ok: true, reply };
+    }
+
+    const normalized = normalizeReadyLedger(ledger, memberIdSet);
+    if (!normalized.ok) {
+      return {
+        ok: true,
+        reply: `${reply}\n\n（未写入账本：${normalized.reason}）`,
+      };
+    }
+
+    try {
+      await createTransaction({
+        memberId: normalized.payload.memberId,
+        type: normalized.payload.type,
+        category: normalized.payload.category,
+        amount: normalized.payload.amount,
+        note: normalized.payload.note,
+      });
+      return { ok: true, reply, ledgerCreated: true };
+    } catch (e) {
+      const msg = toActionError(e);
+      return {
+        ok: true,
+        reply: `${reply}\n\n保存失败：${msg}`,
+      };
+    }
   } catch (e) {
     return { ok: false, error: toActionError(e) };
   }

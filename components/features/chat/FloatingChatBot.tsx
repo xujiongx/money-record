@@ -7,7 +7,7 @@ import {
 } from "@/app/actions/chat-history";
 import {
   generateMonthlySummaryAction,
-  mistralChatAction,
+  mistralLedgerChatAction,
   type MistralChatMessage,
 } from "@/app/actions/mistral-chat";
 import {
@@ -113,7 +113,7 @@ export function FloatingChatBot() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     startTransition(async () => {
-      const result = await mistralChatAction(prior, trimmed);
+      const result = await mistralLedgerChatAction(prior, trimmed);
       if (!result.ok) {
         setError(result.error);
         setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
@@ -122,10 +122,10 @@ export function FloatingChatBot() {
       const assistantMsg: ChatUiMessage = {
         id: newChatMessageId(),
         role: "assistant",
-        content: result.data,
+        content: result.reply,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      const saved = await persistChatExchangeAction(trimmed, result.data);
+      const saved = await persistChatExchangeAction(trimmed, result.reply);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
       }
