@@ -108,6 +108,7 @@ type MistralTextResult =
 ### 4.3 `generateMonthlySummaryAction()`
 
 - 读取本月账本摘要（与统计「本月」一致的日期范围与成员拆分），调用模型生成「本月小结」文案。  
+- 提示词内注入 **`buildMonthSummaryTimeContext`（同日历进度、上/中/下旬等）**，要求模型按「截至目前」写阶段性小结，避免在月初/月中使用「全月收官」式表述（详见 `app/actions/mistral-chat.ts`）。  
 - 成功：`{ ok: true, data: 小结文本 }`。
 
 ### 4.4 `buildMonthlyLedgerDigest()`（导出，供扩展）

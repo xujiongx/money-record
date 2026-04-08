@@ -8,6 +8,7 @@ import {
   mistralChatAction,
   type MistralChatMessage,
 } from "@/app/actions/mistral-chat";
+import { MarkdownText } from "@/components/common/MarkdownText";
 import { ChatBotMascot } from "@/components/features/chat/ChatBotMascot";
 import { DraggableFab } from "@/components/common/DraggableFab";
 
@@ -250,7 +251,11 @@ export function FloatingChatBot() {
                           : "border border-orange-100/80 bg-white/95 text-stone-800 shadow-orange-100/40"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                      {m.role === "assistant" ? (
+                        <MarkdownText content={m.content} />
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                      )}
                     </div>
                   </div>
                 ))}
