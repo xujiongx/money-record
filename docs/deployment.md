@@ -32,13 +32,17 @@ flowchart TB
 | `NEXT_PUBLIC_SUPABASE_URL` | 是 | Supabase 项目 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | 是 | **仅服务端**；**禁止** `NEXT_PUBLIC_` 前缀 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 否 | 当前版本业务链路径未使用；预留扩展 |
-| `MISTRAL_API_KEY` | 使用小布时 **必填** | **仅服务端**；对话与本月小结 |
+| `MISTRAL_API_KEY` | 使用小布时与 `OPEN_ROUTER_API_KEY` **至少其一** | **仅服务端**；与 OpenRouter 同配时 **优先 Mistral**，失败则自动切备用 |
 | `MISTRAL_MODEL` | 否 | 默认 `mistral-small-latest` |
 | `MISTRAL_FETCH_TIMEOUT_MS` | 否 | 默认 `120000`（毫秒） |
 | `MISTRAL_PROXY_URL` | 否 | 仅 Mistral 请求走代理时；优先于 `HTTPS_PROXY` |
+| `OPEN_ROUTER_API_KEY` | 同上「至少其一」 | **仅服务端**；OpenRouter（`https://openrouter.ai/api/v1`）；作 Mistral 失败时的备用 |
+| `OPEN_ROUTER_MODEL` | 否 | 默认 `deepseek/deepseek-chat:free` |
+| `OPEN_ROUTER_HTTP_REFERER` | 否 | 可选；OpenRouter 统计用 `HTTP-Referer` |
+| `OPEN_ROUTER_APP_TITLE` | 否 | 可选；默认「家庭记账小布」，对应 `X-Title` |
 | `HTTPS_PROXY` / `HTTP_PROXY` 等 | 否 | Node 访问外网需代理时（与 Clash 等 HTTP 端口一致） |
 
-**密钥管理**：Service Role、Mistral Key 仅存部署平台密钥区；勿提交 Git。详见根目录 [.env.example](../.env.example)。
+**密钥管理**：Service Role、Mistral / OpenRouter Key 仅存部署平台密钥区；勿提交 Git。详见根目录 [.env.example](../.env.example)。
 
 **说明**：已移除对 `NEXT_PUBLIC_HOUSEHOLD_ID` 的依赖；家庭由 **Cookie 中的编码** 与库表 `households.code` 决定。
 

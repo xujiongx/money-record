@@ -11,16 +11,7 @@ import {
   summarizeLedger,
 } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
-import {
-  fetchUpstream,
-  formatMistralHttpErrorForUser,
-  formatMistralNetworkErrorForUser,
-  formatUpstreamDevDetail,
-  isProxyConfigured,
-  mistralConnectHint,
-  readEnv,
-  serializeFetchError,
-} from "@/lib/mistral-fetch";
+import { xiaobuChatCompletion } from "@/lib/xiaobu-llm";
 import { format, getDaysInMonth } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { filterTransactionsInRange, getStatsDateRange } from "@/lib/stats-period";
@@ -30,8 +21,6 @@ import {
   parseLedgerChatResponse,
 } from "@/lib/chat-ledger";
 import type { TransactionRow } from "@/lib/types";
-
-const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 
 type ChatRole = "system" | "user" | "assistant";
 
@@ -126,61 +115,16 @@ function buildMonthSummaryTimeContext(anchor: Date): string {
   ].join("\n");
 }
 
-type CallMistralOptions = {
+type CallXiaobuOptions = {
   temperature?: number;
   responseFormatJsonObject?: boolean;
 };
 
-async function callMistral(
+async function callXiaobuLlm(
   messages: { role: ChatRole; content: string }[],
-  options?: CallMistralOptions,
+  options?: CallXiaobuOptions,
 ) {
-  const key = readEnv("MISTRAL_API_KEY");
-  if (!key) {
-    throw new Error("对话服务未配置，暂时无法使用小布。");
-  }
-  const model = readEnv("MISTRAL_MODEL") ?? "mistral-small-latest";
-  const temperature = options?.temperature ?? 0.6;
-  const body: Record<string, unknown> = {
-    model,
-    messages,
-    max_tokens: 2048,
-    temperature,
-  };
-  if (options?.responseFormatJsonObject) {
-    body.response_format = { type: "json_object" };
-  }
-  let res: Awaited<ReturnType<typeof fetchUpstream>>;
-  try {
-    res = await fetchUpstream(MISTRAL_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify(body),
-    });
-  } catch (err) {
-    const userMsg = formatMistralNetworkErrorForUser(err);
-    if (process.env.NODE_ENV === "development") {
-      const { cause, code } = serializeFetchError(err);
-      const proxyUsed = isProxyConfigured();
-      const hint = mistralConnectHint(proxyUsed);
-      const dev = formatUpstreamDevDetail(cause, code);
-      throw new Error(`${userMsg}${dev} ${hint}`);
-    }
-    throw new Error(userMsg);
-  }
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(formatMistralHttpErrorForUser(res.status, text));
-  }
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const content = data.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error("小布没有生成有效内容，请重试。");
-  return content;
+  return xiaobuChatCompletion(messages, options);
 }
 
 const ASSISTANT_SYSTEM =
@@ -199,7 +143,7 @@ export async function mistralChatAction(
       ...history.map((m) => ({ role: m.role, content: m.content })),
       { role: "user", content: trimmed },
     ];
-    const data = await callMistral(messages);
+    const data = await callXiaobuLlm(messages);
     return { ok: true, data };
   } catch (e) {
     return { ok: false, error: toActionError(e) };
@@ -230,7 +174,7 @@ export async function mistralLedgerChatAction(
       { role: "user", content: trimmed },
     ];
 
-    const raw = await callMistral(messages, {
+    const raw = await callXiaobuLlm(messages, {
       responseFormatJsonObject: true,
       temperature: 0.35,
     });
@@ -302,7 +246,7 @@ ${digest}
 7. 全文约 280～480 字，分段清晰；可使用 Markdown（**粗体**、列表、分段）增强可读性，少用一级「#」标题，必要时用二级「##」或加粗代替标题。
 8. 所有金额、笔数、分类均以摘要为准，不要编造未出现的数据。`;
 
-    const data = await callMistral([
+    const data = await callXiaobuLlm([
       { role: "system", content: MONTHLY_SUMMARY_SYSTEM },
       { role: "user", content: userPrompt },
     ]);
