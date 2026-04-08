@@ -12,10 +12,10 @@
 | Next 路由缓存 | `revalidatePath`（记账、删账、登录会话变更后） | 相关路由下次请求刷新 |
 | 会话 | httpOnly Cookie `ledger_household_code` | 服务端识别当前家庭 |
 | 前端持久化 | `localStorage` 同名 key | **仅存家庭编码**，用于恢复 Cookie；不存流水明细 |
-| 客户端列表状态 | React `useState` + 首屏 props | 仪表盘 / 统计展示 |
-| 准实时 | `setInterval` 调用 `fetchTransactions()` | 首页约 4s、统计约 5s |
+| 客户端列表状态 | React `useState` + 首屏 props（仪表盘删账后主动拉取） | 仪表盘列表与汇总 |
+| 统计页 | 仅用 RSC 传入的 `transactions` | 进入页面或 `router.refresh()` 时更新 |
 
-**一致性**：以 PostgreSQL 为唯一事实源；轮询间隔内多设备可能存在短暂不一致。
+**一致性**：以 PostgreSQL 为唯一事实源；他端更新需重新进入页面或触发 `revalidatePath` 后的导航才会看到最新数据。
 
 ## 2. 无服务端 KV
 
@@ -25,9 +25,9 @@
 
 | 场景 | 行为 |
 |------|------|
-| 打开首页 / 统计 | 首屏 RSC + Server Actions；客户端定时再拉 |
-| 他端新增流水 | 依赖轮询在数秒内反映 |
-| 记账成功 | `revalidatePath` + 跳转；轮询叠加 |
+| 打开首页 / 统计 | 首屏 RSC；无客户端定时拉取 |
+| 他端新增流水 | 需刷新页面或再次进入该路由 |
+| 记账成功 | `revalidatePath` + 跳转，新数据随导航载入 |
 | 登录 / 创建家 | `setHouseholdSession` / `createHouseholdAndLogin` 写 Cookie + revalidate |
 | 切换家庭 | 清 Cookie + 清 localStorage → `/login` |
 
@@ -48,3 +48,4 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-04-02 | 改为 Cookie + localStorage 编码 + 轮询；移除 Realtime 描述 |
+| 2026-04-02 | 移除首页/统计定时轮询，改为仅靠页面加载与导航刷新 |

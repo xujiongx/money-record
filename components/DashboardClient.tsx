@@ -10,8 +10,6 @@ import { formatMoney } from "@/lib/format";
 import type { MemberRow, TransactionRow } from "@/lib/types";
 import { MemberAvatar } from "@/components/MemberAvatar";
 
-const POLL_MS = 10000;
-
 export function DashboardClient({
   householdCode,
   initialMembers,
@@ -38,11 +36,6 @@ export function DashboardClient({
   useEffect(() => {
     setTransactions(initialTransactions);
   }, [initialTransactions]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => refresh(), POLL_MS);
-    return () => window.clearInterval(id);
-  }, [refresh]);
 
   const { income, expense, balance } = useMemo(
     () => summarizeLedger(transactions),
@@ -95,7 +88,7 @@ export function DashboardClient({
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-stone-800">最近账单</h2>
           {pending && (
-            <span className="text-xs text-stone-400">同步中…</span>
+            <span className="text-xs text-stone-400">处理中…</span>
           )}
         </div>
         <ul className="mt-3 space-y-2">

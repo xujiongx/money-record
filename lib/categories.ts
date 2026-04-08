@@ -1,10 +1,13 @@
 export const EXPENSE_CATEGORIES = [
   "餐饮",
   "购物",
+  "住宿",
   "交通",
+  "娱乐",
+  "还款",
+  "旅行",
   "教育",
   "医疗",
-  "娱乐",
   "其他",
 ] as const;
 

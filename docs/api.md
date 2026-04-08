@@ -17,7 +17,7 @@
 
 客户端另将编码写入 **localStorage**（`ledger_household_code`）用于在 Cookie 丢失时尝试恢复会话（调用 `setHouseholdSession`）。
 
-**多端列表刷新**：不使用 Supabase Realtime；首页与统计页客户端 **定时轮询** `fetchTransactions()`。
+**多端列表刷新**：不使用 Supabase Realtime；首页与统计 **不在客户端定时拉取**；数据来自 RSC 首屏，仪表盘在删账后调用 `fetchTransactions()` 更新本地列表。
 
 ### 1.1 为何不用开放 HTTP API
 
@@ -85,7 +85,7 @@
 |------|------|
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
-| 实时推送 | 多租户下弃用 Realtime；用轮询 |
+| 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` 刷新 |
 
 ## 6. 变更记录
 

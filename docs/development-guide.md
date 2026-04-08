@@ -32,7 +32,7 @@ flowchart LR
 - **会话**：合法 **6 位家庭编码** 存 httpOnly Cookie；`ledger` 与 `household` Server Actions 据此解析 `household_id`。  
 - **登录页**：`setHouseholdSession`、`createHouseholdAndLogin`（新建家庭 + 默认成员布布/一二）。  
 - **写入流水**：仅 `createTransaction` / `deleteTransaction`；不经浏览器直连 Supabase。  
-- **列表刷新**：`DashboardClient` / `StatsCharts` 内 **定时轮询** `fetchTransactions`（无 Realtime）。  
+- **列表刷新**：无定时轮询；`StatsCharts` 仅用服务端传入数据；`DashboardClient` 在删账后调用 `fetchTransactions()` 更新状态。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；`dynamic = "force-dynamic"`。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
@@ -112,7 +112,7 @@ cp .env.example .env.local
 | 产品 | [PRD.md](./PRD.md) |
 | 库表 / RLS | [database-design.md](./database-design.md) |
 | Actions / 会话 | [api.md](./api.md) |
-| 缓存与轮询 | [cache-design.md](./cache-design.md) |
+| 缓存与刷新策略 | [cache-design.md](./cache-design.md) |
 | 部署 | [deployment.md](./deployment.md) |
 | 迭代 | [change/](./change/) |
 
@@ -123,4 +123,4 @@ cp .env.example .env.local
 | 一直跳登录 | 检查 Cookie 是否写入；中间件是否校验 6 位数字。 |
 | 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`。 |
 | 无法连库 | `.env.local`、Supabase 项目状态、Service Role 是否正确。 |
-| 另一台设备更新慢 | 属轮询间隔；可调 `DashboardClient` / `StatsCharts` 间隔（权衡流量）。 |
+| 另一台设备更新不自动出现 | 刷新页面或切换路由；若需近实时可后续接 Realtime 或手动刷新按钮。 |
