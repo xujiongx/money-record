@@ -1,5 +1,5 @@
-import { StatsCharts } from "@/components/StatsCharts";
 import { SetupPrompt } from "@/components/SetupPrompt";
+import { StatsChartsGate } from "@/components/StatsChartsGate";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 
@@ -19,7 +19,7 @@ export default async function StatsPage() {
   }
 
   return (
-    <StatsCharts
+    <StatsChartsGate
       householdCode={householdCode}
       transactions={transactions}
       members={members}
