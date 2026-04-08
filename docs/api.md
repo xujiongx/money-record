@@ -13,6 +13,7 @@
 | 读成员 / 读流水 | `fetchMembers`、`fetchTransactions` | Server / Client（依赖 Cookie）；服务端经 `unstable_cache`（标签 `ledger`） |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 | 小布对话 / 本月小结 | `mistralChatAction`、`generateMonthlySummaryAction` 等 | Client（`FloatingChatBot`） |
+| 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
 
 **当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
 
@@ -82,9 +83,12 @@
 - 按 `id` + 当前 `household_id` 删除。  
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members`）。
 
-## 4. Server Actions — 小布助手（`app/actions/mistral-chat.ts`）
+## 4. Server Actions — 小布助手
 
-与账本不同：**不写入**业务表；仅只读 `fetchTransactions` / `fetchMembers` 等拼提示词，并调用外部 **Mistral Chat Completions**。需配置 **`MISTRAL_API_KEY`**（服务端）；HTTP 细节见 **`lib/mistral-fetch.ts`**（`readEnv` 读环境变量、可选 `MISTRAL_PROXY_URL` / `HTTPS_PROXY`、`AbortSignal.timeout` 等）。
+### 4.0 分层说明
+
+- **对话模型调用**：`app/actions/mistral-chat.ts` — 仅只读账本拼提示词，**不直接写** `chat_messages`；需 **`MISTRAL_API_KEY`**，HTTP 见 **`lib/mistral-fetch.ts`**。  
+- **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
 
 ### 4.1 返回类型 `MistralTextResult`
 
@@ -115,6 +119,16 @@ type MistralTextResult =
 
 - 返回当月汇总纯文本（总额、分类、各成员收支笔数等），供小结提示词使用。
 
+### 4.5 `fetchChatMessagesAction()`（`app/actions/chat-history.ts`）
+
+- 返回当前家庭最近最多 300 条 **`chat_messages`**，按时间升序。  
+- 成功：`{ ok: true, data: { id, role, content }[] }`；失败：`{ ok: false, error }`（与 Mistral 一致，不 throw）。
+
+### 4.6 `persistChatExchangeAction(userContent, assistantContent)`
+
+- 依次插入一条 `role=user`、一条 `role=assistant`（同一轮对话）。  
+- 成功：`{ ok: true }`；失败：`{ ok: false, error }`。
+
 ## 5. 路由与中间件
 
 - [`middleware.ts`](../middleware.ts)：访问 `/`、`/record`、`/stats`、`/members` 时，若 Cookie 中无合法 6 位编码，**302 → `/login`**。  
@@ -137,3 +151,4 @@ type MistralTextResult =
 | 2026-04-02 | 首版 ledger 契约 |
 | 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |
 | 2026-04-08 | `mistral-chat.ts`：`mistralChatAction`、`generateMonthlySummaryAction`、`MistralTextResult`、`buildMonthlyLedgerDigest` |
+| 2026-04-08 | `chat-history.ts`：`fetchChatMessagesAction`、`persistChatExchangeAction`；迁移 `003_chat_messages` |

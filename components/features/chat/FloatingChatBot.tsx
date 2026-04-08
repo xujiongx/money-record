@@ -4,6 +4,10 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
+  fetchChatMessagesAction,
+  persistChatExchangeAction,
+} from "@/app/actions/chat-history";
+import {
   generateMonthlySummaryAction,
   mistralChatAction,
   type MistralChatMessage,
@@ -49,6 +53,7 @@ export function FloatingChatBot() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<UiMessage[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -67,6 +72,29 @@ export function FloatingChatBot() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setHistoryLoading(true);
+    setError(null);
+    setMessages([]);
+    fetchChatMessagesAction().then((r) => {
+      if (cancelled) return;
+      if (r.ok) {
+        setMessages(
+          r.data.map((m) => ({ id: m.id, role: m.role, content: m.content })),
+        );
+      } else {
+        setMessages([]);
+        setError(r.error);
+      }
+      setHistoryLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -95,7 +123,7 @@ export function FloatingChatBot() {
 
   const sendUserMessage = (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || pending) return;
+    if (!trimmed || pending || historyLoading) return;
     setError(null);
     const userMsg: UiMessage = {
       id: newId(),
@@ -115,20 +143,27 @@ export function FloatingChatBot() {
         setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
         return;
       }
-      setMessages((prev) => [
-        ...prev,
-        { id: newId(), role: "assistant", content: result.data },
-      ]);
+      const assistantMsg: UiMessage = {
+        id: newId(),
+        role: "assistant",
+        content: result.data,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      const saved = await persistChatExchangeAction(trimmed, result.data);
+      if (!saved.ok) {
+        setError(`对话已显示，但未写入历史：${saved.error}`);
+      }
     });
   };
 
   const onMonthlyShortcut = () => {
-    if (pending) return;
+    if (pending || historyLoading) return;
+    const shortcutText = "帮我生成本月小结";
     setError(null);
     const userMsg: UiMessage = {
       id: newId(),
       role: "user",
-      content: "帮我生成本月小结",
+      content: shortcutText,
     };
     setMessages((prev) => [...prev, userMsg]);
     startTransition(async () => {
@@ -138,10 +173,16 @@ export function FloatingChatBot() {
         setMessages((prev) => prev.filter((m) => m.id !== userMsg.id));
         return;
       }
-      setMessages((prev) => [
-        ...prev,
-        { id: newId(), role: "assistant", content: result.data },
-      ]);
+      const assistantMsg: UiMessage = {
+        id: newId(),
+        role: "assistant",
+        content: result.data,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      const saved = await persistChatExchangeAction(shortcutText, result.data);
+      if (!saved.ok) {
+        setError(`对话已显示，但未写入历史：${saved.error}`);
+      }
     });
   };
 
@@ -224,7 +265,12 @@ export function FloatingChatBot() {
                 ref={listRef}
                 className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-y-contain bg-gradient-to-b from-transparent to-orange-50/20 px-4 py-4 [-webkit-overflow-scrolling:touch]"
               >
-                {messages.length === 0 && (
+                {historyLoading && (
+                  <p className="py-6 text-center text-sm text-stone-400">
+                    加载历史对话…
+                  </p>
+                )}
+                {!historyLoading && messages.length === 0 && (
                   <div className="flex flex-col items-center gap-4 py-6">
                     <div className="relative h-28 w-28 overflow-hidden rounded-3xl bg-white/80 shadow-inner shadow-orange-100/60 ring-1 ring-orange-100/50">
                       <ChatBotMascot
@@ -278,7 +324,7 @@ export function FloatingChatBot() {
               <div className="shrink-0 border-t border-orange-100/80 bg-gradient-to-t from-orange-50/50 to-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
                 <button
                   type="button"
-                  disabled={pending}
+                  disabled={pending || historyLoading}
                   className="mb-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 py-2.5 text-sm font-medium text-orange-800 shadow-sm transition hover:border-orange-300 hover:from-orange-100/80 hover:to-amber-50 disabled:opacity-45"
                   onClick={onMonthlyShortcut}
                 >
@@ -318,12 +364,12 @@ export function FloatingChatBot() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="和小布说点什么…"
                     className="min-w-0 flex-1 rounded-2xl border border-stone-200/90 bg-white px-3.5 py-2.5 text-sm text-stone-800 shadow-inner shadow-stone-100 outline-none ring-orange-200/50 transition placeholder:text-stone-400 focus:border-orange-300 focus:ring-2"
-                    disabled={pending}
+                    disabled={pending || historyLoading}
                     autoComplete="off"
                   />
                   <button
                     type="submit"
-                    disabled={pending || !input.trim()}
+                    disabled={pending || historyLoading || !input.trim()}
                     className="shrink-0 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-300/40 transition hover:brightness-105 disabled:opacity-40"
                   >
                     发送

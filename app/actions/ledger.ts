@@ -38,7 +38,7 @@ function mapTransaction(row: {
 }
 
 /** 同一次 RSC 请求内去重（如 Promise.all(fetchMembers, fetchTransactions) 只查一次 households） */
-const requireHouseholdId = cacheReact(async (): Promise<string> => {
+export const requireHouseholdId = cacheReact(async (): Promise<string> => {
   const jar = await cookies();
   const raw = jar.get(HOUSEHOLD_CODE_COOKIE)?.value ?? "";
   const code = normalizeHouseholdCode(raw);

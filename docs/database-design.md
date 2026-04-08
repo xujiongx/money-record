@@ -1,6 +1,6 @@
 # 数据库设计文档
 
-> 项目：家庭记账 · 载体：Supabase（PostgreSQL） · 更新日期：2026-04-02
+> 项目：家庭记账 · 载体：Supabase（PostgreSQL） · 更新日期：2026-04-08
 
 ## 1. 概述
 
@@ -8,7 +8,7 @@
 - **多租户**：以 `households` 为租户边界；应用通过 **6 位数字 `code`（唯一）** 解析 `household_id`，会话见 [api.md](./api.md) 与根目录 `README.md`。
 - **设计原则**：流水不设软删（删除为物理删除）；收支分类为应用层常量，未建维度表；新建家庭默认成员「布布」「一二」由应用逻辑插入。
 
-权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。自旧库升级可执行 [`002_household_code_multitenant.sql`](../supabase/migrations/002_household_code_multitenant.sql)。
+权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002_household_code_multitenant.sql`](../supabase/migrations/002_household_code_multitenant.sql)、[`003_chat_messages.sql`](../supabase/migrations/003_chat_messages.sql)。
 
 ## 2. ER 关系
 
@@ -16,6 +16,7 @@
 erDiagram
   households ||--o{ members : contains
   households ||--o{ transactions : owns
+  households ||--o{ chat_messages : has
   members ||--o{ transactions : records
 ```
 
@@ -62,9 +63,21 @@ erDiagram
 | idx_transactions_household_occurred | (household_id, occurred_at DESC) | 按家庭时间序拉取 |
 | households_code_unique | (code) UNIQUE | 家庭编码唯一 |
 
+### 3.4 `chat_messages`（`003_chat_messages.sql`）
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | uuid | PK, default gen_random_uuid() | |
+| household_id | uuid | FK → households.id, ON DELETE CASCADE | 按家庭隔离 |
+| role | text | CHECK ∈ (`user`,`assistant`) | 发言角色 |
+| content | text | NOT NULL | 正文（助手侧可为 Markdown） |
+| created_at | timestamptz | NOT NULL, default now() | 写入顺序 |
+
+**索引**：`idx_chat_messages_household_created (household_id, created_at DESC)` — 拉取某家庭最近消息。
+
 ## 4. 行级安全（RLS）
 
-三表均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
+业务表（含 **`chat_messages`**）均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
 
 - 业务读写一律经 Next.js **Server Actions**，使用 **Service Role**（绕过 RLS）。  
 - 浏览器 **不** 使用 Supabase 匿名客户端访问业务表；多家庭下无法安全做「按编码动态」的 anon Realtime，故已弃用 Realtime 推送。
