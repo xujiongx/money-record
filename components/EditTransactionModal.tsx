@@ -43,6 +43,20 @@ export function EditTransactionModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  /** 锁住底层滚动与横向溢出，避免弹窗打开时背后页面被带动（含 iOS 横向橡皮筋） */
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOx = html.style.overflowX;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflowX = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflowX = prevHtmlOx;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, []);
+
   const categories = useMemo((): string[] => {
     const base = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
     const list: string[] = [...base];
@@ -105,7 +119,7 @@ export function EditTransactionModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex w-full max-w-[100dvw] items-end justify-center overflow-x-hidden overscroll-none bg-black/40 p-0 touch-none sm:items-center sm:p-4 sm:touch-auto"
       role="presentation"
       onClick={onClose}
     >
@@ -113,7 +127,7 @@ export function EditTransactionModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-tx-title"
-        className="max-h-[min(92vh,640px)] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white shadow-2xl ring-1 ring-stone-200 sm:rounded-3xl"
+        className="max-h-[min(92vh,640px)] w-full max-w-md min-w-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-t-3xl bg-white shadow-2xl ring-1 ring-stone-200 sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-100 bg-white px-4 py-3">

@@ -89,6 +89,7 @@
 
 ## 8. 相关文档
 
+- 架构：[architecture.md](./architecture.md)  
 - 开发：[development-guide.md](./development-guide.md)  
 - 库表：[database-design.md](./database-design.md)  
 - 数据访问：[api.md](./api.md)

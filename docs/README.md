@@ -7,7 +7,8 @@
 | 文档 | 说明 |
 |------|------|
 | [PRD.md](./PRD.md) | 产品需求与验收要点（含登录/多家庭） |
-| [development-guide.md](./development-guide.md) | **开发指南**（架构、目录、环境、FAQ） |
+| [architecture.md](./architecture.md) | **系统架构**（渲染模型、数据流、安全边界、与其它文档索引） |
+| [development-guide.md](./development-guide.md) | **开发指南**（目录、环境、命令、FAQ） |
 | [database-design.md](./database-design.md) | 表结构、`households.code`、RLS 策略 |
 | [api.md](./api.md) | `household` / `ledger` Server Actions、Cookie、中间件 |
 | [cache-design.md](./cache-design.md) | Cookie、localStorage、刷新策略 |

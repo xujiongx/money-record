@@ -120,6 +120,7 @@ cp .env.example .env.local
 | 主题 | 文档 |
 |------|------|
 | 产品 | [PRD.md](./PRD.md) |
+| 系统架构 | [architecture.md](./architecture.md) |
 | 库表 / RLS | [database-design.md](./database-design.md) |
 | Actions / 会话 | [api.md](./api.md) |
 | 缓存与刷新策略 | [cache-design.md](./cache-design.md) |
