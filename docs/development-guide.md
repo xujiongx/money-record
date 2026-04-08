@@ -36,7 +36,7 @@ flowchart LR
 - **读缓存**：`ledger.ts` 中成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
-- **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
+- **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（实现为 `components/features/chat/panel/ChatVoiceInput.tsx`：`ChatVoiceInputProvider`、`ChatVoiceMicButton`、`ChatVoiceStatusLine`；`zh-CN` 连续识别，需 HTTPS 与用户授权；Safari 等无 API 时自动隐藏）。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
 - **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
@@ -76,7 +76,7 @@ flowchart LR
 │           ├── index.ts              # 导出 FloatingChatBot
 │           ├── types.ts              # ChatUiMessage、newChatMessageId
 │           ├── FloatingChatBot.tsx   # 状态与历史/发送/本月小结编排
-│           ├── panel/                # Portal 壳、头/列表/底栏
+│           ├── panel/                # Portal 壳、头/列表/底栏、ChatVoiceInput（Web Speech）
 │           ├── message/              # 气泡、空态、思考中、打字点
 │           ├── trigger/              # DraggableFab 入口
 │           └── mascot/               # ChatBotMascot
