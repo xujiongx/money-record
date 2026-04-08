@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { createTransaction } from "@/app/actions/ledger";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
 import type { LedgerType, MemberRow } from "@/lib/types";
-import { MemberAvatar } from "@/components/MemberAvatar";
+import { MemberAvatar } from "@/components/common/MemberAvatar";
 
 export function RecordForm({ members }: { members: MemberRow[] }) {
   const router = useRouter();

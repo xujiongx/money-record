@@ -1,5 +1,5 @@
-import { SetupPrompt } from "@/components/SetupPrompt";
-import { StatsChartsGate } from "@/components/StatsChartsGate";
+import { SetupPrompt } from "@/components/features/household/SetupPrompt";
+import { StatsChartsGate } from "@/components/features/stats/StatsChartsGate";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 

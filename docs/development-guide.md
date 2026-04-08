@@ -35,8 +35,8 @@ flowchart LR
 - **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态。  
 - **读缓存**：`ledger.ts` 中成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
-- **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
-- **小布助手**：`MobileShell` 挂载 `FloatingChatBot`（`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`DraggableFab`）；吉祥物为 `ChatBotMascot`（SVG SMIL 动画）。
+- **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
+- **小布助手**：`components/common/MobileShell` 挂载 `components/features/chat/FloatingChatBot`（`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 `components/features/chat/ChatBotMascot`（SVG SMIL 动画）。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08-chatbot-mobile-layout.md](./change/2026-04-08-chatbot-mobile-layout.md)）。
 - **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
@@ -61,18 +61,16 @@ flowchart LR
 │   ├── members/page.tsx
 │   └── layout.tsx          # MobileShell 包裹主内容
 ├── components/
-│   ├── MobileShell.tsx     # 底栏 + 小布入口（登录页隐藏）
-│   ├── EnterHouseholdCode.tsx
-│   ├── SwitchHouseholdButton.tsx
-│   ├── DashboardClient.tsx     # 最近账单左滑编辑/删除、编辑弹窗
-│   ├── StatsCharts.tsx         # 统计图表（由 Gate 动态加载）
-│   ├── StatsChartsGate.tsx     # Client：dynamic 加载 StatsCharts（ssr:false）
-│   ├── StatsChartsSkeleton.tsx
-│   ├── SwipeTransactionRow.tsx
-│   ├── FloatingChatBot.tsx # 小布浮窗（对话 UI + Portal）
-│   ├── DraggableFab.tsx    # react-draggable 封装 + localStorage 偏移
-│   ├── ChatBotMascot.tsx   # 吉祥物 SVG
-│   └── ...
+│   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
+│   │   ├── MobileShell.tsx
+│   │   ├── DraggableFab.tsx
+│   │   ├── MemberAvatar.tsx
+│   │   └── StatsChartsSkeleton.tsx
+│   └── features/           # 按业务域划分的功能组件
+│       ├── household/      # 登录、切换家庭、无数据提示
+│       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
+│       ├── stats/          # StatsCharts + Gate（dynamic 分包）
+│       └── chat/           # 小布浮窗、吉祥物
 ├── lib/
 │   ├── household.ts        # 编码规范化、Cookie/Storage 键名
 │   ├── household-server.ts # RSC 读 Cookie 编码

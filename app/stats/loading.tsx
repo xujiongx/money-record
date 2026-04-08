@@ -1,4 +1,4 @@
-import { StatsChartsSkeleton } from "@/components/StatsChartsSkeleton";
+import { StatsChartsSkeleton } from "@/components/common/StatsChartsSkeleton";
 
 /** 仅统计路由：比根 loading 更贴近本页结构，体积更小 */
 export default function StatsLoading() {

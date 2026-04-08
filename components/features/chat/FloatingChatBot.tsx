@@ -8,8 +8,8 @@ import {
   mistralChatAction,
   type MistralChatMessage,
 } from "@/app/actions/mistral-chat";
-import { ChatBotMascot } from "@/components/ChatBotMascot";
-import { DraggableFab } from "@/components/DraggableFab";
+import { ChatBotMascot } from "@/components/features/chat/ChatBotMascot";
+import { DraggableFab } from "@/components/common/DraggableFab";
 
 const OFFSET_STORAGE_KEY = "record-chatbot-offset-v1";
 
@@ -83,8 +83,13 @@ export function FloatingChatBot() {
   }, [open]);
 
   useEffect(() => {
-    if (!listRef.current) return;
-    listRef.current.scrollTop = listRef.current.scrollHeight;
+    if (!open) return;
+    const el = listRef.current;
+    if (!el) return;
+    const id = requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+    return () => cancelAnimationFrame(id);
   }, [messages, open, pending]);
 
   const sendUserMessage = (text: string) => {
@@ -165,17 +170,17 @@ export function FloatingChatBot() {
       {open &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-stone-900/45 p-4 backdrop-blur-md sm:items-center"
+            className="fixed inset-0 z-[100] flex h-full min-h-0 items-end justify-center bg-stone-900/45 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-md sm:items-center sm:pb-4 sm:pt-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="chatbot-title"
             onClick={() => setOpen(false)}
           >
             <div
-              className="flex max-h-[min(86dvh,640px)] w-full max-w-md flex-col overflow-hidden rounded-[1.75rem] border border-white/70 bg-gradient-to-b from-white via-orange-50/35 to-white shadow-[0_25px_80px_-20px_rgba(249,115,22,0.35),0_0_1px_rgba(0,0,0,0.06)]"
+              className="flex max-h-full w-full max-w-md min-h-0 flex-col overflow-hidden rounded-[1.75rem] border border-white/70 bg-gradient-to-b from-white via-orange-50/35 to-white shadow-[0_25px_80px_-20px_rgba(249,115,22,0.35),0_0_1px_rgba(0,0,0,0.06)] h-[min(86svh,640px)] sm:h-[min(86dvh,640px)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <header className="relative overflow-hidden border-b border-orange-100/90 bg-gradient-to-r from-orange-50 via-white to-pink-50/90 px-4 py-3.5">
+              <header className="relative shrink-0 overflow-hidden border-b border-orange-100/90 bg-gradient-to-r from-orange-50 via-white to-pink-50/90 px-4 py-3.5">
                 <div
                   className="pointer-events-none absolute -right-8 -top-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl"
                   aria-hidden
@@ -216,7 +221,7 @@ export function FloatingChatBot() {
 
               <div
                 ref={listRef}
-                className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-transparent to-orange-50/20 px-4 py-4"
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-y-contain bg-gradient-to-b from-transparent to-orange-50/20 px-4 py-4 [-webkit-overflow-scrolling:touch]"
               >
                 {messages.length === 0 && (
                   <div className="flex flex-col items-center gap-4 py-6">
@@ -260,12 +265,12 @@ export function FloatingChatBot() {
               </div>
 
               {error && (
-                <p className="border-t border-red-100 bg-red-50/80 px-4 py-2 text-center text-xs text-red-600">
+                <p className="shrink-0 border-t border-red-100 bg-red-50/80 px-4 py-2 text-center text-xs text-red-600">
                   {error}
                 </p>
               )}
 
-              <div className="border-t border-orange-100/80 bg-gradient-to-t from-orange-50/50 to-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+              <div className="shrink-0 border-t border-orange-100/80 bg-gradient-to-t from-orange-50/50 to-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
                 <button
                   type="button"
                   disabled={pending}

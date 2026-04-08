@@ -21,8 +21,8 @@
 |------|------|
 | `app/actions/mistral-chat.ts` | `mistralChatAction`、`generateMonthlySummaryAction`、`buildMonthlyLedgerDigest` |
 | `lib/mistral-fetch.ts` | undici、`readEnv`、Proxy 缓存、`fetchUpstream` |
-| `components/FloatingChatBot.tsx` | 对话 UI、Portal |
-| `components/DraggableFab.tsx` | react-draggable、偏移 localStorage |
-| `components/ChatBotMascot.tsx` | 吉祥物 SVG |
-| `components/MobileShell.tsx` | 条件挂载 `FloatingChatBot` |
+| `components/features/chat/FloatingChatBot.tsx` | 对话 UI、Portal |
+| `components/common/DraggableFab.tsx` | react-draggable、偏移 localStorage |
+| `components/features/chat/ChatBotMascot.tsx` | 吉祥物 SVG |
+| `components/common/MobileShell.tsx` | 条件挂载 `FloatingChatBot` |
 | `next.config.ts` | `serverExternalPackages: ["undici"]` |

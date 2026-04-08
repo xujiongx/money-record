@@ -1,5 +1,5 @@
-import { DashboardClient } from "@/components/DashboardClient";
-import { SetupPrompt } from "@/components/SetupPrompt";
+import { DashboardClient } from "@/components/features/record/DashboardClient";
+import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 

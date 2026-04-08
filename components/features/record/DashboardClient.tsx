@@ -8,9 +8,9 @@ import { fetchTransactions, deleteTransaction } from "@/app/actions/ledger";
 import { summarizeLedger, memberStats } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
 import type { MemberRow, TransactionRow } from "@/lib/types";
-import { MemberAvatar } from "@/components/MemberAvatar";
-import { EditTransactionModal } from "@/components/EditTransactionModal";
-import { SwipeTransactionRow } from "@/components/SwipeTransactionRow";
+import { MemberAvatar } from "@/components/common/MemberAvatar";
+import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
+import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 
 export function DashboardClient({
   householdCode,

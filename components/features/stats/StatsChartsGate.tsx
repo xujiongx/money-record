@@ -1,12 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { StatsChartsSkeleton } from "@/components/StatsChartsSkeleton";
+import { StatsChartsSkeleton } from "@/components/common/StatsChartsSkeleton";
 import type { MemberRow, TransactionRow } from "@/lib/types";
 
 const StatsChartsLazy = dynamic(
   () =>
-    import("@/components/StatsCharts").then((mod) => ({
+    import("@/components/features/stats/StatsCharts").then((mod) => ({
       default: mod.StatsCharts,
     })),
   {

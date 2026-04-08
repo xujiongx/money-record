@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { EnterHouseholdCode } from "@/components/EnterHouseholdCode";
+import { EnterHouseholdCode } from "@/components/features/household/EnterHouseholdCode";
 import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 
 export default async function LoginPage() {

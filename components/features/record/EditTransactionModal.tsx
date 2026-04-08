@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { updateTransaction } from "@/app/actions/ledger";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/categories";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/types";
-import { MemberAvatar } from "@/components/MemberAvatar";
+import { MemberAvatar } from "@/components/common/MemberAvatar";
 
 function toDatetimeLocalValue(iso: string) {
   const d = new Date(iso);

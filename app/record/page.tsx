@@ -1,5 +1,5 @@
-import { RecordForm } from "@/components/RecordForm";
-import { SetupPrompt } from "@/components/SetupPrompt";
+import { RecordForm } from "@/components/features/record/RecordForm";
+import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { fetchMembers } from "@/app/actions/ledger";
 
 export default async function RecordPage() {

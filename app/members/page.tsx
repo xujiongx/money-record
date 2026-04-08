@@ -1,11 +1,11 @@
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { SetupPrompt } from "@/components/SetupPrompt";
-import { SwitchHouseholdButton } from "@/components/SwitchHouseholdButton";
+import { SetupPrompt } from "@/components/features/household/SetupPrompt";
+import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { memberStats, summarizeLedger } from "@/lib/aggregates";
 import { formatMoney } from "@/lib/format";
-import { MemberAvatar } from "@/components/MemberAvatar";
+import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { getHouseholdCodeFromCookies } from "@/lib/household-server";
 
 export default async function MembersPage() {

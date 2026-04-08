@@ -8,7 +8,7 @@ alwaysApply: false
 
 - 使用函数组件与 Hooks；可复用的有状态逻辑抽到自定义 Hook。
 - App Router 下默认用服务端组件；仅当需要浏览器 API、事件处理或仅限客户端的 Hook 时，再在对应文件顶部加 `"use client"`。
-- 小型 UI 与路由或功能就近放置；共享基础组件放在明确目录（如 `components/`）。
+- 小型 UI 与路由或功能就近放置；跨页面复用放 `components/common/`，按业务域的功能组件放 `components/features/<域>/`。
 
 ```tsx
 "use client";
