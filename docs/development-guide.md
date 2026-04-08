@@ -36,7 +36,7 @@ flowchart LR
 - **读缓存**：`ledger.ts` 中成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
-- **小布助手**：`components/common/MobileShell` 挂载 `components/features/chat/FloatingChatBot`（`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 `components/features/chat/ChatBotMascot`（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
+- **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话与「本月小结」走 **`app/actions/mistral-chat.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；服务端用 **`lib/mistral-fetch.ts`**（undici + 可选代理）请求 Mistral API；**API Key 仅服务端**，业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。
 - **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
@@ -72,7 +72,14 @@ flowchart LR
 │       ├── household/      # 登录、切换家庭、无数据提示
 │       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
 │       ├── stats/          # StatsCharts + Gate（dynamic 分包）
-│       └── chat/           # 小布浮窗、吉祥物
+│       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
+│           ├── index.ts              # 导出 FloatingChatBot
+│           ├── types.ts              # ChatUiMessage、newChatMessageId
+│           ├── FloatingChatBot.tsx   # 状态与历史/发送/本月小结编排
+│           ├── panel/                # Portal 壳、头/列表/底栏
+│           ├── message/              # 气泡、空态、思考中、打字点
+│           ├── trigger/              # DraggableFab 入口
+│           └── mascot/               # ChatBotMascot
 ├── lib/
 │   ├── household.ts        # 编码规范化、Cookie/Storage 键名
 │   ├── household-server.ts # RSC 读 Cookie 编码

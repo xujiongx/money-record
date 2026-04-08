@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { FloatingChatBot } from "@/components/features/chat/FloatingChatBot";
+import { FloatingChatBot } from "@/components/features/chat";
 
 const tabs = [
   { href: "/", label: "首页", icon: HomeIcon },
