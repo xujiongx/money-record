@@ -1,6 +1,6 @@
 # 迭代设计文档
 
-> 与 [PRD.md](./PRD.md) 配合：PRD 管产品范围，**每个迭代的变更记录放在 [change/](./change/) 下单独文件**。  
+> 与 [PRD.md](./PRD.md) 配合：PRD 管产品范围，**每个迭代的变更记录放在 [change/](./change/) 下**；**同一自然日宜合并为单文件** `YYYY-MM-DD.md`（见 [change/README.md](./change/README.md)）。  
 > 当前产品：**家庭记账**（Next.js 移动端 + Supabase，多家庭编码、登录/创建家、导航刷新 + 读缓存、统计页图表按需加载）。  
 > 主文档已与实现对齐时，迭代文件可只记**本轮差异**与发布说明。
 

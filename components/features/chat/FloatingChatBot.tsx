@@ -163,7 +163,7 @@ export function FloatingChatBot() {
         />
         <ChatBotMascot
           variant="fab"
-          className="relative z-10 h-[3.35rem] w-[3.35rem] drop-shadow-md"
+          className="pointer-events-none absolute inset-0 z-10 drop-shadow-md"
         />
       </DraggableFab>
 
@@ -191,10 +191,10 @@ export function FloatingChatBot() {
                 />
                 <div className="relative flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/95 shadow-lg shadow-orange-200/40 ring-1 ring-orange-100/80">
+                    <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white/95 shadow-lg shadow-orange-200/40 ring-1 ring-orange-100/80">
                       <ChatBotMascot
                         variant="header"
-                        className="h-10 w-10"
+                        className="absolute inset-0"
                       />
                     </span>
                     <div className="min-w-0">
@@ -225,10 +225,10 @@ export function FloatingChatBot() {
               >
                 {messages.length === 0 && (
                   <div className="flex flex-col items-center gap-4 py-6">
-                    <div className="rounded-3xl bg-white/80 p-4 shadow-inner shadow-orange-100/60 ring-1 ring-orange-100/50">
+                    <div className="relative h-28 w-28 overflow-hidden rounded-3xl bg-white/80 shadow-inner shadow-orange-100/60 ring-1 ring-orange-100/50">
                       <ChatBotMascot
                         variant="header"
-                        className="h-20 w-20"
+                        className="absolute inset-0"
                       />
                     </div>
                     <p className="max-w-[16rem] text-center text-sm leading-relaxed text-stone-500">

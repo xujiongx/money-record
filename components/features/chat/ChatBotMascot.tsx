@@ -3,6 +3,10 @@
 import { useId } from "react";
 
 type ChatBotMascotProps = {
+  /**
+   * 加在外层占位 `span`（`block min-h-0 min-w-0`，尺寸由 `absolute inset-*` 或父级宽高决定）。
+   * 内层 `svg` 为 `h-full w-full` + `meet`；勿在外层默认叠 `h-full w-full` 与 `absolute inset-*` 冲突。
+   */
   className?: string;
   /** fab：完整漂浮+眨眼+天线；header：仅眨眼，适合标题栏 */
   variant?: "fab" | "header";
@@ -22,13 +26,18 @@ export function ChatBotMascot({
   const fullAnim = variant === "fab";
 
   return (
-    <svg
-      className={className}
-      viewBox="0 0 100 112"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <span
+      className={["block min-h-0 min-w-0", className].filter(Boolean).join(" ")}
       aria-hidden
     >
+      <svg
+        className="block h-full w-full min-h-0 min-w-0"
+        viewBox="0 0 100 112"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
+      >
       <defs>
         <linearGradient
           id={bodyGrad}
@@ -192,5 +201,6 @@ export function ChatBotMascot({
         />
       </g>
     </svg>
+    </span>
   );
 }

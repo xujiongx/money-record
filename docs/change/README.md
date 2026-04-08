@@ -1,11 +1,12 @@
 # 迭代变更文档（change）
 
-本目录**每个迭代一份**独立 Markdown，记录该迭代的范围、设计与回顾。
+本目录**每个迭代一份**独立 Markdown，记录该迭代的范围、设计与回顾。**同一自然日建议合并为单文件** `YYYY-MM-DD.md`，日内用二级标题分主题。
 
 ## 命名建议
 
 | 形式 | 示例 |
 |------|------|
+| **按日合并（推荐）** | `2026-04-08.md` |
 | 日期 + 主题 | `2026-04-02-sprint1.md` |
 | 版本号 | `v1.2.0.md` |
 | 迭代编号 | `iter-03.md` |
@@ -17,10 +18,7 @@
 | 迭代 | 日期 | 摘要 | 文档 |
 |------|------|------|------|
 | 文档对齐主分支 | 2026-04-02 | PRD/库表/API/缓存/部署/开发指南与多家庭、登录创建、轮询一致 | [2026-04-02-docs-sync.md](./2026-04-02-docs-sync.md) |
-| 文档对齐：性能与统计分包 | 2026-04-08 | 缓存/revalidateTag、loading、StatsChartsGate、目录与 FAQ | [2026-04-08-docs-sync.md](./2026-04-08-docs-sync.md) |
-| 文档对齐：小布 / Mistral | 2026-04-08 | FloatingChatBot、mistral-chat API、部署环境变量、架构与开发指南 | [2026-04-08-chatbot-docs-sync.md](./2026-04-08-chatbot-docs-sync.md) |
-| 组件目录：公共与业务域分层 | 2026-04-08 | `common/` + `features/{household,record,stats,chat}/`，文档与导入路径对齐 | [2026-04-08-components-structure.md](./2026-04-08-components-structure.md) |
-| 小布浮窗：移动端布局 | 2026-04-08 | 明确面板高度、safe-area、消息区滚动与滚到底时机 | [2026-04-08-chatbot-mobile-layout.md](./2026-04-08-chatbot-mobile-layout.md) |
+| 2026-04-08 合并 | 2026-04-08 | 文档同步（性能缓存/小布 Mistral）、组件 `common`+`features` 分层、浮窗移动端布局、`ChatBotMascot` 容器约定 | [2026-04-08.md](./2026-04-08.md) |
 | （在此登记） | | | |
 
 ## 相关文档
