@@ -6,8 +6,8 @@
 
 - Next.js 16（App Router）+ TypeScript + Tailwind CSS 4
 - Supabase（PostgreSQL）
-- Recharts、Framer Motion、date-fns、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、undici（Mistral 上游请求）
-- **小布助手**：底部导航外的可拖动入口，多轮对话与「本月小结」（需配置 `MISTRAL_API_KEY`，见 `.env.example`）
+- Recharts、Framer Motion、date-fns、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
+- **小布助手**：底部导航外的可拖动入口；多轮对话、结构化记账、**本月小结**与**本年小结**；每轮结合数据库快照生成事实块，弱化历史气泡里的旧数字。出站 LLM 经 `lib/foundation/llm`：**`MISTRAL_API_KEY` 与 `OPEN_ROUTER_API_KEY` 至少配置其一**（同时配置时优先 Mistral，失败则走 OpenRouter）。可选 **Web Speech** 播报（`lib/foundation/tts`）与语音输入（`lib/foundation/asr`），环境变量见 `.env.example`，模块说明见 [`lib/foundation/README.md`](./lib/foundation/README.md)
 
 ## 本地运行
 
@@ -25,7 +25,8 @@
 |------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | 项目 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | **仅服务端**，所有读写经 Server Actions，勿提交或暴露 |
-| `MISTRAL_API_KEY` | （可选）启用小布对话 / 本月小结，**仅服务端**；代理相关变量见 `.env.example` |
+| `MISTRAL_API_KEY` / `OPEN_ROUTER_API_KEY` | 启用小布时**至少其一**，**仅服务端**；详见 `.env.example`（模型、超时、代理、`XIAOBU_LLM_PROVIDER` 等） |
+| `NEXT_PUBLIC_TTS_PROVIDER` / `NEXT_PUBLIC_ASR_PROVIDER` | （可选）助手播报与麦克风：`web-speech`（默认）或 `noop`，见 `.env.example` |
 
 ### 3. 家庭编码与登录
 
@@ -45,7 +46,7 @@ npm run dev
 
 浏览器打开 [http://localhost:3000](http://localhost:3000)（无有效家庭 Cookie 时会跳转 `/login`），建议使用移动端调试或窄屏查看。
 
-多设备数据同步：列表数据随 **进入页面 / 路由跳转** 从服务端载入；他端更新需刷新或再次打开页面（无定时轮询、无 Realtime）。
+多设备数据同步：列表数据随 **进入页面 / 路由跳转** 从服务端载入；他端更新需刷新或再次打开页面（无定时轮询、无 Realtime）。底部 Tab 在客户端会 **prefetch** 各页 RSC，配合服务端账本读缓存，切换时更少重复打库（仍非浏览器多页 DOM 常驻）。
 
 ## 路由说明
 
@@ -59,7 +60,7 @@ npm run dev
 
 ## 部署
 
-将环境变量配置到 Vercel（或其它平台）项目设置中，**切勿**将 `SUPABASE_SERVICE_ROLE_KEY` 设为 `NEXT_PUBLIC_` 前缀。
+将环境变量配置到 Vercel（或其它平台）项目设置中，**切勿**将 `SUPABASE_SERVICE_ROLE_KEY`、`MISTRAL_API_KEY`、`OPEN_ROUTER_API_KEY` 等服务端密钥设为 `NEXT_PUBLIC_` 前缀。OpenRouter 可选 Referer / Title 等见 `.env.example` 与 [docs/deployment.md](./docs/deployment.md)。
 
 ## 安全说明
 
