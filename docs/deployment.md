@@ -42,6 +42,7 @@ flowchart TB
 | `OPEN_ROUTER_APP_TITLE` | 否 | 可选；默认 `record-xiaobu`（对应 `X-Title`）。**须 ASCII/Latin-1**，不可填中文（HTTP 头 ByteString 限制）。 |
 | `XIAOBU_LLM_PROVIDER` | 否 | 设为 **`openrouter`** 时强制只用 OpenRouter、不请求 Mistral（仅调试）；须已配 `OPEN_ROUTER_API_KEY` |
 | `NEXT_PUBLIC_TTS_PROVIDER` | 否 | 小布播报：`web-speech`（默认）或 **`noop`**（关闭合成能力）；见 **`lib/foundation/tts/factory.client.ts`** |
+| `NEXT_PUBLIC_ASR_PROVIDER` | 否 | 小布语音输入：`web-speech`（默认）或 **`noop`**；见 **`lib/foundation/asr/factory.client.ts`** |
 | `HTTPS_PROXY` / `HTTP_PROXY` 等 | 否 | Node 访问外网需代理时（与 Clash 等 HTTP 端口一致） |
 
 **密钥管理**：Service Role、Mistral / OpenRouter Key 仅存部署平台密钥区；勿提交 Git。详见根目录 [.env.example](../.env.example)。

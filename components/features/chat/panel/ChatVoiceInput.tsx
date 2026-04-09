@@ -11,117 +11,15 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-
-// —— Web Speech 收窄类型（部分 TS lib 未包含） ——
-
-type SpeechRecognitionLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((ev: SpeechRecognitionResultEventLike) => void) | null;
-  onerror: ((ev: SpeechRecognitionErrorEventLike) => void) | null;
-  onend: (() => void) | null;
-};
-
-type SpeechRecognitionResultEventLike = {
-  results: {
-    length: number;
-    item: (index: number) => {
-      length: number;
-      item: (index: number) => { transcript: string };
-    };
-  };
-};
-
-type SpeechRecognitionErrorEventLike = {
-  error: string;
-};
-
-type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
-
-function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
-  if (typeof window === "undefined") return null;
-  const w = window as unknown as {
-    SpeechRecognition?: SpeechRecognitionCtor;
-    webkitSpeechRecognition?: SpeechRecognitionCtor;
-  };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-}
-
-/** 手机、平板等触控环境：连续识别易触发兼容问题，改为单次会话更稳 */
-function prefersSingleUtteranceRecognition(): boolean {
-  if (typeof navigator === "undefined") return false;
-  if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) return true;
-  if (typeof window === "undefined") return false;
-  return Boolean(window.matchMedia?.("(pointer: coarse)").matches);
-}
-
-/**
- * 先请求麦克风（与语音识别同属「麦克风」权限），移动端/微信内更易弹出明确授权框。
- * 拿到轨道后立即 stop，避免占用设备；权限仍保留给后续 SpeechRecognition。
- */
-async function ensureMicrophoneAccess(
-  setHint: (msg: string | null) => void,
-): Promise<boolean> {
-  if (typeof navigator === "undefined") return true;
-  const md = navigator.mediaDevices;
-  if (!md?.getUserMedia) {
-    return true;
-  }
-  try {
-    const stream = await md.getUserMedia({ audio: true });
-    stream.getTracks().forEach((t) => t.stop());
-    return true;
-  } catch (e) {
-    const err = e as DOMException;
-    const name = err?.name ?? "";
-    if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-      setHint(
-        "麦克风权限被拒绝：请在浏览器或系统设置中允许本站使用麦克风，再点语音按钮重试",
-      );
-    } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
-      setHint("未检测到可用麦克风，请连接麦克风后重试");
-    } else if (name === "NotReadableError" || name === "TrackStartError") {
-      setHint("麦克风被占用或无法打开，请关闭其他录音/通话应用后重试");
-    } else if (name === "OverconstrainedError") {
-      setHint("当前设备无法满足录音要求，请改用文字输入");
-    } else if (name === "SecurityError") {
-      setHint(
-        "浏览器因安全策略拒绝录音：请使用 HTTPS 或系统浏览器打开（微信内置页可能无法授权）",
-      );
-    } else {
-      setHint("无法访问麦克风，请检查权限与浏览器设置后重试");
-    }
-    return false;
-  }
-}
-
-function speechRecognitionErrorMessage(code: string): string {
-  const map: Record<string, string> = {
-    "not-allowed":
-      "麦克风权限被拒绝，请在系统设置里允许浏览器使用麦克风后重试",
-    "audio-capture":
-      "无法捕获麦克风（可能被占用或未授权），请检查权限或拔掉耳机再试",
-    network:
-      "识别服务需要联网（多为云端识别），请检查网络或稍后重试",
-    "service-not-allowed":
-      "当前内置浏览器不支持网页语音识别，请用系统 Chrome / Safari 打开本站",
-    "language-not-supported": "当前环境不支持所选语言，请改用文字输入",
-    start: "识别引擎未能启动，请稍后重试或改用文字输入",
-    "bad-grammar": "语音识别异常，请改用文字输入",
-  };
-  return map[code] ?? "语音识别失败，请改用文字输入";
-}
+import { createAsrEngine } from "@/lib/foundation/asr/factory.client";
+import type { AsrEngine } from "@/lib/foundation/asr/types";
 
 const noopSubscribe = () => () => {};
 
-function useVoiceInputSupported(): boolean {
+function useAsrSupported(engine: AsrEngine): boolean {
   return useSyncExternalStore(
     noopSubscribe,
-    () => getSpeechRecognitionCtor() !== null,
+    () => engine.supported,
     () => false,
   );
 }
@@ -151,7 +49,8 @@ export type ChatVoiceInputProviderProps = {
 };
 
 /**
- * 语音输入：Web Speech API（zh-CN）。请在表单内放置 {@link ChatVoiceMicButton}，
+ * 语音输入：委托 `lib/foundation/asr`（默认 Web Speech API，zh-CN）。
+ * 请在表单内放置 {@link ChatVoiceMicButton}，
  * 在输入行下方放置 {@link ChatVoiceStatusLine} 展示错误提示。
  */
 export function ChatVoiceInputProvider({
@@ -161,12 +60,10 @@ export function ChatVoiceInputProvider({
   onListeningChange,
   children,
 }: ChatVoiceInputProviderProps) {
-  const supported = useVoiceInputSupported();
+  const engine = useMemo(() => createAsrEngine(), []);
+  const supported = useAsrSupported(engine);
   const [listening, setListening] = useState(false);
   const [speechHint, setSpeechHint] = useState<string | null>(null);
-  const recRef = useRef<SpeechRecognitionLike | null>(null);
-  const prefixRef = useRef("");
-  const warmupRef = useRef(false);
   const disabledRef = useRef(disabled);
   disabledRef.current = disabled;
 
@@ -176,88 +73,26 @@ export function ChatVoiceInputProvider({
 
   useEffect(() => {
     return () => {
-      recRef.current?.abort();
-      recRef.current = null;
+      engine.abort();
     };
-  }, []);
+  }, [engine]);
 
   const stopListening = useCallback(() => {
-    recRef.current?.stop();
-  }, []);
+    engine.stop();
+  }, [engine]);
 
   const startListening = useCallback(() => {
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor || disabled || warmupRef.current) return;
+    if (disabled) return;
 
-    if (typeof window !== "undefined" && !window.isSecureContext) {
-      setSpeechHint(
-        "语音输入需要安全连接：请使用 HTTPS 访问线上站点；若用手机通过「http://局域网 IP」打开开发环境，浏览器会禁止麦克风与语音识别。",
-      );
-      return;
-    }
-
-    recRef.current?.abort();
-    prefixRef.current = input.trimEnd() ? `${input.trimEnd()} ` : "";
-
-    warmupRef.current = true;
-    setSpeechHint(null);
-
-    void (async () => {
-      try {
-        const micOk = await ensureMicrophoneAccess(setSpeechHint);
-        if (!micOk || disabledRef.current) {
-          return;
-        }
-
-        const r = new Ctor();
-        r.lang = "zh-CN";
-        const mobileLike = prefersSingleUtteranceRecognition();
-        r.continuous = !mobileLike;
-        r.interimResults = true;
-
-        r.onresult = (event: SpeechRecognitionResultEventLike) => {
-          let full = "";
-          const { results } = event;
-          for (let i = 0; i < results.length; i++) {
-            const res = results.item(i);
-            if (res.length > 0) {
-              full += res.item(0).transcript;
-            }
-          }
-          const merged = (prefixRef.current + full)
-            .replace(/\s+/g, " ")
-            .trimStart();
-          onTranscript(merged);
-        };
-
-        r.onerror = (event: SpeechRecognitionErrorEventLike) => {
-          if (event.error === "aborted" || event.error === "no-speech") return;
-          setSpeechHint(speechRecognitionErrorMessage(event.error));
-          setListening(false);
-          recRef.current = null;
-        };
-
-        r.onend = () => {
-          setListening(false);
-          recRef.current = null;
-        };
-
-        if (disabledRef.current) {
-          return;
-        }
-
-        recRef.current = r;
-        r.start();
-        setListening(true);
-        setSpeechHint(null);
-      } catch {
-        setSpeechHint("无法启动语音识别");
-        setListening(false);
-      } finally {
-        warmupRef.current = false;
-      }
-    })();
-  }, [disabled, input, onTranscript]);
+    void engine.start({
+      prefix: input.trimEnd() ? `${input.trimEnd()} ` : "",
+      onTranscript,
+      onHint: setSpeechHint,
+      onListeningChange: setListening,
+      isCancelled: () => disabledRef.current,
+      lang: "zh-CN",
+    });
+  }, [disabled, engine, input, onTranscript]);
 
   const toggle = useCallback(() => {
     if (listening) {

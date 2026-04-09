@@ -106,6 +106,7 @@ flowchart TB
 - **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月 / 本年小结」、标题栏 **播报** 开关与 **暂停/继续**）等子目录组件。  
 - **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction` / `generateYearlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`** 委托 **`lib/foundation/llm`**（默认 **`MistralThenOpenRouterLlmClient`**；独立实现 **`MistralLlmClient`** / **`OpenRouterLlmClient`**），`mistral-fetch` 仍为 Mistral 底层 HTTP；结构化记账契约见 **`lib/llm/chat-ledger.ts`**。  
 - **客户端播报**：**`lib/foundation/tts`**（**`createTtsEngine`**、`WebSpeechSynthesisTts` / **`NoopTtsEngine`**，`NEXT_PUBLIC_TTS_PROVIDER`），由 **`useChatAssistantTts`** 持有引擎实例。  
+- **客户端语音识别（ASR）**：**`lib/foundation/asr`**（**`createAsrEngine`**、`WebSpeechRecognitionAsrEngine` / **`NoopAsrEngine`**，`NEXT_PUBLIC_ASR_PROVIDER`），由 **`ChatVoiceInputProvider`** 持有引擎实例。  
 - **每轮 DB 快照**：`mistralLedgerChatAction` 经 **`fetchLedgerSnapshotData`**（绕过列表 **`unstable_cache`**）拉流水与成员，用 **`computeMonthlyLedgerDigest`** 生成本月文本，并**拼在当前 user 消息顶部**（模型优先读最近 user）；统计类回答以该快照为准，不把 `chat_messages` 历史里的旧数字当真。  
 - **密钥**：**`MISTRAL_API_KEY`** 与 **`OPEN_ROUTER_API_KEY`** 至少其一（同配时 Mistral 优先）；及可选模型名、代理、OpenRouter 头，**永不**下发浏览器。  
 - **错误契约**：返回 **`MistralTextResult`**（`{ ok: true, data } | { ok: false, error }`），避免预期失败 **`throw`** 触发 Next Server Action 整页 **500**。  

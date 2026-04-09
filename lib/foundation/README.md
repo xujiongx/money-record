@@ -1,6 +1,6 @@
 # 基础模块（`lib/foundation`）
 
-可插拔的 **LLM 对话补全** 与 **TTS 语音合成** 能力，与业务（小布 Action、记账契约、UI）解耦。
+可插拔的 **LLM 对话补全**、**TTS 语音合成** 与 **ASR 语音识别** 能力，与业务（小布 Action、记账契约、UI）解耦。
 
 ## 分层
 
@@ -13,11 +13,16 @@
 | `tts/factory.client.ts` | `createTtsEngine()`（**`"use client"`**，仅客户端） |
 | `tts/text/*` | 与合成无关的纯函数（如去 Markdown） |
 | `tts/implementations/*` | 如 Web Speech、`noop` |
+| `asr/types.ts` | `AsrEngine`、`StartAsrOptions` |
+| `asr/factory.client.ts` | `createAsrEngine()`（**`"use client"`**，仅客户端） |
+| `asr/utils/*` | 麦克风预检、触控粗指针、识别错误文案等 |
+| `asr/implementations/*` | **`WebSpeechRecognitionAsrEngine`**、**`NoopAsrEngine`** |
 
 ## 服务端 / 客户端边界
 
 - **`lib/foundation/llm/**`**：不得被 Client Component 直接或间接 import（避免密钥与 Node 逻辑进浏览器包）。业务侧可继续通过 [`lib/llm/xiaobu-llm.ts`](../llm/xiaobu-llm.ts) 的 `xiaobuChatCompletion` 调用，其内部委托 `getDefaultLlmClient()`。
 - **`lib/foundation/tts/factory.client.ts`** 及其实现类：仅客户端使用；`NEXT_PUBLIC_TTS_PROVIDER` 选择实现（默认 `web-speech`，可选 `noop`）。
+- **`lib/foundation/asr/**`**：仅客户端；`NEXT_PUBLIC_ASR_PROVIDER` 选择实现（默认 `web-speech`，可选 `noop`）。**`ChatVoiceInputProvider`**（`components/features/chat/panel/ChatVoiceInput.tsx`）委托 **`createAsrEngine()`**。
 
 ## 领域契约（不放在 foundation）
 
@@ -28,3 +33,4 @@
 
 1. **LLM**：新建 `llm/implementations/your-client.ts` 实现 `LlmClient`；可选导出 `attemptXxxCompletion` 返回 `LlmAttemptResult` 供链式组合。在 [`llm/factory.ts`](llm/factory.ts) 的 `createLlmClient()` 中按环境变量分支返回（或组合现有 **`MistralLlmClient`** / **`OpenRouterLlmClient`**）。
 2. **TTS**：新建 `tts/implementations/your-engine.ts` 实现 `TtsEngine`，在 [`tts/factory.client.ts`](tts/factory.client.ts) 中注册 `NEXT_PUBLIC_TTS_PROVIDER` 取值。
+3. **ASR**：新建 `asr/implementations/your-asr.ts` 实现 `AsrEngine`（`start` / `stop` / `abort`），在 [`asr/factory.client.ts`](asr/factory.client.ts) 中注册 `NEXT_PUBLIC_ASR_PROVIDER` 取值。
