@@ -11,6 +11,7 @@
 | Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（如 120s） | 减少 Tab 切换时重复打 Supabase |
 | 同请求去重 | React **`cache()`** 包装 **`requireHouseholdId()`** | 同一次 RSC 内多次 `fetch*` 只解析一次 Cookie |
 | 客户端预取 | **`usePrefetchAppTabs`**（`MobileShell`）：空闲时对四个 Tab 路径 **`router.prefetch`** | 提前拉取 RSC flight，缩短首次点击等待 |
+| 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`**（秒；与账本缓存同量级） | 动态页在窗口内复用已缓存的 RSC，减少反复切 Tab 时的重新请求（非整页 `location` 刷新；写操作仍会 `revalidate*`） |
 | 缓存失效 | **`revalidateTag("ledger", "max")`** + 既有 **`revalidatePath`** | 记账、改账、删账、登录写 Cookie、清除会话后数据立即刷新 |
 | 根布局 | **不**再使用 `export const dynamic = "force-dynamic"` | 需动态的片段仍因 `cookies()` 等为动态；利于部分静态优化 |
 | Next 路由缓存 | `revalidatePath`（与上配合） | 相关路由下次请求刷新 |
