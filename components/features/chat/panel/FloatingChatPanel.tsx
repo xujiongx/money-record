@@ -5,7 +5,10 @@ import { createPortal } from "react-dom";
 import type { ChatUiMessage } from "@/components/features/chat/types";
 import { ChatMessageList } from "@/components/features/chat/panel/ChatMessageList";
 import { ChatPanelFooter } from "@/components/features/chat/panel/ChatPanelFooter";
-import { ChatPanelHeader } from "@/components/features/chat/panel/ChatPanelHeader";
+import {
+  ChatPanelHeader,
+  type ChatPanelHeaderProps,
+} from "@/components/features/chat/panel/ChatPanelHeader";
 
 export type FloatingChatPanelProps = {
   open: boolean;
@@ -21,7 +24,15 @@ export type FloatingChatPanelProps = {
   onMonthlyShortcut: () => void;
   onYearlyShortcut: () => void;
   onSend: () => void;
-};
+} & Pick<
+  ChatPanelHeaderProps,
+  | "ttsSupported"
+  | "ttsEnabled"
+  | "onTtsEnabledChange"
+  | "ttsSession"
+  | "onTtsPause"
+  | "onTtsResume"
+>;
 
 export function FloatingChatPanel({
   open,
@@ -37,6 +48,12 @@ export function FloatingChatPanel({
   onMonthlyShortcut,
   onYearlyShortcut,
   onSend,
+  ttsSupported,
+  ttsEnabled,
+  onTtsEnabledChange,
+  ttsSession,
+  onTtsPause,
+  onTtsResume,
 }: FloatingChatPanelProps) {
   if (!open) return null;
 
@@ -52,7 +69,15 @@ export function FloatingChatPanel({
         className="flex max-h-full w-full max-w-md min-h-0 flex-col overflow-hidden rounded-[1.75rem] border border-white/70 bg-gradient-to-b from-white via-orange-50/35 to-white shadow-[0_25px_80px_-20px_rgba(249,115,22,0.35),0_0_1px_rgba(0,0,0,0.06)] h-[min(86svh,640px)] sm:h-[min(86dvh,640px)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <ChatPanelHeader onClose={onDismiss} />
+        <ChatPanelHeader
+          onClose={onDismiss}
+          ttsSupported={ttsSupported}
+          ttsEnabled={ttsEnabled}
+          onTtsEnabledChange={onTtsEnabledChange}
+          ttsSession={ttsSession}
+          onTtsPause={onTtsPause}
+          onTtsResume={onTtsResume}
+        />
         <ChatMessageList
           listRef={listRef}
           historyLoading={historyLoading}

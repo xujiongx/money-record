@@ -103,7 +103,7 @@ flowchart TB
 
 ## 7. 小布助手（LLM 对话）
 
-- **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月 / 本年小结」）等子目录组件。  
+- **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月 / 本年小结」、标题栏 **播报** 开关与 **暂停/继续**）等子目录组件。  
 - **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction` / `generateYearlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/llm/xiaobu-llm.ts`**（**`xiaobuChatCompletion`**）出站：优先 **`lib/llm/mistral-fetch.ts`** → Mistral `chat/completions`，失败或未配 Mistral 密钥时可用 **OpenRouter**（`openai` SDK，`https://openrouter.ai/api/v1`，默认 `deepseek/deepseek-chat:free`）；结构化记账契约见 **`lib/llm/chat-ledger.ts`**。  
 - **每轮 DB 快照**：`mistralLedgerChatAction` 经 **`fetchLedgerSnapshotData`**（绕过列表 **`unstable_cache`**）拉流水与成员，用 **`computeMonthlyLedgerDigest`** 生成本月文本，并**拼在当前 user 消息顶部**（模型优先读最近 user）；统计类回答以该快照为准，不把 `chat_messages` 历史里的旧数字当真。  
 - **密钥**：**`MISTRAL_API_KEY`** 与 **`OPEN_ROUTER_API_KEY`** 至少其一（同配时 Mistral 优先）；及可选模型名、代理、OpenRouter 头，**永不**下发浏览器。  

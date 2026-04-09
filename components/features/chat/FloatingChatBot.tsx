@@ -25,6 +25,7 @@ import {
 import { ChatFabTrigger } from "@/components/features/chat/trigger/ChatFabTrigger";
 import { FloatingChatPanel } from "@/components/features/chat/panel/FloatingChatPanel";
 import { useChatHistoryLoader } from "@/components/features/chat/useChatHistoryLoader";
+import { useChatAssistantTts } from "@/components/features/chat/useChatAssistantTts";
 
 /** 小布助手：可拖动入口 + 对话浮层 */
 export function FloatingChatBot() {
@@ -36,6 +37,12 @@ export function FloatingChatBot() {
   const [requestNeedsRetry, setRequestNeedsRetry] = useState(false);
   const [pending, startTransition] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
+
+  const tts = useChatAssistantTts({ panelOpen: open });
+  const speakAssistantRef = useRef(tts.speak);
+  useEffect(() => {
+    speakAssistantRef.current = tts.speak;
+  }, [tts.speak]);
 
   const onHistoryLoadStart = useCallback(() => {
     setError(null);
@@ -139,6 +146,7 @@ export function FloatingChatBot() {
         content: reply,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      speakAssistantRef.current(reply);
       const saved = await persistChatExchangeAction(text, reply);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
@@ -197,6 +205,7 @@ export function FloatingChatBot() {
         content: assistantContent,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      speakAssistantRef.current(assistantContent);
       const saved = await persistChatExchangeAction(trimmed, assistantContent);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
@@ -229,6 +238,7 @@ export function FloatingChatBot() {
         content: result.data,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      speakAssistantRef.current(result.data);
       const saved = await persistChatExchangeAction(
         SUMMARY_SHORTCUT_MONTHLY,
         result.data,
@@ -264,6 +274,7 @@ export function FloatingChatBot() {
         content: result.data,
       };
       setMessages((prev) => [...prev, assistantMsg]);
+      speakAssistantRef.current(result.data);
       const saved = await persistChatExchangeAction(
         SUMMARY_SHORTCUT_YEARLY,
         result.data,
@@ -301,6 +312,12 @@ export function FloatingChatBot() {
         onMonthlyShortcut={onMonthlyShortcut}
         onYearlyShortcut={onYearlyShortcut}
         onSend={() => sendUserMessage(input)}
+        ttsSupported={tts.supported}
+        ttsEnabled={tts.enabled}
+        onTtsEnabledChange={tts.setEnabled}
+        ttsSession={tts.session}
+        onTtsPause={tts.pause}
+        onTtsResume={tts.resume}
       />
     </>
   );
