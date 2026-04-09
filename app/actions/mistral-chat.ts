@@ -4,7 +4,10 @@ import {
   createTransaction,
   fetchLedgerSnapshotData,
 } from "@/app/actions/ledger";
-import { computeMonthlyLedgerDigest } from "@/lib/ledger/monthly-digest";
+import {
+  computeMonthlyLedgerDigest,
+  computeYearlyLedgerDigest,
+} from "@/lib/ledger/monthly-digest";
 import { xiaobuChatCompletion } from "@/lib/llm/xiaobu-llm";
 import { format, getDaysInMonth } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -30,6 +33,12 @@ function toActionError(e: unknown): string {
 export async function buildMonthlyLedgerDigest(): Promise<string> {
   const { transactions, members } = await fetchLedgerSnapshotData();
   return computeMonthlyLedgerDigest(transactions, members);
+}
+
+/** 与统计页「本年」一致：直连数据库后计算年度摘要 */
+export async function buildYearlyLedgerDigest(): Promise<string> {
+  const { transactions, members } = await fetchLedgerSnapshotData();
+  return computeYearlyLedgerDigest(transactions, members);
 }
 
 /** 系统提示中的短规则；具体数字放在本条 user 消息顶部的快照里 */
@@ -83,6 +92,33 @@ function buildMonthSummaryTimeContext(anchor: Date): string {
     `- 时间阶段：${phase}。`,
     `- 摘要中的金额与笔数为「发生日落在此自然月、且已记在账里」的汇总；不是对未来的预测。`,
     `- 措辞约束：${day <= 10 ? "月初/上旬：开篇可用「本月伊始以来」「截至目前」等，避免「全月总结」「本月就这样了」；结尾鼓励继续记录，可提「后面大半个月还可观察」。" : day <= 20 ? "中旬：明确是「月中阶段性」小结，可提示「离月末还有一段，习惯仍可调整」。" : day <= daysInMonth - 3 ? "下旬：可说「进入本月后半」，仍避免断言整月已定型。" : "临近月末：可稍带回顾感，但若非最后一天，仍不要用「全月收官」；若恰为月末最后一天，才可略收紧为月度回顾语气。"}`,
+  ].join("\n");
+}
+
+/** 年度小结：本年是否已过完、当前处于年初中末，控制「截至目前」措辞 */
+function buildYearSummaryTimeContext(anchor: Date): string {
+  const y = anchor.getFullYear();
+  const mo = anchor.getMonth() + 1;
+  const day = anchor.getDate();
+  const todayStr = format(anchor, "yyyy年M月d日", { locale: zhCN });
+  const monthPct = Math.min(
+    100,
+    Math.max(1, Math.round((mo / 12) * 100)),
+  );
+  const isYearEnd = mo === 12 && day === 31;
+  let phase: string;
+  if (mo <= 2) phase = "年初（本年刚开始不久）";
+  else if (mo <= 4) phase = "上半年初段";
+  else if (mo <= 6) phase = "上半年";
+  else if (mo <= 8) phase = "下半年初段";
+  else if (mo <= 10) phase = "下半年";
+  else phase = day >= 20 ? "临近年末" : "年末月份";
+
+  return [
+    `- 用户提问日：${todayStr}`,
+    `- 统计自然年：${y}年；当天处于${phase}（日历上已过约 ${monthPct}% 个自然月，仅表示时间进度，不代表收支节奏）。`,
+    `- 摘要中的金额与笔数为「发生日落在此自然年、且已记在账里」的汇总；不是对未来的预测。`,
+    `- 措辞约束：${isYearEnd ? "12 月 31 日：可作温和年度回顾，仍避免绝对化断言。" : mo <= 3 ? "年初：开篇用「今年以来」「截至目前」等，避免「全年已定稿」「一年就这样了」；可鼓励继续记录。" : mo <= 8 ? "年中：明确是「阶段性」回顾，可提示「后面还有几个月可观察」。" : "临近年末：可略带回顾感，但若非 12 月 31 日，仍避免「全年收官」式表述。"}`,
   ].join("\n");
 }
 
@@ -196,6 +232,9 @@ export async function mistralLedgerChatAction(
 const MONTHLY_SUMMARY_SYSTEM =
   `${ASSISTANT_SYSTEM} 写月度小结时须结合摘要里的成员收支数据做点评，语气积极、不人身攻击；无数据则不臆测。须严格服从 user 里的「当前时间语境」：提问日可能是月初、月中或临近月末，不可一律按「整月已结束」来写。`;
 
+const YEARLY_SUMMARY_SYSTEM =
+  `${ASSISTANT_SYSTEM} 写年度小结时须结合摘要里的成员收支与分类数据做点评，语气积极、不人身攻击；无数据则不臆测。须严格服从 user 里的「当前时间语境」：提问日可能在本年任意月份，不可在非 12 月 31 日时写成「全年已封账」式总结。`;
+
 /** 根据本月账本摘要生成小结（合理提示词 + 数据在 user 里） */
 export async function generateMonthlySummaryAction(): Promise<MistralTextResult> {
   try {
@@ -221,6 +260,39 @@ ${digest}
 
     const data = await callXiaobuLlm([
       { role: "system", content: MONTHLY_SUMMARY_SYSTEM },
+      { role: "user", content: userPrompt },
+    ]);
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, error: toActionError(e) };
+  }
+}
+
+/** 根据本年账本摘要生成年度小结（合理提示词 + 数据在 user 里） */
+export async function generateYearlySummaryAction(): Promise<MistralTextResult> {
+  try {
+    const now = new Date();
+    const digest = await buildYearlyLedgerDigest();
+    const timeContext = buildYearSummaryTimeContext(now);
+    const userPrompt = `【当前时间语境（必须先读，并贯穿全文语气）】
+${timeContext}
+
+以下是本家庭账本在「本年」的汇总数据（按账单发生日落在此自然年；货币单位与 App 一致）。请根据数据与时间语境写一段**年度**小结——若尚处年初或年中，标题或开篇应点明「今年以来」「截至目前」等，避免写成「全年定稿」式总结。
+
+${digest}
+
+写作要求：
+1. 用简体中文，语气亲切；开篇呼应「当前时间语境」（例如本年进度带来的阶段性含义），非年末不要假装全年已结束。
+2. 概括全家在本自然年内「截至目前」的总收入、总支出与结余（数据以摘要为准）；点出主要支出方向（若有分类）；收入结构可简要一提。
+3. 摘要里「各成员本年」行的姓名即记账人。请对其中名为「一二」「布布」的两位各写一小段（先一二、后布布）；若某姓名未在摘要中出现则不要写该人、勿虚构成员。每段须含：①全年（截至目前）消费习惯（结合该成员本年支出金额、笔数及全家支出分类，语气温和）；②收入侧（结合该成员本年收入金额与笔数，鼓励式点评；收入为 0 或笔数为 0 时如实说明，勿编造）。
+4. 若某成员本年收入与支出均为 0 且收支笔数均为 0，直说「本年较少由 TA 记账或暂无流水」，不推测性格或能力。
+5. 若本年全家几乎没有流水，整体说明「本年记录较少」并温和鼓励坚持记账，成员点评从简。
+6. 结尾根据进度收束：年初/年中可鼓励「继续记、年尾再看」；临近年末仍可提示习惯可调整；避免「全年再无变化」式绝对化（除非语境为 12 月 31 日且语气仍温和）。
+7. 全文约 400～720 字，分段清晰；可使用 Markdown（**粗体**、列表、分段）；少用一级「#」标题，必要时用二级「##」或加粗代替标题。
+8. 所有金额、笔数、分类均以摘要为准，不要编造未出现的数据。`;
+
+    const data = await callXiaobuLlm([
+      { role: "system", content: YEARLY_SUMMARY_SYSTEM },
       { role: "user", content: userPrompt },
     ]);
     return { ok: true, data };

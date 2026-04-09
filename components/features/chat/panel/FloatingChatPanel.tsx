@@ -19,6 +19,7 @@ export type FloatingChatPanelProps = {
   input: string;
   onInputChange: (value: string) => void;
   onMonthlyShortcut: () => void;
+  onYearlyShortcut: () => void;
   onSend: () => void;
 };
 
@@ -34,6 +35,7 @@ export function FloatingChatPanel({
   input,
   onInputChange,
   onMonthlyShortcut,
+  onYearlyShortcut,
   onSend,
 }: FloatingChatPanelProps) {
   if (!open) return null;
@@ -65,6 +67,7 @@ export function FloatingChatPanel({
           input={input}
           onInputChange={onInputChange}
           onMonthlyShortcut={onMonthlyShortcut}
+          onYearlyShortcut={onYearlyShortcut}
           onSend={onSend}
         />
       </div>

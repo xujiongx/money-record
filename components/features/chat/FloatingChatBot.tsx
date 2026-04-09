@@ -10,9 +10,14 @@ import {
 import { persistChatExchangeAction } from "@/app/actions/chat-history";
 import {
   generateMonthlySummaryAction,
+  generateYearlySummaryAction,
   mistralLedgerChatAction,
   type MistralChatMessage,
 } from "@/app/actions/mistral-chat";
+import {
+  SUMMARY_SHORTCUT_MONTHLY,
+  SUMMARY_SHORTCUT_YEARLY,
+} from "@/components/features/chat/summary-shortcuts";
 import {
   type ChatUiMessage,
   newChatMessageId,
@@ -100,10 +105,19 @@ export function FloatingChatBot() {
     setError(null);
     setRequestNeedsRetry(false);
     startTransition(async () => {
-      const isMonthly = text === "帮我生成本月小结";
+      const isMonthly = text === SUMMARY_SHORTCUT_MONTHLY;
+      const isYearly = text === SUMMARY_SHORTCUT_YEARLY;
       let reply: string;
       if (isMonthly) {
         const result = await generateMonthlySummaryAction();
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        reply = result.data;
+      } else if (isYearly) {
+        const result = await generateYearlySummaryAction();
         if (!result.ok) {
           setError(result.error);
           setRequestNeedsRetry(true);
@@ -151,19 +165,39 @@ export function FloatingChatBot() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     startTransition(async () => {
-      const result = await mistralLedgerChatAction(prior, trimmed);
-      if (!result.ok) {
-        setError(result.error);
-        setRequestNeedsRetry(true);
-        return;
+      let assistantContent: string;
+      if (trimmed === SUMMARY_SHORTCUT_MONTHLY) {
+        const result = await generateMonthlySummaryAction();
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        assistantContent = result.data;
+      } else if (trimmed === SUMMARY_SHORTCUT_YEARLY) {
+        const result = await generateYearlySummaryAction();
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        assistantContent = result.data;
+      } else {
+        const result = await mistralLedgerChatAction(prior, trimmed);
+        if (!result.ok) {
+          setError(result.error);
+          setRequestNeedsRetry(true);
+          return;
+        }
+        assistantContent = result.reply;
       }
       const assistantMsg: ChatUiMessage = {
         id: newChatMessageId(),
         role: "assistant",
-        content: result.reply,
+        content: assistantContent,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      const saved = await persistChatExchangeAction(trimmed, result.reply);
+      const saved = await persistChatExchangeAction(trimmed, assistantContent);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
       } else {
@@ -174,13 +208,12 @@ export function FloatingChatBot() {
 
   const onMonthlyShortcut = () => {
     if (pending || historyLoading) return;
-    const shortcutText = "帮我生成本月小结";
     setError(null);
     setRequestNeedsRetry(false);
     const userMsg: ChatUiMessage = {
       id: newChatMessageId(),
       role: "user",
-      content: shortcutText,
+      content: SUMMARY_SHORTCUT_MONTHLY,
     };
     setMessages((prev) => [...prev, userMsg]);
     startTransition(async () => {
@@ -196,7 +229,45 @@ export function FloatingChatBot() {
         content: result.data,
       };
       setMessages((prev) => [...prev, assistantMsg]);
-      const saved = await persistChatExchangeAction(shortcutText, result.data);
+      const saved = await persistChatExchangeAction(
+        SUMMARY_SHORTCUT_MONTHLY,
+        result.data,
+      );
+      if (!saved.ok) {
+        setError(`对话已显示，但未写入历史：${saved.error}`);
+      } else {
+        appendExchangeToCache(userMsg, assistantMsg);
+      }
+    });
+  };
+
+  const onYearlyShortcut = () => {
+    if (pending || historyLoading) return;
+    setError(null);
+    setRequestNeedsRetry(false);
+    const userMsg: ChatUiMessage = {
+      id: newChatMessageId(),
+      role: "user",
+      content: SUMMARY_SHORTCUT_YEARLY,
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    startTransition(async () => {
+      const result = await generateYearlySummaryAction();
+      if (!result.ok) {
+        setError(result.error);
+        setRequestNeedsRetry(true);
+        return;
+      }
+      const assistantMsg: ChatUiMessage = {
+        id: newChatMessageId(),
+        role: "assistant",
+        content: result.data,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      const saved = await persistChatExchangeAction(
+        SUMMARY_SHORTCUT_YEARLY,
+        result.data,
+      );
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
       } else {
@@ -228,6 +299,7 @@ export function FloatingChatBot() {
         input={input}
         onInputChange={setInput}
         onMonthlyShortcut={onMonthlyShortcut}
+        onYearlyShortcut={onYearlyShortcut}
         onSend={() => sendUserMessage(input)}
       />
     </>
