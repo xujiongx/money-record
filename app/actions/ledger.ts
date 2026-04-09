@@ -37,14 +37,7 @@ function mapTransaction(row: {
   };
 }
 
-/** 同一次 RSC 请求内去重（如 Promise.all(fetchMembers, fetchTransactions) 只查一次 households） */
-export const requireHouseholdId = cacheReact(async (): Promise<string> => {
-  const jar = await cookies();
-  const raw = jar.get(HOUSEHOLD_CODE_COOKIE)?.value ?? "";
-  const code = normalizeHouseholdCode(raw);
-  if (!code) {
-    throw new Error("请先输入家庭编码");
-  }
+async function loadHouseholdIdByNormalizedCode(code: string): Promise<string> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("households")
@@ -54,6 +47,26 @@ export const requireHouseholdId = cacheReact(async (): Promise<string> => {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("家庭编码已失效，请重新输入");
   return data.id;
+}
+
+/** 跨请求复用「编码 → household_id」，与成员/流水缓存同属 `ledger` 标签 */
+const getCachedHouseholdId = unstable_cache(
+  async (code: string) => loadHouseholdIdByNormalizedCode(code),
+  ["ledger-household-id-by-code"],
+  { revalidate: 120, tags: ["ledger"] },
+);
+
+/**
+ * 同一次 RSC 请求内去重（React `cache()`）；跨 Tab 导航则命中 `getCachedHouseholdId` 的 `unstable_cache`。
+ */
+export const requireHouseholdId = cacheReact(async (): Promise<string> => {
+  const jar = await cookies();
+  const raw = jar.get(HOUSEHOLD_CODE_COOKIE)?.value ?? "";
+  const code = normalizeHouseholdCode(raw);
+  if (!code) {
+    throw new Error("请先输入家庭编码");
+  }
+  return getCachedHouseholdId(code);
 });
 
 async function loadMembersForHousehold(

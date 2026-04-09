@@ -53,7 +53,7 @@
 
 ## 3. Server Actions — 账本（`app/actions/ledger.ts`）
 
-均先 **`requireHouseholdId()`**（实现上用 React **`cache()`** 包裹，同一次 RSC 请求内多次调用只执行一次）：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。
+均先 **`requireHouseholdId()`**：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。同一次 RSC 内用 React **`cache()`** 去重；**跨导航**对「规范化编码 → `household_id`」另经 **`unstable_cache`**（标签 **`ledger`**），与下列 `fetch*` 一并随 **`revalidateTag("ledger", "max")`** 失效。
 
 ### 3.1 `fetchMembers()` / `fetchTransactions()`
 

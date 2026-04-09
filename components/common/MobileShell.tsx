@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { FloatingChatBot } from "@/components/features/chat";
+import { usePrefetchAppTabs } from "@/components/common/usePrefetchAppTabs";
 
 const tabs = [
   { href: "/", label: "首页", icon: HomeIcon },
@@ -15,6 +16,7 @@ const tabs = [
 export function MobileShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideNav = pathname.startsWith("/login");
+  usePrefetchAppTabs();
 
   return (
     <>
