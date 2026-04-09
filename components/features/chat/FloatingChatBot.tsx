@@ -1,10 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import {
-  fetchChatMessagesAction,
-  persistChatExchangeAction,
-} from "@/app/actions/chat-history";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { persistChatExchangeAction } from "@/app/actions/chat-history";
 import {
   generateMonthlySummaryAction,
   mistralLedgerChatAction,
@@ -16,19 +19,35 @@ import {
 } from "@/components/features/chat/types";
 import { ChatFabTrigger } from "@/components/features/chat/trigger/ChatFabTrigger";
 import { FloatingChatPanel } from "@/components/features/chat/panel/FloatingChatPanel";
+import { useChatHistoryLoader } from "@/components/features/chat/useChatHistoryLoader";
 
 /** 小布助手：可拖动入口 + 对话浮层 */
 export function FloatingChatBot() {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatUiMessage[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   /** 模型请求失败且最后一条为用户消息时，展示「重试」 */
   const [requestNeedsRetry, setRequestNeedsRetry] = useState(false);
   const [pending, startTransition] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
+
+  const onHistoryLoadStart = useCallback(() => {
+    setError(null);
+    setRequestNeedsRetry(false);
+  }, []);
+
+  const {
+    messages,
+    setMessages,
+    historyLoading,
+    appendExchangeToCache,
+  } = useChatHistoryLoader({
+    open,
+    mounted,
+    setError,
+    onHistoryLoadStart,
+  });
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -43,37 +62,6 @@ export function FloatingChatBot() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-
-    void (async () => {
-      await Promise.resolve();
-      if (cancelled) return;
-      setHistoryLoading(true);
-      setError(null);
-      setRequestNeedsRetry(false);
-      setMessages([]);
-      const r = await fetchChatMessagesAction();
-      if (cancelled) return;
-      if (r.ok) {
-        setMessages(
-          r.data.map((m) => ({ id: m.id, role: m.role, content: m.content })),
-        );
-      } else {
-        setMessages([]);
-        setError(r.error);
-      }
-      if (!cancelled) {
-        setHistoryLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [open]);
 
   useEffect(() => {
@@ -140,9 +128,11 @@ export function FloatingChatBot() {
       const saved = await persistChatExchangeAction(text, reply);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
+      } else {
+        appendExchangeToCache(last, assistantMsg);
       }
     });
-  }, [messages, pending, historyLoading]);
+  }, [messages, pending, historyLoading, appendExchangeToCache, setMessages]);
 
   const sendUserMessage = (text: string) => {
     const trimmed = text.trim();
@@ -176,6 +166,8 @@ export function FloatingChatBot() {
       const saved = await persistChatExchangeAction(trimmed, result.reply);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
+      } else {
+        appendExchangeToCache(userMsg, assistantMsg);
       }
     });
   };
@@ -207,6 +199,8 @@ export function FloatingChatBot() {
       const saved = await persistChatExchangeAction(shortcutText, result.data);
       if (!saved.ok) {
         setError(`对话已显示，但未写入历史：${saved.error}`);
+      } else {
+        appendExchangeToCache(userMsg, assistantMsg);
       }
     });
   };
