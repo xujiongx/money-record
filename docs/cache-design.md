@@ -37,9 +37,25 @@
 | 登录 / 创建家 | 写 Cookie + `revalidatePath` + `revalidateTag` |
 | 切换家庭 | 清 Cookie + 清 localStorage → `/login`；`clearHouseholdSession` 打 `revalidateTag` |
 
-## 4. CDN / 静态资源
+## 4. CDN / 静态资源（图片、字体、JS/CSS 分包）
 
-- 与动态 RSC 分离；业务数据以服务端渲染 + 缓存标签失效为主。
+与动态 RSC 分离；业务数据以服务端渲染 + 缓存标签失效为主。
+
+### 4.1 为什么「感觉没有缓存」
+
+| 情况 | 说明 |
+|------|------|
+| **`next dev` 开发模式** | 为热更新（HMR），对 **`/_next/*`** 等往往下发 **`Cache-Control: no-store`** 或极短缓存，**浏览器几乎每次都会重新请求**。这是预期行为，**不代表生产环境也不缓存**。 |
+| **生产 `next build` + `next start`（或 Vercel）** | **`/_next/static/*`** 下的 JS/CSS 等文件名带 **内容哈希**，通常带 **`immutable` + 长 `max-age`**，浏览器可长期缓存；换版本后文件名变，自然换资源。 |
+| **`public/` 根路径文件**（如 `/vercel.svg`、成员默认头像 `/bubu.png`） | 由 Next 静态提供，**无哈希**；生产上是否长缓存取决于部署环境与是否自定义 `headers`。若需「改文件不换名仍立刻生效」，不宜配 **`immutable`**。 |
+| **`next/image` 的远程图**（如成员 `avatar_url` 指向 Supabase Storage） | **缓存头由图片所在域名（CDN/存储）返回**，Next 只负责优化/转发，**不在本仓库 `next.config` 里统一控制**。 |
+| **本地 `public/` 头像 + `next/image` 默认** | 会走 **`/_next/image?url=...`**；**`next dev`** 上该接口常为 **no-store**，体感「每次进页都重新加载」。**`MemberAvatar`** 对非 `http(s)` 的 `src` 使用 **`unoptimized`**，直接请求 **`/bubu.png`** 等静态路径，便于浏览器缓存；远程 URL 仍走优化管线。 |
+| **304 仍闪灰（多出现在移动 WebKit）** | 缓存命中也会做 **304 校验**；路由切换时组件 **重挂载**，手机端常 **丢弃已解码位图** 再解码，解码前一帧 **`img` 区域无像素**，易透出默认灰底。**`MemberAvatar`** 用与壳层一致的 **`bg-[#fff7f5]`**、小本地图 **`decoding="sync"`**、**`translateZ(0)`** 合成层以减轻；远程图仍 **`async`** 解码。 |
+| **开发者工具** | Chrome「Network」里勾选 **Disable cache** 时，**所有资源**都会绕过缓存，容易误判。 |
+
+### 4.2 与业务数据缓存的区别
+
+静态资源缓存解决的是 **同一 URL 的脚本/样式/图片少打几次 HTTP**；**Tab 切换、列表刷新**仍由 **RSC / `unstable_cache` / `staleTimes`** 等机制负责，二者不要混为一谈。
 
 ## 5. 后续可优化
 
@@ -57,3 +73,4 @@
 | 2026-04-02 | 移除首页/统计定时轮询，改为仅靠页面加载与导航刷新 |
 | 2026-04-08 | 根布局去掉 `force-dynamic`；引入 `unstable_cache` + `revalidateTag("ledger")`、`requireHouseholdId` 的 React `cache()` |
 | 2026-04-08 | 补充 `app/loading.tsx`、`stats/loading`、统计页 Recharts 动态分包说明 |
+| 2026-04-09 | 补充 §4：静态资源与 `next dev` / 生产 / 远程图缓存说明 |

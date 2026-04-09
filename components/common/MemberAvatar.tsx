@@ -43,18 +43,26 @@ export function MemberAvatar({
   const imgSizes =
     size === "lg" ? 64 : size === "sm" ? 40 : 48;
 
+  /** 本地 `public/` 资源不走 `/_next/image`，避免 dev 下优化接口禁用缓存导致每次进页都像重新拉图 */
+  const isRemoteSrc =
+    src !== null &&
+    (src.startsWith("http://") || src.startsWith("https://"));
+
   if (src) {
+    // 304 仍会校验；移动 WebKit 重挂载时常重解码，解码前一帧易显灰——暖底色 + sync 解码减轻
     return (
       <div
-        className={`relative shrink-0 overflow-hidden rounded-full shadow-md ring-2 ring-white/80 ${dim} ${className}`}
+        className={`relative shrink-0 overflow-hidden rounded-full bg-[#fff7f5] shadow-md ring-2 ring-white/80 ${dim} ${className}`}
       >
         <Image
           src={src}
           alt=""
           width={imgSizes}
           height={imgSizes}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transform-[translateZ(0)]"
           sizes={`${imgSizes}px`}
+          unoptimized={!isRemoteSrc}
+          decoding={isRemoteSrc ? "async" : "sync"}
         />
       </div>
     );
