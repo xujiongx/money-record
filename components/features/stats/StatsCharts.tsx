@@ -230,8 +230,8 @@ export function StatsCharts({
             <Empty />
           ) : (
             <>
-              <div className="h-56 w-full min-h-[224px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-56 w-full min-h-[224px] min-w-0">
+                <ResponsiveContainer width="100%" height={224} minWidth={0}>
                   <PieChart>
                     <Pie
                       isAnimationActive={false}
@@ -278,8 +278,8 @@ export function StatsCharts({
             <Empty />
           ) : (
             <>
-              <div className="h-56 w-full min-h-[224px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-56 w-full min-h-[224px] min-w-0">
+                <ResponsiveContainer width="100%" height={224} minWidth={0}>
                   <PieChart>
                     <Pie
                       isAnimationActive={false}
@@ -325,9 +325,10 @@ export function StatsCharts({
           {memberBars.every((b) => b.total === 0) ? (
             <Empty />
           ) : (
-            <div className="h-56 w-full min-h-[224px] pt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={memberBars} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+            <div className="w-full min-w-0 pt-2">
+              <div className="h-56 w-full min-h-[224px] min-w-0">
+                <ResponsiveContainer width="100%" height={224} minWidth={0}>
+                  <BarChart data={memberBars} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f4" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#a8a29e" }} axisLine={false} tickLine={false} tickFormatter={(v) => `¥${v}`} />
@@ -343,7 +344,8 @@ export function StatsCharts({
                     ))}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
           {txCount > 0 && (
