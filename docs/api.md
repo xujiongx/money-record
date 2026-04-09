@@ -97,7 +97,8 @@
 
 ### 4.0 分层说明
 
-- **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`** 统一出站：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；任一失败（HTTP、网络、空内容）且配置了 **`OPEN_ROUTER_API_KEY`** 时，自动改用 OpenRouter（`openai` SDK，`baseURL` 为 `https://openrouter.ai/api/v1`，默认模型 **`deepseek/deepseek-chat:free`**）。环境变量 **`XIAOBU_LLM_PROVIDER=openrouter`** 时跳过 Mistral、仅 OpenRouter（须已配 **`OPEN_ROUTER_API_KEY`**，用于验证备用模型）。仅配 OpenRouter 时直接使用备用通道。两者均未配置则返回配置类错误文案。Mistral 非 2xx 经 **`formatMistralHttpErrorForUser`**、网络经 **`formatMistralNetworkErrorForUser`**；备用通道错误在封装内单独格式化；双通道皆失败时错误信息合并展示。  
+- **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**，内部使用 **`lib/foundation/llm`** 的 **`getDefaultLlmClient()`**（默认 **`MistralThenOpenRouterLlmClient`**，兼容别名 **`MistralOpenRouterLlmClient`**）。行为与密钥约定不变：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；失败且配置了 **`OPEN_ROUTER_API_KEY`** 时走 OpenRouter；**`XIAOBU_LLM_PROVIDER=openrouter`** 时仅 OpenRouter。详见 [**`lib/foundation/README.md`**](../lib/foundation/README.md)。**Client Component 不得 import `lib/foundation/llm`**。  
+- **助手播报（客户端）**：**`NEXT_PUBLIC_TTS_PROVIDER`**（`web-speech` | `noop`，默认 `web-speech`），由 **`lib/foundation/tts/factory.client.ts`** 的 **`createTtsEngine`** 选择实现。  
 - **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
 
 ### 4.1 返回类型 `MistralTextResult`
@@ -188,3 +189,5 @@ type MistralTextResult =
 | 2026-04-09 | `mistralLedgerChatAction`：每轮注入 DB 本月快照；`computeMonthlyLedgerDigest`（`lib/ledger/monthly-digest.ts`）；`chat-ledger` 提示词强调历史数字不可信、无数据不编 |
 | 2026-04-09 | `fetchLedgerSnapshotData`：小布读库绕过读缓存；快照改贴 user 消息顶部，降低模型采信历史气泡 |
 | 2026-04-09 | `generateYearlySummaryAction`、`computeYearlyLedgerDigest`；浮层底栏「本月小结」旁「本年小结」；快捷文案见 `components/features/chat/summary-shortcuts.ts` |
+| 2026-04-09 | **`lib/foundation`**：可插拔 **`LlmClient`**（`mistral-openrouter`）与 **`TtsEngine`**（`web-speech` / `noop`）；`xiaobu-llm` 改为薄封装 |
+| 2026-04-09 | LLM 实现拆分为 **`mistral` / `openrouter` / `mistral-then-openrouter`**；**`MistralOpenRouterLlmClient`** 仍为链式类别名 |

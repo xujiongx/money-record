@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { stripMarkdownForSpeech } from "@/components/features/chat/assistant-tts";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createTtsEngine } from "@/lib/foundation/tts/factory.client";
+import type { TtsSessionState } from "@/lib/foundation/tts/types";
+import { stripMarkdownForSpeech } from "@/lib/foundation/tts/text/strip-markdown-for-speech";
 
 const STORAGE_KEY = "xiaobu_chat_tts_enabled";
 
@@ -14,73 +16,66 @@ function readStoredEnabled(): boolean {
   }
 }
 
-export type ChatAssistantTtsSession = "idle" | "playing" | "paused";
+export type ChatAssistantTtsSession = TtsSessionState;
 
 export function useChatAssistantTts(options: { panelOpen: boolean }) {
   const { panelOpen } = options;
   const [enabled, setEnabledState] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [session, setSession] = useState<ChatAssistantTtsSession>("idle");
+  const [session, setSession] = useState<TtsSessionState>("idle");
+
+  const engine = useMemo(
+    () =>
+      createTtsEngine({
+        onSessionChange: setSession,
+      }),
+    [],
+  );
 
   useEffect(() => {
-    setHydrated(true);
-    setEnabledState(readStoredEnabled());
+    queueMicrotask(() => {
+      setHydrated(true);
+      setEnabledState(readStoredEnabled());
+    });
   }, []);
 
-  const setEnabled = useCallback((next: boolean) => {
-    setEnabledState(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-    if (!next && typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setSession("idle");
-    }
-  }, []);
+  const setEnabled = useCallback(
+    (next: boolean) => {
+      setEnabledState(next);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      if (!next) {
+        engine.stop();
+      }
+    },
+    [engine],
+  );
 
   const stop = useCallback(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    setSession("idle");
-  }, []);
+    engine.stop();
+  }, [engine]);
 
   const speak = useCallback(
     (raw: string) => {
-      if (!enabled || typeof window === "undefined" || !window.speechSynthesis) {
+      if (!enabled || !engine.supported) {
         return;
       }
       const plain = stripMarkdownForSpeech(raw);
-      if (!plain) {
-        setSession("idle");
-        return;
-      }
-      window.speechSynthesis.cancel();
-      setSession("idle");
-      const u = new SpeechSynthesisUtterance(plain);
-      u.lang = "zh-CN";
-      u.rate = 0.95;
-      u.onstart = () => setSession("playing");
-      u.onend = () => setSession("idle");
-      u.onerror = () => setSession("idle");
-      window.speechSynthesis.speak(u);
+      engine.speak(plain);
     },
-    [enabled],
+    [enabled, engine],
   );
 
   const pause = useCallback(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    if (!window.speechSynthesis.speaking) return;
-    window.speechSynthesis.pause();
-    setSession("paused");
-  }, []);
+    engine.pause();
+  }, [engine]);
 
   const resume = useCallback(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.resume();
-    setSession("playing");
-  }, []);
+    engine.resume();
+  }, [engine]);
 
   useEffect(() => {
     if (!panelOpen) {
@@ -88,8 +83,7 @@ export function useChatAssistantTts(options: { panelOpen: boolean }) {
     }
   }, [panelOpen, stop]);
 
-  const supported =
-    hydrated && typeof window !== "undefined" && !!window.speechSynthesis;
+  const supported = hydrated && engine.supported;
 
   return {
     enabled,
