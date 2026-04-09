@@ -131,7 +131,7 @@ type MistralTextResult =
 - **小布浮层主对话**使用本 Action。底层请求带 **`response_format: { type: "json_object" }`**（Mistral 与 OpenRouter 均尽量兼容），`temperature` 约 `0.2`。  
 - 每轮 **`fetchLedgerSnapshotData()`**（**`ledger.ts`**，**绕过 `unstable_cache`**，避免与页面列表同源缓存导致「改账后小布仍念旧数」），用 **`computeMonthlyLedgerDigest`** 生成本月摘要，并**拼在当前 user 消息最上方**（`wrapUserMessageWithLedgerSnapshot`），要求模型统计类回答**只认该快照**；`temperature` 约 `0.2`。  
 - 成功：`{ ok: true, reply: string, ledgerCreated?: boolean }`。`reply` 写入 UI 与 **`persistChatExchangeAction`**；**不**把模型原始 JSON 落库。  
-- 模型输出契约与校验见 **`lib/llm/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（缺槽追问）| `ready`（可执行）。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类不在白名单则归 **「其他」** 并把原描述并入 `note`。  
+- 模型输出契约与校验见 **`lib/llm/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（仅缺金额 / 记账人、或**实在无法**判断收/支时追问，**不因分类**进入 collect）| `ready`（可执行）。系统提示词要求：由模型从用户话术**自动**识别 **`type`（income/expense）** 与 **category**（映射白名单；对不上则 **「其他」** + `note`），**不要**追问「收入还是支出」或让用户选分类；**不要**在入账前让用户「确认再记」。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类仍不在白名单时服务端也会归 **「其他」** 并把原描述并入 `note`。  
 - 执行或校验失败时仍可能 `ok: true`，在 `reply` 末尾追加说明（避免 throw 导致整页 500）。解析/网络失败：`{ ok: false, error }`。
 
 ### 4.3 `generateMonthlySummaryAction()`
@@ -193,3 +193,4 @@ type MistralTextResult =
 | 2026-04-09 | **`lib/foundation`**：可插拔 **`LlmClient`**（`mistral-openrouter`）与 **`TtsEngine`**（`web-speech` / `noop`）；`xiaobu-llm` 改为薄封装 |
 | 2026-04-09 | LLM 实现拆分为 **`mistral` / `openrouter` / `mistral-then-openrouter`**；**`MistralOpenRouterLlmClient`** 仍为链式类别名 |
 | 2026-04-09 | **`lib/foundation/asr`**：`AsrEngine`、`createAsrEngine`；`ChatVoiceInput` 委托 foundation |
+| 2026-04-09 | `buildLedgerChatSystemPrompt`：不因分类 `collect`；分类不明直接「其他」；不要求用户「确认再记」才 `ready`；收/支与分类由模型自动识别，勿追问 |
