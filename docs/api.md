@@ -10,7 +10,7 @@
 | 会话：加入家庭 | `setHouseholdSession(code)` | 登录页 |
 | 会话：创建家庭并登录 | `createHouseholdAndLogin({ name, codeRaw })` | 登录页「创建新家」 |
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
-| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage` | Server / Client（依赖 Cookie）；后者用于成员账单分页，不走 `unstable_cache` |
+| 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage`、`fetchLedgerSnapshotData` | Server / Client（依赖 Cookie）；分页接口与小布快照不走列表用的 `unstable_cache` |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 | 小布对话 / 本月小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`mistralChatAction`（纯文本，保留）、`generateMonthlySummaryAction` | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
@@ -64,6 +64,11 @@
 
 - 返回指定成员的流水分页（`occurred_at` 倒序）；先校验 `member_id` 属于当前家庭。  
 - **不经** `unstable_cache`，供成员账单页与下拉/触底加载；`limit` 单次上限 50，内部多取 1 条用于判断 `hasMore`。
+
+### 3.1c `fetchLedgerSnapshotData()`
+
+- 并行 **`loadMembersForHousehold` + `loadTransactionsForHousehold`**（与 `fetchMembers` / `fetchTransactions` 同源查询），但**不经过** `unstable_cache`。  
+- 供 **`mistralLedgerChatAction`**、**`buildMonthlyLedgerDigest`**（本月小结）使用，避免页面列表读缓存延迟或边界情况下小布读到旧账本。
 
 ### 3.2 `createTransaction(input)`
 
@@ -122,6 +127,7 @@ type MistralTextResult =
 | `userMessage` | 当前用户输入（trim 后） |
 
 - **小布浮层主对话**使用本 Action。底层请求带 **`response_format: { type: "json_object" }`**（Mistral 与 OpenRouter 均尽量兼容），`temperature` 约 `0.35`。  
+- 每轮 **`fetchLedgerSnapshotData()`**（**`ledger.ts`**，**绕过 `unstable_cache`**，避免与页面列表同源缓存导致「改账后小布仍念旧数」），用 **`computeMonthlyLedgerDigest`** 生成本月摘要，并**拼在当前 user 消息最上方**（`wrapUserMessageWithLedgerSnapshot`），要求模型统计类回答**只认该快照**；`temperature` 约 `0.2`。  
 - 成功：`{ ok: true, reply: string, ledgerCreated?: boolean }`。`reply` 写入 UI 与 **`persistChatExchangeAction`**；**不**把模型原始 JSON 落库。  
 - 模型输出契约与校验见 **`lib/llm/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（缺槽追问）| `ready`（可执行）。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类不在白名单则归 **「其他」** 并把原描述并入 `note`。  
 - 执行或校验失败时仍可能 `ok: true`，在 `reply` 末尾追加说明（避免 throw 导致整页 500）。解析/网络失败：`{ ok: false, error }`。
@@ -132,9 +138,10 @@ type MistralTextResult =
 - 提示词内注入 **`buildMonthSummaryTimeContext`（同日历进度、上/中/下旬等）**，要求模型按「截至目前」写阶段性小结，避免在月初/月中使用「全月收官」式表述（详见 `app/actions/mistral-chat.ts`）。  
 - 成功：`{ ok: true, data: 小结文本 }`。
 
-### 4.4 `buildMonthlyLedgerDigest()`（导出，供扩展）
+### 4.4 `buildMonthlyLedgerDigest()` / `computeMonthlyLedgerDigest()`（供扩展）
 
-- 返回当月汇总纯文本（总额、分类、各成员收支笔数等），供小结提示词使用。
+- **`buildMonthlyLedgerDigest()`**（`app/actions/mistral-chat.ts`，Server Action）：读库后返回当月汇总纯文本（总额、分类、各成员收支笔数等），供「本月小结」提示词使用。  
+- **`computeMonthlyLedgerDigest(all, members, anchor?)`**（**`lib/ledger/monthly-digest.ts`**，纯函数）：同上逻辑、入参为已拉取的流水与成员；**`mistralLedgerChatAction`** 每轮用它生成注入系统提示的快照。放在 lib 而非 `"use server"` 文件，因 Next 要求 Server Actions 文件中的 **export 必须为 async**。
 
 ### 4.5 `fetchChatMessagesAction()`（`app/actions/chat-history.ts`）
 
@@ -172,3 +179,5 @@ type MistralTextResult =
 | 2026-04-08 | `mistralLedgerChatAction` + `lib/llm/chat-ledger.ts`（Zod）；浮层对话可结构化记账并 `createTransaction` |
 | 2026-04-08 | `lib/llm/xiaobu-llm.ts`：Mistral 失败时回退 OpenRouter；环境变量见 deployment / `.env.example` |
 | 2026-04-08 | 重组 `lib/`：`ledger/`、`household/`、`llm/`（见 development-guide 目录树） |
+| 2026-04-09 | `mistralLedgerChatAction`：每轮注入 DB 本月快照；`computeMonthlyLedgerDigest`（`lib/ledger/monthly-digest.ts`）；`chat-ledger` 提示词强调历史数字不可信、无数据不编 |
+| 2026-04-09 | `fetchLedgerSnapshotData`：小布读库绕过读缓存；快照改贴 user 消息顶部，降低模型采信历史气泡 |

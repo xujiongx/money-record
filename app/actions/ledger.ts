@@ -121,6 +121,22 @@ export async function fetchTransactions(): Promise<TransactionRow[]> {
   return getCachedTransactions(householdId);
 }
 
+/**
+ * 小布对话、月度小结等需要与数据库**实时一致**的场景使用（绕过 `unstable_cache`）。
+ * 页面列表/统计仍走 `fetchMembers` / `fetchTransactions` 以复用缓存。
+ */
+export async function fetchLedgerSnapshotData(): Promise<{
+  members: MemberRow[];
+  transactions: TransactionRow[];
+}> {
+  const householdId = await requireHouseholdId();
+  const [members, transactions] = await Promise.all([
+    loadMembersForHousehold(householdId),
+    loadTransactionsForHousehold(householdId),
+  ]);
+  return { members, transactions };
+}
+
 /** 单成员流水（分页，按发生时间倒序）。校验成员属于当前家庭。 */
 export async function fetchMemberTransactionsPage(
   memberId: string,

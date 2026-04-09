@@ -2,26 +2,17 @@
 
 import {
   createTransaction,
-  fetchMembers,
-  fetchTransactions,
+  fetchLedgerSnapshotData,
 } from "@/app/actions/ledger";
-import {
-  categoryBreakdown,
-  memberPeriodBreakdown,
-  summarizeLedger,
-} from "@/lib/ledger/aggregates";
-import { formatMoney } from "@/lib/ledger/format";
+import { computeMonthlyLedgerDigest } from "@/lib/ledger/monthly-digest";
 import { xiaobuChatCompletion } from "@/lib/llm/xiaobu-llm";
 import { format, getDaysInMonth } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { filterTransactionsInRange, getStatsDateRange } from "@/lib/ledger/stats-period";
 import {
   buildLedgerChatSystemPrompt,
   normalizeReadyLedger,
   parseLedgerChatResponse,
 } from "@/lib/llm/chat-ledger";
-import type { TransactionRow } from "@/lib/ledger/types";
-
 type ChatRole = "system" | "user" | "assistant";
 
 export type MistralChatMessage = { role: "user" | "assistant"; content: string };
@@ -35,57 +26,37 @@ function toActionError(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-function formatCategoryLines(
-  rows: { name: string; value: number; count: number }[],
-  top = 8,
-): string {
-  return rows
-    .sort((a, b) => b.value - a.value)
-    .slice(0, top)
-    .map((r) => `  - ${r.name}：${formatMoney(r.value)}（${r.count} 笔）`)
-    .join("\n");
+/** 与统计页「本月」一致：直连数据库（不经列表读缓存）后计算摘要 */
+export async function buildMonthlyLedgerDigest(): Promise<string> {
+  const { transactions, members } = await fetchLedgerSnapshotData();
+  return computeMonthlyLedgerDigest(transactions, members);
 }
 
-/** 与统计页「本月」一致：按 occurred_at 落在当月自然日；含各成员收支供小结点评 */
-export async function buildMonthlyLedgerDigest(): Promise<string> {
-  const [all, members] = await Promise.all([
-    fetchTransactions(),
-    fetchMembers(),
-  ]);
-  const anchor = new Date();
-  const range = getStatsDateRange("month", anchor);
-  const month = `${range.start.getFullYear()}年${range.start.getMonth() + 1}月`;
-  const inMonth = filterTransactionsInRange(
-    all as TransactionRow[],
-    range.start,
-    range.end,
-  );
-  const { income, expense, balance } = summarizeLedger(inMonth);
-  const expenseCats = categoryBreakdown(inMonth, "expense");
-  const incomeCats = categoryBreakdown(inMonth, "income");
-  const byMember = memberPeriodBreakdown(inMonth, members);
-  const memberLines = byMember.map(
-    (r) =>
-      `  - ${r.name}：收入 ${formatMoney(r.income)}（${r.incomeCount} 笔）、支出 ${formatMoney(r.expense)}（${r.expenseCount} 笔）`,
-  );
+/** 系统提示中的短规则；具体数字放在本条 user 消息顶部的快照里 */
+function buildLedgerTruthRulesForSystem(): string {
+  return `【硬性规则 · 数据来源】
+每轮**本条 user 消息**最上方的【数据库快照】来自服务端**刚执行的直连数据库查询**（不经页面列表用的读缓存）。凡涉及本月收入/支出/结余/笔数/分类/各成员汇总：
+- reply 中出现的每一个具体数字（金额、笔数）必须能在该快照中逐项对应；**禁止**使用更早 user/assistant 气泡里的数字，**禁止**推测、举例虚构金额、或编造不存在的分类与记录。
+- 快照写明「无支出」「无收入」「笔数为 0」等时，须**原样传达**，不可改成「大概」「一般会有」。
+- 快照仅含**当前自然月**汇总；用户问其他月份或单笔明细而快照未给时，明确说当前没有该项数据，请去 App 查看。`;
+}
 
-  const lines = [
-    `统计月份：${month}（按账单发生日期）`,
-    `账单笔数：${inMonth.length}`,
-    `总收入：${formatMoney(income)}`,
-    `总支出：${formatMoney(expense)}`,
-    `结余：${formatMoney(balance)}`,
-    "",
-    "各成员本月（按记账人统计）：",
-    memberLines.length > 0 ? memberLines.join("\n") : "  （暂无成员或暂无流水）",
-    "",
-    "支出分类（金额从高到低）：",
-    expenseCats.length ? formatCategoryLines(expenseCats) : "  （本月无支出）",
-    "",
-    "收入分类（金额从高到低）：",
-    incomeCats.length ? formatCategoryLines(incomeCats) : "  （本月无收入）",
-  ];
-  return lines.join("\n");
+/**
+ * 把快照贴在用户原话之前，避免模型在长历史中采信过期的 assistant 数字。
+ */
+function wrapUserMessageWithLedgerSnapshot(
+  digest: string,
+  userMessage: string,
+): string {
+  const ts = new Date().toISOString();
+  return `【数据库快照 · 权威 · 生成时间 ${ts}】
+（本节为直连数据库汇总；与上文聊天记录冲突时**以本节为准**。）
+
+${digest}
+
+---
+【用户原话】
+${userMessage}`;
 }
 
 /** 供月度小结提示词：提问日未必是月底，需让模型按「本月进度」控制措辞 */
@@ -128,7 +99,7 @@ async function callXiaobuLlm(
 }
 
 const ASSISTANT_SYSTEM =
-  "你是家庭记账应用里的助手「小布」，用简体中文、语气温暖简洁。回答与用户问题相关的内容；若涉及具体账单数字，以用户或系统提供的上下文为准，不要编造未给出的金额。回复可使用常见 Markdown（如 **粗体**、列表、`代码`、链接），便于阅读；避免滥用多级大标题。";
+  "你是家庭记账应用里的助手「小布」，用简体中文、语气温暖简洁。回答与用户问题相关的内容。若系统在本轮消息中提供了账本/统计类事实块，凡涉金额、笔数、分类占比等**必须以该块（及当前用户消息）为准**；聊天历史里曾出现过的数字可能因用户事后改账而已错误，**不要沿用**。若无任何可信数据支撑（例如事实块显示无流水或用户未提供数字），据实说「暂无记录」或「当前没有该项数据」，**禁止推测、禁止编造示例金额**。回复可使用常见 Markdown（如 **粗体**、列表、`代码`、链接），便于阅读；避免滥用多级大标题。";
 
 /** 多轮对话：history 为已完成的 user/assistant 消息（不含当前这条） */
 export async function mistralChatAction(
@@ -166,17 +137,19 @@ export async function mistralLedgerChatAction(
     const trimmed = userMessage.trim();
     if (!trimmed) return { ok: false, error: "消息不能为空" };
 
-    const members = await fetchMembers();
-    const system = buildLedgerChatSystemPrompt(members);
+    const { transactions: all, members } = await fetchLedgerSnapshotData();
+    const digest = computeMonthlyLedgerDigest(all, members);
+    const system = `${buildLedgerChatSystemPrompt(members)}\n\n${buildLedgerTruthRulesForSystem()}`;
+    const userWithSnapshot = wrapUserMessageWithLedgerSnapshot(digest, trimmed);
     const messages: { role: ChatRole; content: string }[] = [
       { role: "system", content: system },
       ...history.map((m) => ({ role: m.role, content: m.content })),
-      { role: "user", content: trimmed },
+      { role: "user", content: userWithSnapshot },
     ];
 
     const raw = await callXiaobuLlm(messages, {
       responseFormatJsonObject: true,
-      temperature: 0.35,
+      temperature: 0.2,
     });
 
     const parsed = parseLedgerChatResponse(raw);

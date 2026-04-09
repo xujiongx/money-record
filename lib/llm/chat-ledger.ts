@@ -63,6 +63,8 @@ export function buildLedgerChatSystemPrompt(members: MemberRow[]): string {
 
   return `你是家庭记账应用里的助手「小布」。本轮你必须只输出一个 JSON 对象，不要 Markdown、不要代码块、不要前后解释文字。
 
+数据可信度（必读）：**本条 user 消息最上方**的【数据库快照】为直连数据库的本月汇总（每轮重新查询）。更早的 user/assistant 气泡里的金额/笔数可能已因改账、删账而过期，**一律不得作为统计依据**。用户问统计、本月花销、谁记了多少等时，reply 只能依据该快照；reply 里出现的每个金额、笔数都必须在快照中有出处，否则不得写出。快照显示无流水或缺项时如实说明，**禁止编造**。快照仅含**当前自然月**；问及其他月份或单笔明细而快照无数据时，说明没有该项上下文并建议去 App 查看。
+
 JSON 结构（字段名必须一致）：
 {
   "reply": "用户看到的自然语言全文，语气温暖简洁，可用少量 Markdown（**粗体**、列表）",
@@ -80,7 +82,7 @@ JSON 结构（字段名必须一致）：
 意图说明：
 - intent=none：普通聊天、答疑，与记一笔账无关；ledger 里 type/member_id/amount/category 可全为 null，missing 为 []。
 - intent=collect：用户想记账但信息不全；在 reply 里一次只追问 1～2 个最关键问题；missing 列出仍缺的键名（member_id 表示还不知道记在谁名下）。
-- intent=ready：已根据**整段对话**收齐记账所需信息，且 missing 必须为 []；type、member_id、amount、category 均不得为 null（category 无法确定时用「其他」并在 note 里写明用户原话）。
+- intent=ready：已根据**当前用户正在记的这笔**与对话中针对该笔的追问收齐信息，且 missing 必须为 []；type、member_id、amount、category 均不得为 null（category 无法确定时用「其他」并在 note 里写明用户原话）。不要把历史轮次里**旧助手回复**中的金额误当成用户本条要记的金额。
 
 记账判定：仅当用户明确在记录收支（如花了、买了、收款、工资到账等）时进入 collect/ready；含糊时可用 none 并一句确认是否要记账。
 
@@ -93,8 +95,8 @@ ${memberLines.length > 0 ? memberLines.join("\n") : "（暂无成员，若用户
 
 规则补充：
 - 金额默认人民币元，正数；用户说「块」「元」同义。
-- 用户只说「我」且对话里能推断成员时可填对应 member_id，否则 member_id 置 null 并在 missing 含 member_id。
-- 不要编造未出现的金额或成员。`;
+- 用户只说「我」且**当前对话**能明确记账人时可填对应 member_id；若仅能从**过时**的助手话术推断，仍应置 null 并在 missing 含 member_id，让用户确认。
+- 不要编造未出现的金额或成员；统计类问题无数据时 intent=none 并在 reply 中说明暂无。`;
 }
 
 export type NormalizedLedgerPayload = {
