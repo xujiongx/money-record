@@ -22,7 +22,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="gradient-header pointer-events-none fixed left-1/2 top-0 z-0 h-52 w-full max-w-md -translate-x-1/2 rounded-b-[2rem] opacity-95" />
       <main
-        className={`relative z-10 min-h-dvh px-4 pt-6 ${hideNav ? "pb-8" : "pb-28"}`}
+        className={`relative z-10 min-h-dvh min-w-0 px-4 pt-6 ${hideNav ? "pb-8" : "pb-28"}`}
       >
         {children}
       </main>

@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
       <body className="min-h-dvh antialiased">
-        <div className="relative mx-auto min-h-dvh w-full max-w-md bg-[#fff7f5] shadow-xl shadow-orange-950/10">
+        <div className="relative mx-auto min-h-dvh w-full min-w-0 max-w-md bg-[#fff7f5] shadow-xl shadow-orange-950/10">
           <MobileShell>{children}</MobileShell>
         </div>
       </body>

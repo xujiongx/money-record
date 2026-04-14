@@ -83,7 +83,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <header>
         <p className="text-sm font-medium text-white/90">快速记账</p>
         <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
@@ -94,7 +94,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
+        className="min-w-0 max-w-full rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
       >
         <div className="flex rounded-2xl bg-stone-100/80 p-1">
           <button
@@ -156,12 +156,14 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
         <label className="mt-4 block text-xs font-medium text-stone-500">
           日期与时间
         </label>
-        <input
-          type="datetime-local"
-          value={occurredAt}
-          onChange={(e) => setOccurredAt(e.target.value)}
-          className="mt-1 box-border w-full min-w-0 max-w-full min-h-11 rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
-        />
+        <div className="mt-1 grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)]">
+          <input
+            type="datetime-local"
+            value={occurredAt}
+            onChange={(e) => setOccurredAt(e.target.value)}
+            className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
+          />
+        </div>
 
         <p className="mt-5 text-xs font-medium text-stone-500">记录人</p>
         <div className="mt-2 flex gap-3">
