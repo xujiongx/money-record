@@ -79,7 +79,7 @@
 | category | string | 是 |
 | amount | number | 是，> 0 |
 | note | string | 否 |
-| occurredAt | ISO 字符串 | 否 |
+| occurredAt | ISO 字符串 | 否；省略则服务端用当前时间。**`/record`** 的 **`RecordForm`** 提供 **`datetime-local`** 供用户指定业务发生时间 |
 
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members` 及 `/members` **layout**）。
 
@@ -194,3 +194,4 @@ type MistralTextResult =
 | 2026-04-09 | LLM 实现拆分为 **`mistral` / `openrouter` / `mistral-then-openrouter`**；**`MistralOpenRouterLlmClient`** 仍为链式类别名 |
 | 2026-04-09 | **`lib/foundation/asr`**：`AsrEngine`、`createAsrEngine`；`ChatVoiceInput` 委托 foundation |
 | 2026-04-09 | `buildLedgerChatSystemPrompt`：不因分类 `collect`；分类不明直接「其他」；不要求用户「确认再记」才 `ready`；收/支与分类由模型自动识别，勿追问 |
+| 2026-04-09 | **`RecordForm`**：`datetime-local` + **`occurredAt`**；**`lib/ledger/datetime-local.ts`** 与 **`EditTransactionModal`** 共用 **`toDatetimeLocalValue`** |

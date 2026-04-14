@@ -73,7 +73,7 @@ flowchart LR
 │   └── features/           # 按业务域划分的功能组件
 │       ├── household/      # 登录、切换家庭、无数据提示
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
-│       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
+│       ├── record/         # 记账（RecordForm 可选发生时间）、仪表盘流水、编辑弹窗、左滑行
 │       ├── stats/          # StatsCharts + Gate（dynamic 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
 │           ├── index.ts              # 导出 FloatingChatBot

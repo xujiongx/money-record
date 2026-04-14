@@ -6,12 +6,7 @@ import { updateTransaction } from "@/app/actions/ledger";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
-
-function toDatetimeLocalValue(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
 
 export function EditTransactionModal({
   transaction,
