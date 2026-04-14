@@ -203,7 +203,7 @@ export function EditTransactionModal({
             type="datetime-local"
             value={occurredAt}
             onChange={(e) => setOccurredAt(e.target.value)}
-            className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="box-border w-full min-w-0 max-w-full min-h-11 rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
           />
 
           <p className="text-xs font-medium text-stone-500">记录人</p>
