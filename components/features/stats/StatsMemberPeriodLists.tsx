@@ -23,6 +23,20 @@ function byOccurredDesc(a: TransactionRow, b: TransactionRow) {
   return new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime();
 }
 
+function ChevronDownIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="inline-block">
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function CategoryGroupedList({
   rows,
   type,
@@ -53,11 +67,11 @@ function CategoryGroupedList({
           .filter((t) => t.category === row.name)
           .sort(byOccurredDesc);
         return (
-          <div
+          <details
             key={row.name}
-            className="overflow-hidden rounded-xl border border-stone-100 bg-stone-50/50"
+            className="group overflow-hidden rounded-xl border border-stone-100 bg-stone-50/50 open:bg-stone-50/80"
           >
-            <div className="flex items-start gap-2 border-b border-stone-100 bg-white/90 px-3 py-2.5">
+            <summary className="flex cursor-pointer list-none items-start gap-2 bg-white/90 px-3 py-2.5 outline-none transition hover:bg-orange-50/30 focus-visible:ring-2 focus-visible:ring-orange-200/80 [&::-webkit-details-marker]:hidden">
               <span
                 className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
@@ -80,8 +94,14 @@ function CategoryGroupedList({
                   笔均 {formatMoney(row.count > 0 ? row.value / row.count : 0)}
                 </p>
               </div>
-            </div>
-            <ul className="divide-y divide-stone-100">
+              <span
+                className="mt-1 shrink-0 text-stone-400 transition-transform duration-200 group-open:rotate-180"
+                aria-hidden
+              >
+                <ChevronDownIcon />
+              </span>
+            </summary>
+            <ul className="divide-y divide-stone-100 border-t border-stone-100 bg-white/60">
               {catRows.map((t) => (
                 <li key={t.id} className="flex gap-3 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
@@ -97,7 +117,7 @@ function CategoryGroupedList({
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         );
       })}
     </div>
@@ -155,7 +175,7 @@ export function StatsMemberPeriodLists({
           )}
         </p>
         <p className="mt-2 text-[11px] font-medium text-stone-600">
-          按分类占比与每笔明细（以记账时间为准）
+          按分类占比；点击分类栏展开每笔明细（默认折叠，以记账时间为准）
         </p>
         <div className="mt-3">
           <CategoryGroupedList
@@ -178,7 +198,7 @@ export function StatsMemberPeriodLists({
           )}
         </p>
         <p className="mt-2 text-[11px] font-medium text-stone-600">
-          按来源占比与每笔明细（以记账时间为准）
+          按来源占比；点击来源栏展开每笔明细（默认折叠，以记账时间为准）
         </p>
         <div className="mt-3">
           <CategoryGroupedList
