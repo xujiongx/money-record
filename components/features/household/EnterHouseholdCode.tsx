@@ -11,6 +11,7 @@ import {
   HOUSEHOLD_CODE_STORAGE_KEY,
   normalizeHouseholdCode,
 } from "@/lib/household";
+import { AppLogo } from "@/components/common/AppLogo";
 
 type Mode = "login" | "create";
 
@@ -136,7 +137,10 @@ export function EnterHouseholdCode() {
   return (
     <div className="flex min-h-[70vh] flex-col justify-center space-y-6 px-1">
       <header className="text-center">
-        <p className="text-sm font-medium text-white/90">欢迎使用</p>
+        <div className="flex justify-center">
+          <AppLogo size={72} className="drop-shadow-md" />
+        </div>
+        <p className="mt-4 text-sm font-medium text-white/90">欢迎使用</p>
         <h1 className="mt-2 text-2xl font-bold text-white drop-shadow-sm">
           家庭记账
         </h1>

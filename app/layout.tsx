@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MobileShell } from "@/components/common/MobileShell";
+import {
+  APP_DESCRIPTION,
+  APP_DISPLAY_NAME,
+  APP_SHORT_NAME,
+} from "@/lib/app-branding";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,15 +19,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "家庭记账",
-  description: "布布和一二的家庭温暖小账本",
-  /** 加入主屏幕后由系统以全屏 Web App 打开，减少地址栏显隐带来的视口跳动 */
+  title: APP_DISPLAY_NAME,
+  description: APP_DESCRIPTION,
+  applicationName: APP_SHORT_NAME,
+  /** favicon / PWA / iOS 主屏幕均使用 `app/icon.svg`（发布路径 `/icon.svg`） */
+  icons: {
+    /** favicon 仍由 `app/icon.svg` 约定生成；此处只补 iOS 主屏幕，与站标同源 */
+    apple: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
+  },
   appleWebApp: {
     capable: true,
-    title: "家庭记账",
+    title: APP_DISPLAY_NAME,
     statusBarStyle: "default",
   },
-  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
