@@ -83,6 +83,11 @@ export function filterTransactionsInRange(
   });
 }
 
+/** 展示统计区间起止（与统计页「本区间汇总」一致） */
+export function formatStatsRangeBounds(start: Date, end: Date): string {
+  return `${format(start, "yyyy年M月d日", { locale: zhCN })} — ${format(end, "yyyy年M月d日", { locale: zhCN })}`;
+}
+
 /** 用于统计页副标题展示当前统计区间 */
 export function formatStatsPeriodLabel(
   period: StatsPeriod,

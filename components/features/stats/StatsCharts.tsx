@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ResponsiveContainer,
   PieChart,
@@ -22,11 +23,10 @@ import {
   type StatsPeriod,
   filterTransactionsInRange,
   formatStatsPeriodLabel,
+  formatStatsRangeBounds,
   getStatsDateRange,
   shiftStatsAnchor,
 } from "@/lib/ledger/stats-period";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 
@@ -43,10 +43,6 @@ const COLORS = [
 function formatPercent(part: number, total: number) {
   if (total <= 0) return "0%";
   return `${((part / total) * 100).toFixed(1)}%`;
-}
-
-function formatStatsRangeBounds(start: Date, end: Date) {
-  return `${format(start, "yyyy年M月d日", { locale: zhCN })} — ${format(end, "yyyy年M月d日", { locale: zhCN })}`;
 }
 
 const PERIOD_TABS: { id: StatsPeriod; label: string }[] = [
@@ -355,33 +351,65 @@ export function StatsCharts({
                 {memberDetail.map((m) => {
                   const net = m.income - m.expense;
                   const totalMemberTx = m.expenseCount + m.incomeCount;
+                  const detailHref =
+                    `/stats/member/${m.memberId}` +
+                    `?start=${encodeURIComponent(rangeStart.toISOString())}` +
+                    `&end=${encodeURIComponent(rangeEnd.toISOString())}`;
                   return (
-                    <li
-                      key={m.memberId}
-                      className="rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px]"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-stone-800">{m.name}</span>
-                        <span
-                          className={`shrink-0 font-semibold tabular-nums ${
-                            net >= 0 ? "text-emerald-700" : "text-rose-700"
-                          }`}
+                    <li key={m.memberId}>
+                      {totalMemberTx > 0 ? (
+                        <Link
+                          href={detailHref}
+                          className="block rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px] text-stone-800 transition active:scale-[0.99] hover:border-orange-200 hover:bg-orange-50/40"
                         >
-                          净额 {formatMoney(net)}
-                        </span>
-                      </div>
-                      <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
-                        <span>
-                          支出 {formatMoney(m.expense)}
-                          <span className="text-stone-400"> · {m.expenseCount} 笔</span>
-                        </span>
-                        <span>
-                          收入 {formatMoney(m.income)}
-                          <span className="text-stone-400"> · {m.incomeCount} 笔</span>
-                        </span>
-                      </div>
-                      {totalMemberTx === 0 && (
-                        <p className="mt-1 text-[10px] text-stone-400">本区间无记账</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium">{m.name}</span>
+                            <span
+                              className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                                net >= 0 ? "text-emerald-700" : "text-rose-700"
+                              }`}
+                            >
+                              净额 {formatMoney(net)}
+                            </span>
+                          </div>
+                          <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
+                            <span>
+                              支出 {formatMoney(m.expense)}
+                              <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                            </span>
+                            <span>
+                              收入 {formatMoney(m.income)}
+                              <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                            </span>
+                          </div>
+                          <p className="mt-1.5 text-center text-[10px] font-medium text-orange-600">
+                            查看收支明细 ›
+                          </p>
+                        </Link>
+                      ) : (
+                        <div className="rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px]">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-medium text-stone-800">{m.name}</span>
+                            <span
+                              className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                                net >= 0 ? "text-emerald-700" : "text-rose-700"
+                              }`}
+                            >
+                              净额 {formatMoney(net)}
+                            </span>
+                          </div>
+                          <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
+                            <span>
+                              支出 {formatMoney(m.expense)}
+                              <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                            </span>
+                            <span>
+                              收入 {formatMoney(m.income)}
+                              <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[10px] text-stone-400">本区间无记账</p>
+                        </div>
                       )}
                     </li>
                   );
