@@ -37,6 +37,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
             return (
               <li key={href}>
                 <Link
+                  prefetch
                   href={href}
                   className="relative flex min-w-[4.25rem] flex-col items-center gap-0.5 py-1 text-xs font-medium"
                 >

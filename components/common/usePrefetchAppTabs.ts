@@ -7,7 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 const APP_TAB_HREFS = ["/", "/record", "/stats", "/members"] as const;
 
 /**
- * 在浏览器空闲时预取各 Tab 的 RSC payload，减少首次点击切换的等待。
+ * 预取四个 Tab 的完整 RSC（与底部 `Link prefetch` 一致）。
+ * 动态路由默认只预取到 loading 边界；硬刷新后客户端缓存为空，需尽快拉满才能在 `staleTimes.dynamic` 窗口内复用。
  */
 export function usePrefetchAppTabs(): void {
   const router = useRouter();
@@ -17,17 +18,25 @@ export function usePrefetchAppTabs(): void {
   useEffect(() => {
     if (!enabled) return;
 
-    const run = () => {
+    const prefetchAll = () => {
       for (const href of APP_TAB_HREFS) {
         router.prefetch(href);
       }
     };
 
+    prefetchAll();
+
+    let idleId = 0;
+    let timeoutId = 0;
     if (typeof requestIdleCallback !== "undefined") {
-      const id = requestIdleCallback(run, { timeout: 2500 });
-      return () => cancelIdleCallback(id);
+      idleId = requestIdleCallback(prefetchAll, { timeout: 2000 });
+    } else {
+      timeoutId = window.setTimeout(prefetchAll, 600);
     }
-    const id = window.setTimeout(run, 400);
-    return () => window.clearTimeout(id);
+
+    return () => {
+      if (idleId) cancelIdleCallback(idleId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
   }, [enabled, router]);
 }
