@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { FloatingChatBot } from "@/components/features/chat";
 import { usePrefetchAppTabs } from "@/components/common/usePrefetchAppTabs";
 
@@ -22,7 +21,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="gradient-header pointer-events-none fixed left-1/2 top-0 z-0 h-52 w-full max-w-md -translate-x-1/2 rounded-b-[2rem] opacity-95" />
       <main
-        className={`relative z-10 min-h-dvh min-w-0 px-4 pt-6 ${hideNav ? "pb-8" : "pb-28"}`}
+        className={`relative z-10 min-h-dvh min-w-0 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${hideNav ? "pb-8" : "pb-28"}`}
       >
         {children}
       </main>
@@ -39,13 +38,12 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
                 <Link
                   prefetch
                   href={href}
-                  className="relative flex min-w-[4.25rem] flex-col items-center gap-0.5 py-1 text-xs font-medium"
+                  className="relative flex min-w-[4.25rem] flex-col items-center gap-0.5 py-1 text-xs font-medium [-webkit-tap-highlight-color:transparent]"
                 >
                   {active && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      className="absolute inset-x-1 -inset-y-0.5 rounded-2xl bg-gradient-to-r from-orange-400/25 to-pink-400/25"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    <span
+                      className="absolute inset-x-1 -inset-y-0.5 rounded-2xl bg-gradient-to-r from-orange-400/25 to-pink-400/25 transition-opacity duration-150"
+                      aria-hidden
                     />
                   )}
                   <span className="relative z-10 flex flex-col items-center gap-0.5">

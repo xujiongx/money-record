@@ -5,6 +5,8 @@
   --foreground: #1c1917;
   --gradient-from: #fb923c;
   --gradient-to: #ec4899;
+  /* iOS 主屏幕 Web App 路由切换时，避免 html 默认白底闪一下 */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -14,10 +16,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  background-color: var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  /* 减轻 iOS 独立 WebView 整页橡皮筋与底部栏区域的抖动感 */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .gradient-header {

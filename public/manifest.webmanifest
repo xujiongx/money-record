@@ -1,0 +1,10 @@
+{
+  "name": "家庭记账",
+  "short_name": "记账",
+  "description": "布布和一二的家庭温暖小账本",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff7f5",
+  "theme_color": "#fb923c",
+  "orientation": "portrait"
+}
