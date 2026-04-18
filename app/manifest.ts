@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: APP_DISPLAY_NAME,
     short_name: APP_SHORT_NAME,
     description: APP_DESCRIPTION,
-    start_url: "/",
+    start_url: "/record",
     display: "standalone",
     background_color: "#fff7f5",
     theme_color: "#fb923c",
