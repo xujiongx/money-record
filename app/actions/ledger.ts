@@ -53,7 +53,7 @@ async function loadHouseholdIdByNormalizedCode(code: string): Promise<string> {
 const getCachedHouseholdId = unstable_cache(
   async (code: string) => loadHouseholdIdByNormalizedCode(code),
   ["ledger-household-id-by-code"],
-  { revalidate: 120, tags: ["ledger"] },
+  { revalidate: 3600, tags: ["ledger"] },
 );
 
 /**
@@ -85,7 +85,7 @@ async function loadMembersForHousehold(
 const getCachedMembers = unstable_cache(
   async (householdId: string) => loadMembersForHousehold(householdId),
   ["ledger-members"],
-  { revalidate: 120, tags: ["ledger"] },
+  { revalidate: 3600, tags: ["ledger"] },
 );
 
 async function loadTransactionsForHousehold(
@@ -108,7 +108,7 @@ async function loadTransactionsForHousehold(
 const getCachedTransactions = unstable_cache(
   async (householdId: string) => loadTransactionsForHousehold(householdId),
   ["ledger-transactions"],
-  { revalidate: 120, tags: ["ledger"] },
+  { revalidate: 3600, tags: ["ledger"] },
 );
 
 export async function fetchMembers(): Promise<MemberRow[]> {
@@ -181,6 +181,12 @@ function invalidateLedger() {
   revalidatePath("/stats");
   revalidatePath("/members");
   revalidatePath("/members", "layout");
+}
+
+/** 首页「刷新数据」：清掉账本读缓存，配合客户端 `router.refresh()` 重新查库渲染。 */
+export async function refreshLedgerReadCache(): Promise<void> {
+  await requireHouseholdId();
+  invalidateLedger();
 }
 
 export async function createTransaction(input: {

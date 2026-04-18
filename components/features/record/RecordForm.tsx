@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { createTransaction } from "@/app/actions/ledger";
@@ -8,6 +9,8 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
 import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
+
+const LAST_RECORD_MEMBER_KEY = "money-record:last-record-member-id";
 
 export function RecordForm({ members }: { members: MemberRow[] }) {
   const router = useRouter();
@@ -22,6 +25,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
     toDatetimeLocalValue(new Date().toISOString()),
   );
   const [error, setError] = useState<string | null>(null);
+  const [successOpen, setSuccessOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const categories = useMemo(
@@ -31,6 +35,18 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
         : [...INCOME_CATEGORIES],
     [type],
   );
+
+  useEffect(() => {
+    if (members.length === 0) return;
+    try {
+      const stored = localStorage.getItem(LAST_RECORD_MEMBER_KEY);
+      if (stored && members.some((m) => m.id === stored)) {
+        setMemberId(stored);
+      }
+    } catch {
+      // private mode or storage blocked
+    }
+  }, [members]);
 
   const onTypeChange = (next: LedgerType) => {
     setType(next);
@@ -71,10 +87,15 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           note: note.trim() || undefined,
           occurredAt: at.toISOString(),
         });
+        try {
+          localStorage.setItem(LAST_RECORD_MEMBER_KEY, memberId);
+        } catch {
+          // private mode or storage blocked
+        }
         setAmount("");
         setNote("");
         setOccurredAt(toDatetimeLocalValue(new Date().toISOString()));
-        router.push("/");
+        setSuccessOpen(true);
         router.refresh();
       } catch (e) {
         setError(e instanceof Error ? e.message : "保存失败");
@@ -83,6 +104,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
   };
 
   return (
+    <>
     <div className="min-w-0 space-y-5">
       <header>
         <p className="text-sm font-medium text-white/90">快速记账</p>
@@ -213,5 +235,91 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
         </button>
       </motion.div>
     </div>
+    <RecordSuccessDialog open={successOpen} onClose={() => setSuccessOpen(false)} />
+    </>
+  );
+}
+
+function RecordSuccessDialog({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOx = html.style.overflowX;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflowX = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflowX = prevHtmlOx;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, [open]);
+
+  const root = typeof document !== "undefined" ? document.body : null;
+  if (!open || !root) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex w-full max-w-[100dvw] items-center justify-center overflow-x-hidden overscroll-none bg-black/40 p-4 touch-none sm:touch-auto"
+      role="presentation"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="record-success-title"
+        className="w-full max-w-sm min-w-0 touch-pan-y overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-stone-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
+            aria-hidden
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17l-5-5"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <h2
+            id="record-success-title"
+            className="mt-4 text-lg font-semibold text-stone-800"
+          >
+            保存成功
+          </h2>
+          <p className="mt-2 text-sm text-stone-500">
+            该笔记录已保存，可继续记账。
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition active:scale-[0.98]"
+          >
+            知道了
+          </button>
+        </div>
+      </div>
+    </div>,
+    root,
   );
 }

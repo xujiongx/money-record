@@ -5,14 +5,14 @@ const nextConfig: NextConfig = {
   /** 避免 Turbopack 把 undici 打进包后代理 / CONNECT 行为异常 */
   serverExternalPackages: ["undici"],
   /**
-   * App Router 客户端对「动态路由」的 RSC 复用窗口。默认 `dynamic: 0` 时几乎每次切 Tab 都会重新拉 Flight，
-   * 体感像整页重载。略拉长并与账本 `unstable_cache` 的 120s 对齐；写操作仍会 `revalidatePath` / `revalidateTag` 触发刷新。
+   * 客户端对动态路由 RSC 的复用窗口（当前 1h），与账本 `unstable_cache` 的 `revalidate` 同量级。
+   * 首页「刷新数据」会 `revalidateTag` + `router.refresh()` 强制重查库。
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/staleTimes
    */
   experimental: {
     staleTimes: {
-      dynamic: 120,
-      static: 300,
+      dynamic: 3600,
+      static: 3600,
     },
   },
 };

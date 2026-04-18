@@ -1,6 +1,6 @@
 # 缓存设计文档
 
-> 项目：家庭记账 · 更新日期：2026-04-09
+> 项目：家庭记账 · 更新日期：2026-04-18
 
 ## 1. 概述
 
@@ -8,10 +8,11 @@
 
 | 层级 | 机制 | 目标 |
 |------|------|------|
-| Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（如 120s） | 减少 Tab 切换时重复打 Supabase |
+| Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（当前 **3600s**，即 1h） | 与客户端 `staleTimes` 同量级，减少读库 |
 | 同请求去重 | React **`cache()`** 包装 **`requireHouseholdId()`** | 同一次 RSC 内多次 `fetch*` 只解析一次 Cookie |
 | 客户端预取 | **`usePrefetchAppTabs`**（`MobileShell`）：空闲时对四个 Tab 路径 **`router.prefetch`** | 提前拉取 RSC flight，缩短首次点击等待 |
-| 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`**（秒；与账本缓存同量级） | 动态页在窗口内复用已缓存的 RSC，减少反复切 Tab 时的重新请求（非整页 `location` 刷新；写操作仍会 `revalidate*`） |
+| 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`**（**3600s**） | 同一会话内 Tab 切换少打 Flight |
+| 手动刷新 | 首页 **`refreshLedgerReadCache`**（`ledger.ts`）→ `revalidateTag("ledger")` + `revalidatePath`，再由 **`router.refresh()`** | 用户点「刷新数据」时立即清读缓存并重查库渲染 |
 | 缓存失效 | **`revalidateTag("ledger", "max")`** + 既有 **`revalidatePath`** | 记账、改账、删账、登录写 Cookie、清除会话后数据立即刷新 |
 | 根布局 | **不**再使用 `export const dynamic = "force-dynamic"` | 需动态的片段仍因 `cookies()` 等为动态；利于部分静态优化 |
 | Next 路由缓存 | `revalidatePath`（与上配合） | 相关路由下次请求刷新 |
@@ -20,7 +21,7 @@
 | 客户端列表状态 | React `useState` + 首屏 props（仪表盘删账后主动拉取） | 仪表盘列表与汇总 |
 | 统计页 | RSC 拉数 → **`StatsChartsGate`** 客户端动态加载图表 | 与其它 Tab 分包隔离 Recharts |
 
-**一致性**：以 PostgreSQL 为唯一事实源；写操作会 `revalidateTag`；他端更新在缓存窗口内可能短暂滞后，直至 TTL 或本端再次写入触发失效。
+**一致性**：以 PostgreSQL 为唯一事实源；写操作会 `revalidateTag`。他端更新在 **约 1h** 读缓存窗口内可能滞后，直至 TTL 或用户在首页点 **「刷新数据」** / 本端写入触发失效。
 
 ## 2. 无服务端 KV
 
