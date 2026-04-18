@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- Next.js 16（App Router）+ TypeScript + Tailwind CSS 4
+- Next.js 16（App Router）+ TypeScript + Tailwind CSS 4；**`app/manifest.ts`**（PWA）、**`app/icon.svg`** 与 **`lib/app-branding.ts`** 统一应用名 / 描述 / 主题色（详见 [docs/development-guide.md](./docs/development-guide.md)）
 - Supabase（PostgreSQL）
 - Recharts、Framer Motion、date-fns、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
 - **小布助手**：底部导航外的可拖动入口；多轮对话、结构化记账（自动识别支出/收入与分类，对不上归「其他」，信息够则直接入账、不先追问或「确认再记」）、**本月小结**与**本年小结**；每轮结合数据库快照生成事实块，弱化历史气泡里的旧数字。出站 LLM 经 `lib/foundation/llm`：**`MISTRAL_API_KEY` 与 `OPEN_ROUTER_API_KEY` 至少配置其一**（同时配置时优先 Mistral，失败则走 OpenRouter）。可选 **Web Speech** 播报（`lib/foundation/tts`）与语音输入（`lib/foundation/asr`），环境变量见 `.env.example`，模块说明见 [`lib/foundation/README.md`](./lib/foundation/README.md)
@@ -46,7 +46,7 @@ npm run dev
 
 浏览器打开 [http://localhost:3000](http://localhost:3000)（无有效家庭 Cookie 时会跳转 `/login`），建议使用移动端调试或窄屏查看。
 
-多设备数据同步：列表数据随 **进入页面 / 路由跳转** 从服务端载入；他端更新需刷新或再次打开页面（无定时轮询、无 Realtime）。底部 Tab 在客户端会 **prefetch** 各页 RSC，配合服务端账本读缓存，切换时更少重复打库（仍非浏览器多页 DOM 常驻）。
+多设备数据同步：列表数据随 **进入页面 / 路由跳转** 从服务端载入；他端更新可 **刷新整页**、再次打开页面，或在首页点 **「刷新数据」**（清 `ledger` 读缓存并重跑 RSC）。无定时轮询、无 Realtime。底部 Tab 在客户端会 **prefetch** 各页 RSC，配合服务端账本读缓存与 Next **`staleTimes`**，切换时更少重复打库（仍非浏览器多页 DOM 常驻）。
 
 ## 路由说明
 

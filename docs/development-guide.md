@@ -1,6 +1,6 @@
 # 开发指南
 
-> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-04-09（小布历史客户端缓存）
+> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-04-18（账本读缓存、品牌 / 元数据 / PWA manifest）
 
 ## 1. 环境要求
 
@@ -32,12 +32,13 @@ flowchart LR
 - **会话**：合法 **6 位家庭编码** 存 httpOnly Cookie；`ledger` 与 `household` Server Actions 据此解析 `household_id`。  
 - **登录页**：`setHouseholdSession`、`createHouseholdAndLogin`（新建家庭 + 默认成员布布/一二）。  
 - **写入流水**：`createTransaction` / `updateTransaction` / `deleteTransaction`；不经浏览器直连 Supabase。  
-- **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态。  
-- **读缓存**：`ledger.ts` 中 **家庭编码 → `household_id`**、成员与流水列表经 `unstable_cache`（标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。**Tab 预取**：`MobileShell` 挂载 **`usePrefetchAppTabs`**，空闲时对 `/`、`/record`、`/stats`、`/members` 执行 `router.prefetch`。  
+- **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态；首页另有 **「刷新数据」**，调用 **`refreshLedgerReadCache`**（`revalidateTag` + `revalidatePath`）后 **`router.refresh()`**，强制清读缓存并重跑 RSC。  
+- **读缓存**：`ledger.ts` 中 **家庭编码 → `household_id`**、成员与流水列表经 `unstable_cache`（**`revalidate` 当前 3600s**，标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。**Tab 预取**：底部 **`Link prefetch`** + `MobileShell` 挂载 **`usePrefetchAppTabs`**（首帧立即 **`router.prefetch`** 四 Tab，空闲再补），硬刷新后尽快填满客户端 RSC 缓存，与下面 **`staleTimes`** 配合。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
+- **品牌与元数据（含 PWA）**：**`lib/app-branding.ts`** 为单一文案源：**`APP_DISPLAY_NAME`**（页面 `title`）、**`APP_SHORT_NAME`**（`applicationName` / manifest `short_name`）、**`APP_DESCRIPTION`**。**`app/layout.tsx`** 导出 **`metadata`**（`title`、`description`、`applicationName`）、**`metadata.icons.apple`** 指向 **`/icon.svg`**（与 favicon 同源）、**`appleWebApp`**（全屏 Web App 标题等）；导出 **`viewport`**（`themeColor: #fb923c`、`viewportFit: cover` 等与壳层一致）。**`app/manifest.ts`** 实现 **`MetadataRoute.Manifest`**：`name` / `short_name` / `description` 同上常量；**`start_url: /record`**、**`display: standalone`**、**`background_color` / `theme_color`** 与 UI；**`icons`** 指向 **`/icon.svg`**。**图标文件**：只维护 **`app/icon.svg`**（Next 约定生成 favicon，公网路径 **`/icon.svg`**）。站内装饰性站标用 **`components/common/AppLogo.tsx`**（`<img src="/icon.svg">`），当前 **`EnterHouseholdCode`**（登录页）使用，与标签页 / 主屏幕图标一致。改名或改描述改 **`app-branding.ts`** 即可同步 layout 与 manifest。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
 - **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话（**`mistralLedgerChatAction`**：每轮 **`fetchLedgerSnapshotData`** 直连读库（不经列表 `unstable_cache`），本月摘要拼在**当前 user 消息顶部**，避免沿用 `chat_messages` 里可能过期的数字；结构化 JSON、模型自动识别收/支与分类（不明归「其他」）、缺槽仅追问金额/记账人或实在无法判断收/支、就绪后服务端直接 **`createTransaction`**（提示词不要求二次确认入账））与「本月 / 本年小结」走 **`app/actions/mistral-chat.ts`**，契约见 **`lib/llm/chat-ledger.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；出站 LLM 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**（内部委托 **`lib/foundation/llm`** 的 **`LlmClient`**，实现见 **`implementations/mistral`**、**`openrouter`**、**`mistral-then-openrouter`**（**`mistral-openrouter`** 再导出兼容别名））：优先 Mistral（**`lib/llm/mistral-fetch.ts`**），失败或未配 Mistral 密钥时可走 **OpenRouter**；**密钥仅服务端**，**勿在 Client 中 import `lib/foundation/llm`**。业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**助手回复播报**：**`useChatAssistantTts`** 经 **`lib/foundation/tts/factory.client`** 的 **`createTtsEngine()`**（默认 **`WebSpeechSynthesisTts`**，`NEXT_PUBLIC_TTS_PROVIDER=noop` 可显式关闭能力）、**`stripMarkdownForSpeech`** 在 **`lib/foundation/tts/text`**；标题栏 **播报** 开关（`localStorage` **`xiaobu_chat_tts_enabled`**）、**暂停 / 继续**；关浮层或关播报会 **stop**。部分环境（尤其 iOS）异步返回后首次合成可能被限制，以实机为准。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（**`ChatVoiceInput`** 经 **`lib/foundation/asr`** 的 **`createAsrEngine()`**，默认 **`WebSpeechRecognitionAsrEngine`**；**`NEXT_PUBLIC_ASR_PROVIDER=noop`** 可关闭）；开始识别前会先调用 **`getUserMedia({ audio: true })`** 触发**麦克风权限**（与语音识别同源权限），拿到流后立即 `stop` 轨道以免占用设备；无 `mediaDevices` 的环境则跳过预检直接走识别。`zh-CN` 识别需 **HTTPS 或 localhost**；**iOS WebKit**、**微信内置页**等仍可能无法授权或报 `service-not-allowed`；**Android Chrome** 多依赖云端识别与网络。触控端使用**非连续**识别。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。**历史列表**：**`useChatHistoryLoader`**（`components/features/chat/useChatHistoryLoader.ts`）负责内存缓存、打开时 stale-while-revalidate、**`requestIdleCallback`** 空闲预取、并发请求去重；`FloatingChatBot` 在落库成功后调用 **`appendExchangeToCache`**（详见 [change/2026-04-09.md](./change/2026-04-09.md)）。
-- **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常；**`experimental.staleTimes.dynamic`**（与账本读缓存秒数同量级）用于客户端复用动态路由的 RSC，减轻 Tab 来回切换时的重复请求感。
+- **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常；**`experimental.staleTimes.dynamic`** 与 **`staleTimes.static`**（均为 **3600s**，与账本 **`unstable_cache` 的 `revalidate`** 同量级）用于客户端复用动态路由的 RSC，减轻 Tab 来回切换时的重复请求感。
 
 详见 [database-design.md](./database-design.md)、[api.md](./api.md)、根目录 [`middleware.ts`](../middleware.ts)。
 
@@ -62,10 +63,13 @@ flowchart LR
 │   ├── members/
 │   │   ├── page.tsx         # 成员列表
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
-│   └── layout.tsx          # MobileShell 包裹主内容
+│   ├── manifest.ts         # PWA Web App Manifest（名称等来自 lib/app-branding）
+│   ├── icon.svg            # 应用图标：favicon、manifest、AppLogo 均引用 /icon.svg
+│   └── layout.tsx          # metadata、viewport、MobileShell 包裹主内容
 ├── components/
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
 │   │   ├── MobileShell.tsx
+│   │   ├── AppLogo.tsx     # 站标：<img /icon.svg>，与 metadata / manifest 同源
 │   │   ├── DraggableFab.tsx
 │   │   ├── MemberAvatar.tsx
 │   │   ├── MarkdownText.tsx # react-markdown：小布助手气泡内 Markdown
@@ -87,6 +91,7 @@ flowchart LR
 │           └── mascot/               # ChatBotMascot
 ├── lib/
 │   ├── foundation/         # 基础能力：可插拔 LLM（仅服务端）与 TTS（客户端）；见 foundation/README.md
+│   ├── app-branding.ts     # 应用显示名、短名、描述（layout + manifest 共用）
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
 │   ├── ledger/             # 账本领域：类型、分类白名单、聚合、统计周期、金额格式、`monthly-digest`（本月摘要纯函数）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
@@ -161,8 +166,9 @@ cp .env.example .env.local
 | 一直跳登录 | 检查 Cookie 是否写入；中间件是否校验 6 位数字。 |
 | 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`。 |
 | 无法连库 | `.env.local`、Supabase 项目状态、Service Role 是否正确。 |
-| 另一台设备更新不自动出现 | 刷新页面或切换路由；若需近实时可后续接 Realtime 或手动刷新按钮。 |
+| 另一台设备更新不自动出现 | 在首页点 **「刷新数据」**（`refreshLedgerReadCache` + `router.refresh()`），或刷新整页 / 切换路由；若需近实时可后续接 Realtime。 |
 | Tab 切换仍慢 | 生产环境看 Supabase 区域延迟；已做 `unstable_cache` + 统计页 Recharts 分包；可开 Network 看 RSC 与 JS chunk。 |
 | `ssr: false` 报错 | 勿在 Server Component 写 `dynamic(..., { ssr:false })`；统计页用 `StatsChartsGate` 客户端封装。 |
 | 小布请求失败 / 终端 `fetch failed` | 检查 `MISTRAL_API_KEY` / `OPEN_ROUTER_API_KEY`、本机网络；Mistral 限流时可配 OpenRouter 作回退；Node 访问 Mistral 需代理时在 `.env.local` 配置 `MISTRAL_PROXY_URL` 或 `HTTPS_PROXY` 后重启 dev。**OpenRouter** 失败时请看运行 `next dev` 的终端：会以 **`[xiaobu-openrouter]`** 打印 `status`、`errorBody`、`requestID` 等（不经 UI 暴露给用户）。 |
 | 小布 Action 返回 500 | 业务错误应走 `MistralTextResult`，勿在 Action 内对预期失败 `throw`，否则 RSC POST 易报 500。 |
+| 改了 `icon.svg` 主屏幕仍旧图 | iOS 等会缓存主屏幕图标；删掉桌面图标后重新「添加到主屏幕」；详见 **`lib/app-branding.ts`** 文件头注释。 |

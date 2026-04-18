@@ -11,7 +11,7 @@
 | Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（当前 **3600s**，即 1h） | 与客户端 `staleTimes` 同量级，减少读库 |
 | 同请求去重 | React **`cache()`** 包装 **`requireHouseholdId()`** | 同一次 RSC 内多次 `fetch*` 只解析一次 Cookie |
 | 客户端预取 | 底部 **`Link prefetch`**（完整预取动态页）+ **`usePrefetchAppTabs`**：挂载时立即 **`router.prefetch`** 四 Tab，空闲再补一轮 | 硬刷新后尽快填满客户端 RSC 缓存，配合 **`staleTimes.dynamic`** 在约 1h 内少重复请求 |
-| 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`**（**3600s**） | 同一会话内 Tab 切换少打 Flight |
+| 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`** 与 **`staleTimes.static`**（均为 **3600s**） | 同一会话内 Tab 切换少打 Flight |
 | 手动刷新 | 首页 **`refreshLedgerReadCache`**（`ledger.ts`）→ `revalidateTag("ledger")` + `revalidatePath`，再由 **`router.refresh()`** | 用户点「刷新数据」时立即清读缓存并重查库渲染 |
 | 缓存失效 | **`revalidateTag("ledger", "max")`** + 既有 **`revalidatePath`** | 记账、改账、删账、登录写 Cookie、清除会话后数据立即刷新 |
 | 根布局 | **不**再使用 `export const dynamic = "force-dynamic"` | 需动态的片段仍因 `cookies()` 等为动态；利于部分静态优化 |
@@ -75,3 +75,4 @@
 | 2026-04-08 | 根布局去掉 `force-dynamic`；引入 `unstable_cache` + `revalidateTag("ledger")`、`requireHouseholdId` 的 React `cache()` |
 | 2026-04-08 | 补充 `app/loading.tsx`、`stats/loading`、统计页 Recharts 动态分包说明 |
 | 2026-04-09 | 补充 §4：静态资源与 `next dev` / 生产 / 远程图缓存说明 |
+| 2026-04-18 | **`unstable_cache` `revalidate`** 与客户端 **`staleTimes`** 统一到 **3600s**；首页 **「刷新数据」**（**`refreshLedgerReadCache`** + **`router.refresh()`**）；底部 **`Link prefetch`** + **`usePrefetchAppTabs`** 首帧 **`router.prefetch`**；**`staleTimes.static`** 与 **dynamic** 同值 |

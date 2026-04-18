@@ -1,6 +1,6 @@
 # 系统架构说明
 
-> 项目：家庭记账 · 更新日期：2026-04-08（含小布助手 / Mistral）  
+> 项目：家庭记账 · 更新日期：2026-04-18（含小布助手 / Mistral；账本读缓存、品牌与 PWA 元数据）  
 > 本文描述**当前实现**的技术架构、数据流与安全边界；细节契约见 [api.md](./api.md)，表结构见 [database-design.md](./database-design.md)，缓存见 [cache-design.md](./cache-design.md)。
 
 ## 1. 架构总览
@@ -73,7 +73,9 @@ flowchart TB
 - **`StatsChartsGate`**（`"use client"`）内使用 **`next/dynamic(..., { ssr: false })`** 加载 **`StatsCharts`**，使 **Recharts** 进入独立 JS 分包，减轻其它路由首包与 Tab 切换成本。  
 - **`app/stats/loading.tsx`** 提供该段专用的轻量骨架（另：**`app/loading.tsx`** 为全局路由切换骨架）。
 
-## 4. 多家庭隔离与会话
+## 4. 会话、品牌与安装体验
+
+### 4.1 多家庭隔离与会话
 
 - **家庭口令**：6 位数字编码，存 **httpOnly Cookie**（`ledger_household_code`）。  
 - **服务端解析**：根据编码查 `households` 得 `household_id`；所有账本读写均带 **`household_id` 条件**，且 **不接受** 客户端传入的 `household_id` 作为信任来源。  
@@ -81,10 +83,20 @@ flowchart TB
 
 详见 [api.md §1](./api.md)、[database-design.md](./database-design.md)。
 
+### 4.2 品牌、图标与 Web App 清单
+
+- **文案单一来源**：**`lib/app-branding.ts`**（`APP_DISPLAY_NAME`、`APP_SHORT_NAME`、`APP_DESCRIPTION`）。  
+- **HTML 元数据与视口**：**`app/layout.tsx`** 的 **`export const metadata`**（含 **`appleWebApp`**、**`icons.apple`** → **`/icon.svg`**）与 **`export const viewport`**（**`themeColor`**、**`viewportFit: cover`** 等）。  
+- **PWA**：**`app/manifest.ts`** 返回 **`MetadataRoute.Manifest`**；**`start_url`** 为 **`/record`**（从主屏幕打开先进记账）；**`display: standalone`**；颜色与根布局壳层一致。  
+- **图标**：**`app/icon.svg`** 一处维护；浏览器标签 favicon、清单 **`icons`**、**`AppLogo`** 均指向 **`/icon.svg`**。登录页 **`EnterHouseholdCode`** 使用 **`AppLogo`**。  
+
+详见 [development-guide.md §2](./development-guide.md) 与 **`lib/app-branding.ts`** 内注释。
+
 ## 5. 数据访问与缓存（摘要）
 
-- **读**：`fetchMembers`、`fetchTransactions` 使用 **`unstable_cache`**，标签 **`ledger`**；`requireHouseholdId` 使用 React **`cache()`** 在同一 RSC 请求内去重。  
+- **读**：`fetchMembers`、`fetchTransactions` 使用 **`unstable_cache`**（**`revalidate` 当前 3600s**），标签 **`ledger`**；`requireHouseholdId` 使用 React **`cache()`** 在同一 RSC 请求内去重。  
 - **写**：`createTransaction` / `updateTransaction` / `deleteTransaction` 及会话类 Action 调用 **`revalidateTag("ledger", "max")`** 与 **`revalidatePath`**。  
+- **手动**：首页 **`refreshLedgerReadCache`** + 客户端 **`router.refresh()`**，与写操作同级的标签/路径失效，用于他端改账后本机立即对齐。  
 - **无** 客户端定时轮询；**无** Redis 等外部 KV。
 
 完整策略见 [cache-design.md](./cache-design.md)。
@@ -94,7 +106,7 @@ flowchart TB
 | 路径 | 服务端 | 客户端侧重 |
 |------|--------|------------|
 | `/login` | 登录/创建家、写 Cookie | `EnterHouseholdCode` |
-| `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗） |
+| `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗、**「刷新数据」**） |
 | `/record` | 拉成员 | `RecordForm`（`datetime-local` 传 `occurredAt`） |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
 | `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`） |
@@ -141,3 +153,5 @@ flowchart TB
 | 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
 | 2026-04-08 | `lib/llm/xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |
 | 2026-04-08 | `lib/` 分层：`ledger/`、`household/`、`llm/`、`supabase/` |
+| 2026-04-18 | 账本读缓存 **`revalidate` 3600s** 与 **`staleTimes.dynamic/static`** 对齐；**`refreshLedgerReadCache`**、**`Link prefetch` + `usePrefetchAppTabs`**（见 [cache-design.md](./cache-design.md)） |
+| 2026-04-18 | **`lib/app-branding`**、**`app/layout.tsx` metadata/viewport**、**`app/manifest.ts`**、**`app/icon.svg`**、**`AppLogo`**：安装态与标签页展示一致 |

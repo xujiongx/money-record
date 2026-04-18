@@ -1,7 +1,7 @@
 # 接口与数据访问说明
 
 > 本项目**无独立 REST Base URL**；数据访问由 **Next.js Server Actions** + Supabase **Service Role（服务端）** 完成。  
-> 更新日期：2026-04-09
+> 更新日期：2026-04-18
 
 ## 1. 设计说明
 
@@ -11,6 +11,7 @@
 | 会话：创建家庭并登录 | `createHouseholdAndLogin({ name, codeRaw })` | 登录页「创建新家」 |
 | 会话：退出/切换 | `clearHouseholdSession()` | 成员页 |
 | 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage`、`fetchLedgerSnapshotData` | Server / Client（依赖 Cookie）；分页接口与小布快照不走列表用的 `unstable_cache` |
+| 手动清读缓存 | `refreshLedgerReadCache` | Client（首页 **`DashboardClient`**「刷新数据」；Action 后 **`router.refresh()`**） |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 | 小布对话 / 小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`mistralChatAction`（纯文本，保留）、`generateMonthlySummaryAction`、`generateYearlySummaryAction` | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
@@ -19,7 +20,7 @@
 
 客户端另将编码写入 **localStorage**（`ledger_household_code`）用于在 Cookie 丢失时尝试恢复会话（调用 `setHouseholdSession`）。
 
-**多端列表刷新**：不使用 Supabase Realtime；首页与统计 **不在客户端定时拉取**；数据来自 RSC 首屏，仪表盘在删账后调用 `fetchTransactions()` 更新本地列表。
+**多端列表刷新**：不使用 Supabase Realtime；首页与统计 **不在客户端定时拉取**；数据来自 RSC 首屏，仪表盘在删账后调用 `fetchTransactions()` 更新本地列表。他端写入后若仍见旧列表，可在首页点 **「刷新数据」**（见 §3.0）。
 
 ### 1.1 为何不用开放 HTTP API
 
@@ -55,10 +56,15 @@
 
 均先 **`requireHouseholdId()`**：读 Cookie → 规范化 → 查 `households` 得 `id`，失败抛错。同一次 RSC 内用 React **`cache()`** 去重；**跨导航**对「规范化编码 → `household_id`」另经 **`unstable_cache`**（标签 **`ledger`**），与下列 `fetch*` 一并随 **`revalidateTag("ledger", "max")`** 失效。
 
+### 3.0 `refreshLedgerReadCache()`
+
+- 无入参；先 **`requireHouseholdId()`**；与写流水共用 **`invalidateLedger()`**：**`revalidateTag("ledger", "max")`** + **`revalidatePath`**（`/`, `/record`, `/stats`, `/members` 及 **`/members` layout**）。  
+- 供首页 **`DashboardClient`** 的 **「刷新数据」**：Action 成功后客户端 **`router.refresh()`**，下一帧 RSC 重新查库，不依赖等待 **`unstable_cache`** 的 TTL。
+
 ### 3.1 `fetchMembers()` / `fetchTransactions()`
 
 - 仅返回 **当前 Cookie 对应家庭** 的数据。  
-- 服务端经 **`unstable_cache`** 缓存（缓存键含 `household_id`），标签 **`ledger`**；变更流水或会话时需配合 **`revalidateTag`** 失效。
+- 服务端经 **`unstable_cache`** 缓存（缓存键含 `household_id`），**`revalidate` 当前 3600s**，标签 **`ledger`**；变更流水或会话时需配合 **`revalidateTag`** 失效；用户亦可主动 **`refreshLedgerReadCache`**（§3.0）。
 
 ### 3.1b `fetchMemberTransactionsPage(memberId, offset, limit)`
 
@@ -172,7 +178,7 @@ type MistralTextResult =
 |------|------|
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
-| 实时推送 | 多租户下弃用 Realtime；靠导航与 `revalidatePath` / `revalidateTag("ledger")` 刷新 |
+| 实时推送 | 多租户下弃用 Realtime；靠导航、`revalidatePath` / `revalidateTag("ledger")` 与首页 **`refreshLedgerReadCache`** 刷新 |
 | LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `lib/llm/xiaobu-llm` 封装；客户端只收 `MistralTextResult` 文本结果 |
 
 ## 7. 变更记录
@@ -195,3 +201,4 @@ type MistralTextResult =
 | 2026-04-09 | **`lib/foundation/asr`**：`AsrEngine`、`createAsrEngine`；`ChatVoiceInput` 委托 foundation |
 | 2026-04-09 | `buildLedgerChatSystemPrompt`：不因分类 `collect`；分类不明直接「其他」；不要求用户「确认再记」才 `ready`；收/支与分类由模型自动识别，勿追问 |
 | 2026-04-09 | **`RecordForm`**：`datetime-local` + **`occurredAt`**；**`lib/ledger/datetime-local.ts`** 与 **`EditTransactionModal`** 共用 **`toDatetimeLocalValue`** |
+| 2026-04-18 | **`refreshLedgerReadCache`**：与写流水同级的 **`revalidateTag` + `revalidatePath`**；**`fetchMembers` / `fetchTransactions`** 的 **`unstable_cache` `revalidate`** 记为 **3600s** |
