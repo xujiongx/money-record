@@ -9,6 +9,8 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
 import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
+import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
+import { pushNoteHistory } from "@/lib/ledger/note-history";
 
 const LAST_RECORD_MEMBER_KEY = "money-record:last-record-member-id";
 
@@ -26,6 +28,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
   );
   const [error, setError] = useState<string | null>(null);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [noteHistoryRefresh, setNoteHistoryRefresh] = useState(0);
   const [pending, startTransition] = useTransition();
 
   const categories = useMemo(
@@ -91,6 +94,11 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           localStorage.setItem(LAST_RECORD_MEMBER_KEY, memberId);
         } catch {
           // private mode or storage blocked
+        }
+        const trimmedNote = note.trim();
+        if (trimmedNote) {
+          pushNoteHistory(category, trimmedNote);
+          setNoteHistoryRefresh((n) => n + 1);
         }
         setAmount("");
         setNote("");
@@ -217,6 +225,11 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+        />
+        <NoteHistoryTags
+          category={category}
+          refreshToken={noteHistoryRefresh}
+          onSelect={setNote}
         />
 
         {error && (

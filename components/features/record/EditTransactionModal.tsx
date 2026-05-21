@@ -7,6 +7,8 @@ import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
+import { pushNoteHistory } from "@/lib/ledger/note-history";
+import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
 
 export function EditTransactionModal({
   transaction,
@@ -28,6 +30,7 @@ export function EditTransactionModal({
     toDatetimeLocalValue(transaction.occurred_at),
   );
   const [error, setError] = useState<string | null>(null);
+  const [noteHistoryRefresh, setNoteHistoryRefresh] = useState(0);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -99,6 +102,11 @@ export function EditTransactionModal({
           note: note.trim() || undefined,
           occurredAt: at.toISOString(),
         });
+        const trimmedNote = note.trim();
+        if (trimmedNote) {
+          pushNoteHistory(category, trimmedNote);
+          setNoteHistoryRefresh((n) => n + 1);
+        }
         onSaved();
         onClose();
       } catch (e) {
@@ -237,6 +245,11 @@ export function EditTransactionModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+          />
+          <NoteHistoryTags
+            category={category}
+            refreshToken={noteHistoryRefresh}
+            onSelect={setNote}
           />
 
           {error && (

@@ -17,7 +17,7 @@
 | 根布局 | **不**再使用 `export const dynamic = "force-dynamic"` | 需动态的片段仍因 `cookies()` 等为动态；利于部分静态优化 |
 | Next 路由缓存 | `revalidatePath`（与上配合） | 相关路由下次请求刷新 |
 | 会话 | httpOnly Cookie `ledger_household_code` | 服务端识别当前家庭 |
-| 前端持久化 | `localStorage` 同名 key | **仅存家庭编码**；不存流水明细 |
+| 前端持久化 | `localStorage` | **家庭编码**（`ledger_household_code`）；**备注历史**（`money-record:note-history`，按分类关联、最多 150 条，仅本机）；不存流水明细 |
 | 客户端列表状态 | React `useState` + 首屏 props（仪表盘删账后主动拉取） | 仪表盘列表与汇总 |
 | 统计页 | RSC 拉数 → **`StatsChartsGate`** 客户端动态加载图表 | 与其它 Tab 分包隔离 Recharts |
 
@@ -76,3 +76,4 @@
 | 2026-04-08 | 补充 `app/loading.tsx`、`stats/loading`、统计页 Recharts 动态分包说明 |
 | 2026-04-09 | 补充 §4：静态资源与 `next dev` / 生产 / 远程图缓存说明 |
 | 2026-04-18 | **`unstable_cache` `revalidate`** 与客户端 **`staleTimes`** 统一到 **3600s**；首页 **「刷新数据」**（**`refreshLedgerReadCache`** + **`router.refresh()`**）；底部 **`Link prefetch`** + **`usePrefetchAppTabs`** 首帧 **`router.prefetch`**；**`staleTimes.static`** 与 **dynamic** 同值 |
+| 2026-05-21 | **`money-record:note-history`**：备注按分类本地历史（最多 150 条），记账/编辑页标签回填 |
