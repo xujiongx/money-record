@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
@@ -66,86 +64,25 @@ export default async function MembersPage() {
         </p>
       </section>
 
-      <ul className="space-y-4">
-        {stats.map(({ member, count, income, expense }) => {
-          const mine = transactions
-            .filter((t) => t.member_id === member.id)
-            .slice(0, 8);
-          return (
-            <li
-              key={member.id}
-              className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
+      <ul className="space-y-3">
+        {stats.map(({ member, count, income, expense }) => (
+          <li key={member.id}>
+            <Link
+              href={`/members/${member.id}`}
+              className="flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 transition hover:ring-orange-200"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-lg font-semibold text-stone-800">
-                      {member.name}
-                    </h2>
-                    <p className="text-xs text-stone-500">{count} 笔记账</p>
-                    <div className="mt-2 flex gap-3 text-sm">
-                      <span className="text-emerald-600">
-                        收入 {formatMoney(income)}
-                      </span>
-                      <span className="text-rose-600">
-                        支出 {formatMoney(expense)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Link
-                  href={`/members/${member.id}`}
-                  className="shrink-0 rounded-xl p-2 text-stone-400 ring-1 ring-stone-200/80 transition hover:bg-orange-50 hover:text-orange-600 hover:ring-orange-200"
-                  aria-label={`查看 ${member.name} 的全部账单`}
-                  title="全部账单"
-                >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    aria-hidden
-                  >
-                    <path
-                      d="M8 6h12M8 10h12M8 14h8M8 18h8M4 6h.01M4 10h.01M4 14h.01M4 18h.01"
-                      stroke="currentColor"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </Link>
+              <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-stone-800">{member.name}</p>
+                <p className="mt-0.5 text-xs text-stone-500">{count} 笔记账</p>
               </div>
-              {mine.length > 0 && (
-                <ul className="mt-4 space-y-2 border-t border-stone-100 pt-3">
-                  {mine.map((t) => (
-                    <li
-                      key={t.id}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-stone-600">
-                        {t.category} ·{" "}
-                        {format(new Date(t.occurred_at), "M月d日 HH:mm", {
-                          locale: zhCN,
-                        })}
-                      </span>
-                      <span
-                        className={
-                          t.type === "income"
-                            ? "font-medium text-emerald-600"
-                            : "font-medium text-rose-600"
-                        }
-                      >
-                        {t.type === "income" ? "+" : "-"}
-                        {formatMoney(t.amount)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
+              <div className="shrink-0 text-right text-sm">
+                <p className="text-emerald-600">+{formatMoney(income)}</p>
+                <p className="text-rose-600">-{formatMoney(expense)}</p>
+              </div>
+            </Link>
+          </li>
+        ))}
       </ul>
 
       <section className="pt-2">

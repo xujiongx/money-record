@@ -137,6 +137,35 @@ export async function fetchLedgerSnapshotData(): Promise<{
   return { members, transactions };
 }
 
+/** 单成员全量流水（不分页），用于客户端搜索/筛选场景。校验成员属于当前家庭。 */
+export async function fetchAllMemberTransactions(
+  memberId: string,
+): Promise<TransactionRow[]> {
+  const householdId = await requireHouseholdId();
+  const supabase = createServiceClient();
+  const { data: mem, error: memErr } = await supabase
+    .from("members")
+    .select("id")
+    .eq("id", memberId)
+    .eq("household_id", householdId)
+    .maybeSingle();
+  if (memErr) throw new Error(memErr.message);
+  if (!mem) throw new Error("成员不存在");
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select(
+      "id, household_id, member_id, type, category, amount, note, occurred_at, members ( id, name )",
+    )
+    .eq("household_id", householdId)
+    .eq("member_id", memberId)
+    .order("occurred_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) =>
+    mapTransaction(row as Parameters<typeof mapTransaction>[0]),
+  );
+}
+
 /** 单成员流水（分页，按发生时间倒序）。校验成员属于当前家庭。 */
 export async function fetchMemberTransactionsPage(
   memberId: string,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useTransition,
@@ -13,6 +14,7 @@ import { zhCN } from "date-fns/locale";
 import { motion } from "framer-motion";
 import {
   deleteTransaction,
+  fetchAllMemberTransactions,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
 import { formatMoney } from "@/lib/ledger/format";
@@ -22,6 +24,18 @@ import { EditTransactionModal } from "@/components/features/record/EditTransacti
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 
 const PAGE_SIZE = 10;
+
+type TypeFilter = "all" | "income" | "expense";
+
+function matchesQuery(t: TransactionRow, q: string): boolean {
+  if (!q) return true;
+  const lower = q.toLowerCase();
+  if (t.category.toLowerCase().includes(lower)) return true;
+  if (t.note?.toLowerCase().includes(lower)) return true;
+  const amountStr = String(t.amount);
+  if (amountStr.includes(lower)) return true;
+  return false;
+}
 
 export function MemberLedgerClient({
   householdCode,
@@ -38,6 +52,7 @@ export function MemberLedgerClient({
   initialItems: TransactionRow[];
   initialHasMore: boolean;
 }) {
+  // ── paginated list state ──
   const [items, setItems] = useState(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [editing, setEditing] = useState<TransactionRow | null>(null);
@@ -51,6 +66,66 @@ export function MemberLedgerClient({
     itemsLenRef.current = items.length;
   }, [items.length]);
 
+  // ── search state ──
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [allItems, setAllItems] = useState<TransactionRow[] | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const hasActiveFilter =
+    query !== "" ||
+    typeFilter !== "all" ||
+    categoryFilter !== "" ||
+    dateFrom !== "" ||
+    dateTo !== "";
+
+  // fetch all items when search panel first opens
+  useEffect(() => {
+    if (!searchOpen || allItems !== null) return;
+    void (async () => {
+      setLoadingAll(true);
+      try {
+        const rows = await fetchAllMemberTransactions(memberId);
+        setAllItems(rows);
+      } catch (e) {
+        console.error("fetchAll failed", e);
+      } finally {
+        setLoadingAll(false);
+      }
+    })();
+  }, [searchOpen, allItems, memberId]);
+
+  // derived categories from allItems for the selector
+  const categories = useMemo(() => {
+    const src = allItems ?? items;
+    return Array.from(new Set(src.map((t) => t.category))).sort();
+  }, [allItems, items]);
+
+  // filtered results when in search mode
+  const filteredItems = useMemo(() => {
+    if (!searchOpen || !allItems) return null;
+    return allItems.filter((t) => {
+      if (!matchesQuery(t, query)) return false;
+      if (typeFilter !== "all" && t.type !== typeFilter) return false;
+      if (categoryFilter && t.category !== categoryFilter) return false;
+      if (dateFrom) {
+        const from = new Date(dateFrom);
+        from.setHours(0, 0, 0, 0);
+        if (new Date(t.occurred_at) < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        if (new Date(t.occurred_at) > to) return false;
+      }
+      return true;
+    });
+  }, [searchOpen, allItems, query, typeFilter, categoryFilter, dateFrom, dateTo]);
+
   const refresh = useCallback(() => {
     startTransition(async () => {
       try {
@@ -62,8 +137,10 @@ export function MemberLedgerClient({
         );
         setItems(next);
         setHasMore(hm);
-      } catch {
-        /* ignore */
+        // also refresh allItems if loaded
+        setAllItems(null);
+      } catch (e) {
+        console.error("refresh failed", e);
       }
     });
   }, [memberId]);
@@ -82,8 +159,8 @@ export function MemberLedgerClient({
         );
         setItems((prev) => [...prev, ...next]);
         setHasMore(hm);
-      } catch {
-        /* ignore */
+      } catch (e) {
+        console.error("loadMore failed", e);
       } finally {
         loadingMoreRef.current = false;
         setLoadingMore(false);
@@ -93,18 +170,19 @@ export function MemberLedgerClient({
 
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el || !hasMore) return;
+    if (!el || !hasMore || searchOpen) return;
     const obs = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          loadMore();
-        }
+        if (entries[0]?.isIntersecting) loadMore();
       },
       { root: null, rootMargin: "100px", threshold: 0 },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, loadMore, searchOpen]);
+
+  const displayItems = searchOpen && filteredItems ? filteredItems : items;
+  const isSearchMode = searchOpen && filteredItems !== null;
 
   return (
     <div className="space-y-5">
@@ -113,21 +191,8 @@ export function MemberLedgerClient({
           href="/members"
           className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition hover:text-white"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="shrink-0"
-            aria-hidden
-          >
-            <path
-              d="M15 18l-6-6 6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           成员
         </Link>
@@ -145,24 +210,161 @@ export function MemberLedgerClient({
       </header>
 
       <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
+        {/* card header */}
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-stone-800">全部账单</h2>
-            <p className="mt-0.5 text-[10px] text-stone-400">
-              向左滑动单条可编辑、删除；向下滑动到底自动加载更多
-            </p>
+            {!searchOpen && (
+              <p className="mt-0.5 text-[10px] text-stone-400">
+                向左滑动单条可编辑、删除；向下滑动到底自动加载更多
+              </p>
+            )}
           </div>
-          {(pending || loadingMore) && (
-            <span className="shrink-0 text-xs text-stone-400">加载中…</span>
-          )}
+          <div className="flex items-center gap-2">
+            {(pending || loadingMore || loadingAll) && (
+              <span className="shrink-0 text-xs text-stone-400">加载中…</span>
+            )}
+            <button
+              onClick={() => {
+                setSearchOpen((v) => !v);
+                if (searchOpen) {
+                  setQuery("");
+                  setTypeFilter("all");
+                  setCategoryFilter("");
+                  setDateFrom("");
+                  setDateTo("");
+                }
+              }}
+              className={`shrink-0 rounded-xl p-2 ring-1 transition ${
+                searchOpen
+                  ? "bg-orange-50 text-orange-600 ring-orange-200"
+                  : "text-stone-400 ring-stone-200/80 hover:bg-orange-50 hover:text-orange-600 hover:ring-orange-200"
+              }`}
+              aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
+            >
+              {searchOpen ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.75" />
+                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* search / filter panel */}
+        {searchOpen && (
+          <div className="mt-3 space-y-2.5 border-b border-stone-100 pb-3">
+            {/* text search */}
+            <div className="relative">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                aria-hidden
+              >
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <input
+                type="text"
+                placeholder="搜索分类、备注、金额…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-8 pr-3 text-sm text-stone-800 placeholder-stone-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+
+            {/* type filter */}
+            <div className="flex gap-1.5">
+              {(["all", "income", "expense"] as TypeFilter[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
+                    typeFilter === t
+                      ? t === "income"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : t === "expense"
+                          ? "bg-rose-100 text-rose-800"
+                          : "bg-orange-100 text-orange-800"
+                      : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                  }`}
+                >
+                  {t === "all" ? "全部" : t === "income" ? "收入" : "支出"}
+                </button>
+              ))}
+            </div>
+
+            {/* category + date row */}
+            <div className="flex gap-2">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                aria-label="按分类筛选"
+                className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+              >
+                <option value="">全部分类</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* date range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+              />
+              <span className="shrink-0 text-xs text-stone-400">至</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+
+            {hasActiveFilter && (
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setTypeFilter("all");
+                  setCategoryFilter("");
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                className="text-xs text-orange-500 hover:underline"
+              >
+                清除全部筛选
+              </button>
+            )}
+
+            {isSearchMode && (
+              <p className="text-[10px] text-stone-400">
+                共 {filteredItems.length} 条结果
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* transaction list */}
         <ul className="mt-2 divide-y divide-stone-100">
-          {items.length === 0 && (
+          {displayItems.length === 0 && (
             <li className="py-8 text-center text-sm text-stone-500">
-              暂无记录
+              {loadingAll ? "加载中…" : "暂无记录"}
             </li>
           )}
-          {items.map((t, i) => {
+          {displayItems.map((t, i) => {
             const isIn = t.type === "income";
             return (
               <motion.li
@@ -224,7 +426,9 @@ export function MemberLedgerClient({
             );
           })}
         </ul>
-        {hasMore && (
+
+        {/* infinite scroll sentinel (only in non-search mode) */}
+        {!searchOpen && hasMore && (
           <div
             ref={sentinelRef}
             className="flex min-h-10 items-center justify-center py-3 text-xs text-stone-400"
