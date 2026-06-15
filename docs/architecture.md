@@ -109,6 +109,7 @@ flowchart TB
 | `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗、**「刷新数据」**） |
 | `/record` | 拉成员 | `RecordForm`（`datetime-local` 传 `occurredAt`） |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
+| `/stats/analysis` | 拉流水 | `AnalysisClient`（月度/年度收支分析，迷你柱状图、结余月历、分类对比） |
 | `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`） |
 
 全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。
@@ -155,3 +156,4 @@ flowchart TB
 | 2026-04-08 | `lib/` 分层：`ledger/`、`household/`、`llm/`、`supabase/` |
 | 2026-04-18 | 账本读缓存 **`revalidate` 3600s** 与 **`staleTimes.dynamic/static`** 对齐；**`refreshLedgerReadCache`**、**`Link prefetch` + `usePrefetchAppTabs`**（见 [cache-design.md](./cache-design.md)） |
 | 2026-04-18 | **`lib/app-branding`**、**`app/layout.tsx` metadata/viewport**、**`app/manifest.ts`**、**`app/icon.svg`**、**`AppLogo`**：安装态与标签页展示一致 |
+| 2026-06-15 | **`MobileShell`** 登录页渐变全屏修复；**`/stats/analysis`** 月度/年度分析页（`AnalysisClient`：迷你柱状图、结余月历、分类对比上期） |

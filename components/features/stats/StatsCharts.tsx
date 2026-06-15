@@ -120,14 +120,22 @@ export function StatsCharts({
 
   return (
     <div className="space-y-5">
-      <header>
-        <p className="text-sm font-medium text-white/90">可视化分析</p>
-        <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
-          收支统计
-        </h1>
-        <p className="mt-1 font-mono text-xs text-white/80">
-          家庭编码 {householdCode}
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium text-white/90">可视化分析</p>
+          <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
+            收支统计
+          </h1>
+          <p className="mt-1 font-mono text-xs text-white/80">
+            家庭编码 {householdCode}
+          </p>
+        </div>
+        <Link
+          href="/stats/analysis"
+          className="mt-1 shrink-0 rounded-xl border border-white/30 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/30 active:scale-[0.97]"
+        >
+          分析
+        </Link>
       </header>
 
       <div className="rounded-2xl bg-white/95 p-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
