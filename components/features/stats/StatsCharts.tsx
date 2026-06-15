@@ -215,102 +215,6 @@ export function StatsCharts({
       {/* 不要用含时间戳的 key，否则每次切期都会卸载整块 Recharts，ResponsiveContainer 重测 DOM 很慢 */}
       <div className="space-y-5">
         <ChartCard
-          title="支出分类"
-          subtitle={
-            totalExpenseInScope > 0
-              ? `支出合计 ${formatMoney(totalExpenseInScope)} · ${expenseBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${expenseBreakdown.length} 个分类`
-              : "本区间暂无支出"
-          }
-        >
-          {expenseByCat.length === 0 ? (
-            <Empty />
-          ) : (
-            <>
-              <div className="h-56 w-full min-h-[224px] min-w-0">
-                <ResponsiveContainer width="100%" height={224} minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      isAnimationActive={false}
-                      data={expenseByCat}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={48}
-                      outerRadius={72}
-                      paddingAngle={2}
-                    >
-                      {expenseByCat.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) =>
-                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
-                      }
-                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <CategoryDetailList
-                rows={expenseBreakdown}
-                total={totalExpenseInScope}
-                colorAtIndex={(i) => COLORS[i % COLORS.length]}
-              />
-            </>
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="收入来源占比"
-          subtitle={
-            totalIncomeInScope > 0
-              ? `收入合计 ${formatMoney(totalIncomeInScope)} · ${incomeBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${incomeBreakdown.length} 个来源`
-              : "本区间暂无收入"
-          }
-        >
-          {incomeByCat.length === 0 ? (
-            <Empty />
-          ) : (
-            <>
-              <div className="h-56 w-full min-h-[224px] min-w-0">
-                <ResponsiveContainer width="100%" height={224} minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      isAnimationActive={false}
-                      data={incomeByCat}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={72}
-                      paddingAngle={2}
-                    >
-                      {incomeByCat.map((_, i) => (
-                        <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) =>
-                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
-                      }
-                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <CategoryDetailList
-                rows={incomeBreakdown}
-                total={totalIncomeInScope}
-                colorAtIndex={(i) => COLORS[(i + 2) % COLORS.length]}
-              />
-            </>
-          )}
-        </ChartCard>
-
-        <ChartCard
           title="成员支出对比"
           subtitle={
             memberBars.some((b) => b.total > 0)
@@ -418,6 +322,103 @@ export function StatsCharts({
             </div>
           )}
         </ChartCard>
+
+        <ChartCard
+          title="支出分类"
+          subtitle={
+            totalExpenseInScope > 0
+              ? `支出合计 ${formatMoney(totalExpenseInScope)} · ${expenseBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${expenseBreakdown.length} 个分类`
+              : "本区间暂无支出"
+          }
+        >
+          {expenseByCat.length === 0 ? (
+            <Empty />
+          ) : (
+            <>
+              <div className="h-56 w-full min-h-[224px] min-w-0">
+                <ResponsiveContainer width="100%" height={224} minWidth={0}>
+                  <PieChart>
+                    <Pie
+                      isAnimationActive={false}
+                      data={expenseByCat}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={48}
+                      outerRadius={72}
+                      paddingAngle={2}
+                    >
+                      {expenseByCat.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v) =>
+                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
+                      }
+                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <CategoryDetailList
+                rows={expenseBreakdown}
+                total={totalExpenseInScope}
+                colorAtIndex={(i) => COLORS[i % COLORS.length]}
+              />
+            </>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="收入来源占比"
+          subtitle={
+            totalIncomeInScope > 0
+              ? `收入合计 ${formatMoney(totalIncomeInScope)} · ${incomeBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${incomeBreakdown.length} 个来源`
+              : "本区间暂无收入"
+          }
+        >
+          {incomeByCat.length === 0 ? (
+            <Empty />
+          ) : (
+            <>
+              <div className="h-56 w-full min-h-[224px] min-w-0">
+                <ResponsiveContainer width="100%" height={224} minWidth={0}>
+                  <PieChart>
+                    <Pie
+                      isAnimationActive={false}
+                      data={incomeByCat}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={72}
+                      paddingAngle={2}
+                    >
+                      {incomeByCat.map((_, i) => (
+                        <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v) =>
+                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
+                      }
+                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <CategoryDetailList
+                rows={incomeBreakdown}
+                total={totalIncomeInScope}
+                colorAtIndex={(i) => COLORS[(i + 2) % COLORS.length]}
+              />
+            </>
+          )}
+        </ChartCard>
+
       </div>
     </div>
   );

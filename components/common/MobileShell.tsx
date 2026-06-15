@@ -19,7 +19,11 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="gradient-header pointer-events-none fixed left-1/2 top-0 z-0 h-52 w-full max-w-md -translate-x-1/2 rounded-b-[2rem] opacity-95" />
+      <div
+        className={`gradient-header pointer-events-none fixed left-1/2 top-0 z-0 w-full max-w-md -translate-x-1/2 opacity-95 ${
+          hideNav ? "min-h-dvh" : "h-52 rounded-b-[2rem]"
+        }`}
+      />
       <main
         className={`relative z-10 min-h-dvh min-w-0 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${hideNav ? "pb-8" : "pb-28"}`}
       >

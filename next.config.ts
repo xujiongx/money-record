@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  /** 允许局域网 IP 访问 dev server 的 HMR 资源（手机/平板调试用） */
+  allowedDevOrigins: ["192.168.1.9"],
   /** 避免 Turbopack 把 undici 打进包后代理 / CONNECT 行为异常 */
   serverExternalPackages: ["undici"],
   /**
