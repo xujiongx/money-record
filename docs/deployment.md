@@ -80,7 +80,35 @@ flowchart TB
 
 ## 7. 健康检查与监控
 
-- 依赖平台与 Supabase 控制台；可配日志与告警。
+### 7.1 /api/health 接口
+
+`GET /api/health` 是一个仅供内部调用的轻量健康检查接口，每次调用会向 Supabase 发一条极轻的查询（`SELECT id FROM households LIMIT 1`），用于：
+- 验证服务与数据库连通性
+- **防止 Supabase 免费项目因 30 天不活跃被暂停**
+
+鉴权：请求头须带 `Authorization: Bearer <HEALTH_CHECK_SECRET>`。  
+未配置 `HEALTH_CHECK_SECRET` 时接口返回 503，拒绝所有请求。
+
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `HEALTH_CHECK_SECRET` | 是（启用时） | 任意强随机字符串；与 GitHub Actions Secret 同名同值 |
+
+### 7.2 GitHub Actions 定时保活
+
+`.github/workflows/keep-alive.yml` 在每月 1 日和 21 日（UTC 02:00）自动调用 `/api/health`，确保 30 天内至少有 2 次数据库访问。
+
+**配置步骤：**
+
+1. 在 GitHub 仓库 → Settings → Secrets and variables → Actions 中新增两个 Secret：
+
+   | Secret 名称 | 值 |
+   |-------------|-----|
+   | `HEALTH_CHECK_URL` | `https://你的域名/api/health` |
+   | `HEALTH_CHECK_SECRET` | 与部署平台 `HEALTH_CHECK_SECRET` 环境变量相同的值 |
+
+2. 在 Vercel（或其他平台）的环境变量中新增 `HEALTH_CHECK_SECRET`，值与上面保持一致。
+
+3. 可在 GitHub → Actions → Keep Supabase Alive → Run workflow 手动触发一次验证。
 
 ## 8. 灾备
 
