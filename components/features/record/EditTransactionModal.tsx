@@ -10,6 +10,7 @@ import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
 import { pushNoteHistory } from "@/lib/ledger/note-history";
 import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
+import { OccurredAtPicker } from "@/components/features/record/OccurredAtPicker";
 
 export function EditTransactionModal({
   transaction,
@@ -208,13 +209,8 @@ export function EditTransactionModal({
           <label className="block text-xs font-medium text-stone-500">
             日期与时间
           </label>
-          <div className="grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)]">
-            <input
-              type="datetime-local"
-              value={occurredAt}
-              onChange={(e) => setOccurredAt(e.target.value)}
-              className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
-            />
+          <div className="min-w-0 max-w-full">
+            <OccurredAtPicker value={occurredAt} onChange={setOccurredAt} />
           </div>
 
           <p className="text-xs font-medium text-stone-500">记录人</p>

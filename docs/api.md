@@ -85,7 +85,7 @@
 | category | string | 是 |
 | amount | number | 是，> 0 |
 | note | string | 否 |
-| occurredAt | ISO 字符串 | 否；省略则服务端用当前时间。**`/record`** 的 **`RecordForm`** 提供 **`datetime-local`** 供用户指定业务发生时间 |
+| occurredAt | ISO 字符串 | 否；省略则服务端用当前时间。**`/record`** 的 **`RecordForm`** / 编辑弹窗经 **`OccurredAtPicker`**（今天/昨天/前天 + **react-mobile-picker** 年/月/日/时/分滚轮）指定业务发生时间 |
 
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members` 及 `/members` **layout**）。
 
@@ -201,4 +201,5 @@ type MistralTextResult =
 | 2026-04-09 | **`lib/foundation/asr`**：`AsrEngine`、`createAsrEngine`；`ChatVoiceInput` 委托 foundation |
 | 2026-04-09 | `buildLedgerChatSystemPrompt`：不因分类 `collect`；分类不明直接「其他」；不要求用户「确认再记」才 `ready`；收/支与分类由模型自动识别，勿追问 |
 | 2026-04-09 | **`RecordForm`**：`datetime-local` + **`occurredAt`**；**`lib/ledger/datetime-local.ts`** 与 **`EditTransactionModal`** 共用 **`toDatetimeLocalValue`** |
+| 2026-09-03 | **`OccurredAtPicker`**：今天/昨天/前天 + **react-mobile-picker**（年/月/日/时/分滚轮底部面板） |
 | 2026-04-18 | **`refreshLedgerReadCache`**：与写流水同级的 **`revalidateTag` + `revalidatePath`**；**`fetchMembers` / `fetchTransactions`** 的 **`unstable_cache` `revalidate`** 记为 **3600s** |

@@ -108,7 +108,7 @@ flowchart TB
 |------|--------|------------|
 | `/login` | 登录/创建家、写 Cookie | `EnterHouseholdCode` |
 | `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗、**「刷新数据」**） |
-| `/record` | 拉成员 | `RecordForm`（`datetime-local` 传 `occurredAt`） |
+| `/record` | 拉成员 | `RecordForm`（`OccurredAtPicker`：快捷日 + 滚轮年/月/日/时/分，传 `occurredAt`） |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
 | `/stats/analysis` | 拉流水 | `AnalysisClient`（月度/年度收支分析，迷你柱状图、结余月历、分类对比） |
 | `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`） |

@@ -6,7 +6,7 @@
 
 - Next.js 16（App Router）+ TypeScript + Tailwind CSS 4；**`app/manifest.ts`**（PWA）、**`app/icon.svg`** 与 **`lib/app-branding.ts`** 统一应用名 / 描述 / 主题色（详见 [docs/development-guide.md](./docs/development-guide.md)）
 - Supabase（PostgreSQL）
-- Recharts、Framer Motion、[lucide-react](https://lucide.dev/)（统一图标）、[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)（路由页过渡：Tab 用 fade、详情钻入用 drill）、date-fns、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
+- Recharts、Framer Motion、[lucide-react](https://lucide.dev/)（统一图标）、[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)（路由页过渡：Tab 用 fade、详情钻入用 drill）、date-fns、[react-mobile-picker](https://github.com/adcentury/react-mobile-picker)（记账发生时间滚轮：年/月/日/时/分）、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
 - **小布助手**：底部导航外的可拖动入口；多轮对话、结构化记账（自动识别支出/收入与分类，对不上归「其他」，信息够则直接入账、不先追问或「确认再记」）、**本月小结**与**本年小结**；每轮结合数据库快照生成事实块，弱化历史气泡里的旧数字。出站 LLM 经 `lib/foundation/llm`：**`MISTRAL_API_KEY` 与 `OPEN_ROUTER_API_KEY` 至少配置其一**（同时配置时优先 Mistral，失败则走 OpenRouter）。可选 **Web Speech** 播报（`lib/foundation/tts`）与语音输入（`lib/foundation/asr`），环境变量见 `.env.example`，模块说明见 [`lib/foundation/README.md`](./lib/foundation/README.md)
 
 ## 本地运行
@@ -54,7 +54,7 @@ npm run dev
 |------|------|
 | `/login` | 输入 6 位家庭编码（无 Cookie 时由中间件跳转） |
 | `/` | 仪表盘：汇总、最近账单、成员头像墙 |
-| `/record` | 智能记账（可选业务发生时间，默认此刻）；备注支持按分类的本地历史标签（点击回填，最多 150 条） |
+| `/record` | 智能记账（可选业务发生时间，默认此刻；**今天/昨天/前天**快捷 + **年/月/日/时/分**滚轮）；备注支持按分类的本地历史标签（点击回填，最多 150 条） |
 | `/stats` | 收支统计（日/周/月/年）；右上角进 **分析**；图表为客户端按需加载（Recharts 分包） |
 | `/stats/analysis` | 月度/年度收支分析（柱图滑动、分类汇总、交易排行） |
 | `/members` | 成员列表与各人明细；底部可切换家庭 |
