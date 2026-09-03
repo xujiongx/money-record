@@ -206,8 +206,8 @@ export function MemberLedgerClient({
             }}
             className={`flex h-10 w-10 items-center justify-center rounded-xl transition active:scale-[0.97] ${
               searchOpen
-                ? "bg-white/30 text-white"
-                : "text-white/90 hover:bg-white/20"
+                ? "bg-orange-100 text-orange-600"
+                : "text-stone-600 hover:bg-orange-50"
             }`}
             aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
           >

@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 /**
  * 二级页固定顶栏：返回 + 居中标题 + 可选右侧操作。
  * 用负边距抵消壳层 padding，贴齐视口顶部（含安全区）。
+ * 实色浅底 + 深色字，避免滚过渐变后白字落在浅色内容上发虚。
  */
 export function SubpageHeader({
   backHref,
@@ -20,7 +21,7 @@ export function SubpageHeader({
 }) {
   return (
     <header
-      className="sticky top-0 z-30 -mx-4 mb-5 border-b border-white/25 bg-white/20 shadow-[0_8px_24px_rgba(249,115,22,0.12)] backdrop-blur-xl"
+      className="sticky top-0 z-30 -mx-4 mb-5 border-b border-orange-100/90 bg-[#fff7f5]/95 shadow-[0_8px_24px_rgba(249,115,22,0.08)] backdrop-blur-xl"
       style={{
         marginTop: "calc(-1 * max(1.5rem, env(safe-area-inset-top)))",
         paddingTop: "max(0.65rem, env(safe-area-inset-top))",
@@ -30,17 +31,17 @@ export function SubpageHeader({
         <Link
           href={backHref}
           aria-label={backLabel}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white transition hover:bg-white/20 active:scale-[0.97]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-stone-700 transition hover:bg-orange-50 active:scale-[0.97]"
         >
           <ChevronLeft className="size-6" strokeWidth={2.25} aria-hidden />
         </Link>
 
         <div className="min-w-0 flex-1 text-center">
-          <h1 className="truncate text-[17px] font-bold leading-tight text-white drop-shadow-sm">
+          <h1 className="truncate text-[17px] font-bold leading-tight text-stone-800">
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-0.5 truncate text-[11px] leading-snug text-white/85">
+            <p className="mt-0.5 truncate text-[11px] leading-snug text-stone-500">
               {subtitle}
             </p>
           ) : null}

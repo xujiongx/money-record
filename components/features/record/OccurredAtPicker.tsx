@@ -114,11 +114,27 @@ export function OccurredAtPicker({
     const body = document.body;
     const prevHtmlOx = html.style.overflowX;
     const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehavior;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
     html.style.overflowX = "hidden";
     body.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overscrollBehavior = "none";
+
+    /** 阻断背后页面（含 sticky 二级顶栏）被滚轮手势带动；滚轮列内部除外 */
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.target;
+      if (t instanceof Element && t.closest("[data-occurred-wheel]")) return;
+      e.preventDefault();
+    };
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+
     return () => {
       html.style.overflowX = prevHtmlOx;
       body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehavior = prevHtmlOverscroll;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+      document.removeEventListener("touchmove", onTouchMove);
     };
   }, [open]);
 
@@ -180,15 +196,17 @@ export function OccurredAtPicker({
               className="fixed inset-0 z-[110] flex w-full max-w-[100dvw] items-end justify-center overflow-x-hidden overscroll-none bg-black/40 p-0 touch-none sm:items-center sm:p-4 sm:touch-auto"
               role="presentation"
               onClick={() => setOpen(false)}
+              onTouchMove={(e) => e.stopPropagation()}
             >
               <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="occurred-at-title"
-                className="w-full max-w-md min-w-0 overflow-hidden rounded-t-3xl bg-white shadow-2xl ring-1 ring-stone-200 sm:rounded-3xl"
+                className="w-full max-w-md min-w-0 overflow-hidden rounded-t-3xl bg-white shadow-2xl ring-1 ring-orange-100/80 sm:rounded-3xl"
                 onClick={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
+                <div className="flex items-center justify-between gap-3 border-b border-orange-100/80 bg-gradient-to-r from-orange-50 via-white to-pink-50/90 px-4 py-3">
                   <div className="min-w-0">
                     <h2
                       id="occurred-at-title"
@@ -196,7 +214,7 @@ export function OccurredAtPicker({
                     >
                       选择日期与时间
                     </h2>
-                    <p className="mt-0.5 truncate text-xs text-stone-500">
+                    <p className="mt-0.5 truncate text-xs font-medium text-orange-700/80">
                       {format(draftDate, "yyyy年M月d日 HH:mm")}
                     </p>
                   </div>
@@ -209,8 +227,11 @@ export function OccurredAtPicker({
                   </button>
                 </div>
 
-                <div className="px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1">
-                  <div className="grid grid-cols-5 px-1 pb-1 text-center text-[11px] font-medium text-stone-400">
+                <div
+                  className="px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 touch-pan-y"
+                  data-occurred-wheel
+                >
+                  <div className="grid grid-cols-5 px-1 pb-1 text-center text-[11px] font-medium text-stone-500">
                     <span>年</span>
                     <span>月</span>
                     <span>日</span>
