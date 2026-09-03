@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";
-import { BackLink } from "@/components/common/BackLink";
+import { SubpageHeader } from "@/components/common/SubpageHeader";
 import { categoryBreakdown } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import type { LedgerType, TransactionRow } from "@/lib/ledger/types";
@@ -135,14 +135,21 @@ export function StatsMemberPeriodLists({
 
   return (
     <div className="space-y-5">
-      <header>
-        <BackLink href="/stats">返回统计</BackLink>
-        <h1 className="mt-3 text-2xl font-bold text-white drop-shadow-sm">
-          {memberName} · 区间明细
-        </h1>
-        <p className="mt-1 text-xs leading-relaxed text-white/85">{rangeBounds}</p>
-        <p className="mt-1 font-mono text-[11px] text-white/75">家庭编码 {householdCode}</p>
-      </header>
+      <SubpageHeader
+        backHref="/stats"
+        backLabel="返回统计"
+        title="区间明细"
+      />
+
+      <div className="rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <p className="text-sm font-semibold text-stone-800">{memberName}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
+          {rangeBounds}
+        </p>
+        <p className="mt-0.5 font-mono text-[11px] text-stone-400">
+          家庭编码 {householdCode}
+        </p>
+      </div>
 
       <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
         <h2 className="text-sm font-semibold text-stone-800">支出</h2>

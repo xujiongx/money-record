@@ -19,8 +19,8 @@ import {
 } from "@/app/actions/ledger";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
-import { BackLink } from "@/components/common/BackLink";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
+import { SubpageHeader } from "@/components/common/SubpageHeader";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 
@@ -187,20 +187,56 @@ export function MemberLedgerClient({
 
   return (
     <div className="space-y-5">
-      <header>
-        <BackLink href="/members">成员</BackLink>
-        <div className="mt-3 flex items-center gap-3">
-          <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">
-              {member.name}的账单
-            </h1>
-            <p className="mt-0.5 font-mono text-xs text-white/80">
-              家庭编码 {householdCode}
-            </p>
-          </div>
+      <SubpageHeader
+        backHref="/members"
+        backLabel="返回成员"
+        title="账单明细"
+        right={
+          <button
+            type="button"
+            onClick={() => {
+              setSearchOpen((v) => !v);
+              if (searchOpen) {
+                setQuery("");
+                setTypeFilter("all");
+                setCategoryFilter("");
+                setDateFrom("");
+                setDateTo("");
+              }
+            }}
+            className={`flex h-10 w-10 items-center justify-center rounded-xl transition active:scale-[0.97] ${
+              searchOpen
+                ? "bg-white/30 text-white"
+                : "text-white/90 hover:bg-white/20"
+            }`}
+            aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
+          >
+            {searchOpen ? (
+              <X className="size-[18px]" strokeWidth={1.75} aria-hidden />
+            ) : (
+              <Search className="size-[18px]" strokeWidth={1.75} aria-hidden />
+            )}
+          </button>
+        }
+      />
+
+      <div className="flex items-center gap-3 rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <MemberAvatar
+          name={member.name}
+          avatarUrl={member.avatar_url}
+          size="md"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-stone-800">{member.name}</p>
+          <p className="mt-0.5 font-mono text-[11px] text-stone-400">
+            家庭编码 {householdCode}
+          </p>
+          <p className="mt-0.5 text-[11px] text-stone-500">
+            {(pending || loadingMore || loadingAll) && "加载中…"}
+            {!pending && !loadingMore && !loadingAll && "向左滑动可编辑、删除"}
+          </p>
         </div>
-      </header>
+      </div>
 
       <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
         {/* card header */}
@@ -209,38 +245,9 @@ export function MemberLedgerClient({
             <h2 className="text-sm font-semibold text-stone-800">全部账单</h2>
             {!searchOpen && (
               <p className="mt-0.5 text-[10px] text-stone-400">
-                向左滑动单条可编辑、删除；向下滑动到底自动加载更多
+                向下滑动到底自动加载更多
               </p>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            {(pending || loadingMore || loadingAll) && (
-              <span className="shrink-0 text-xs text-stone-400">加载中…</span>
-            )}
-            <button
-              onClick={() => {
-                setSearchOpen((v) => !v);
-                if (searchOpen) {
-                  setQuery("");
-                  setTypeFilter("all");
-                  setCategoryFilter("");
-                  setDateFrom("");
-                  setDateTo("");
-                }
-              }}
-              className={`shrink-0 rounded-xl p-2 ring-1 transition ${
-                searchOpen
-                  ? "bg-orange-50 text-orange-600 ring-orange-200"
-                  : "text-stone-400 ring-stone-200/80 hover:bg-orange-50 hover:text-orange-600 hover:ring-orange-200"
-              }`}
-              aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
-            >
-              {searchOpen ? (
-                <X className="size-[18px]" strokeWidth={1.75} aria-hidden />
-              ) : (
-                <Search className="size-[18px]" strokeWidth={1.75} aria-hidden />
-              )}
-            </button>
           </div>
         </div>
 
