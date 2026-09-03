@@ -126,7 +126,7 @@ flowchart TB
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
 | **`MobileShell`** | 仅一级 Tab 显示底栏 / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip` |
 
-规则摘要：四个一级 Tab（`/`、`/record`、`/stats`、`/members`）用 **slide** 有序互切；`/stats/**`、`/members/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。
+规则摘要：四个一级 Tab 点击互切用 **slide**；`/stats/**`、`/members/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。无左右拖动手势切 Tab。
 
 ## 7. 小布助手（LLM 对话）
 

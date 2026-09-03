@@ -6,9 +6,7 @@ import { isPrimaryTabPath } from "@/lib/navigation/shell-tabs";
 
 /**
  * pathname 既是 React remount key，也是 SSGOI 匹配 transition 的 id。
- *
- * 每一页自带实色底 + 顶部渐变：过渡时新旧页层叠不会互相透出。
- * 底栏 / 小布入口仍在 MobileShell，不进此 boundary。
+ * 每一页自带实色底 + 顶部渐变；底栏 / 小布入口仍在 MobileShell。
  */
 export function SsgoiRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname();
