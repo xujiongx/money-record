@@ -112,29 +112,58 @@ export function OccurredAtPicker({
     if (!open) return;
     const html = document.documentElement;
     const body = document.body;
-    const prevHtmlOx = html.style.overflowX;
-    const prevBodyOverflow = body.style.overflow;
-    const prevHtmlOverscroll = html.style.overscrollBehavior;
-    const prevBodyOverscroll = body.style.overscrollBehavior;
-    html.style.overflowX = "hidden";
-    body.style.overflow = "hidden";
-    html.style.overscrollBehavior = "none";
-    body.style.overscrollBehavior = "none";
+    const scrollY = window.scrollY;
 
-    /** 阻断背后页面（含 sticky 二级顶栏）被滚轮手势带动；滚轮列内部除外 */
-    const onTouchMove = (e: TouchEvent) => {
-      const t = e.target;
-      if (t instanceof Element && t.closest("[data-occurred-wheel]")) return;
-      e.preventDefault();
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      htmlOx: html.style.overflowX,
+      htmlOverscroll: html.style.overscrollBehavior,
+      bodyOverflow: body.style.overflow,
+      bodyOverscroll: body.style.overscrollBehavior,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      bodyWidth: body.style.width,
     };
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    /** iOS 仅 overflow:hidden 挡不住橡皮筋；fixed + 锁 scrollY 才能钉住顶部 */
+    html.style.overflow = "hidden";
+    html.style.overflowX = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+
+    /**
+     * 滚轮用 transform 自绘，不依赖浏览器默认滚动。
+     * 一律 preventDefault，避免列内手势传到背后页面带动顶栏。
+     */
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    document.addEventListener("touchmove", onTouchMove, {
+      passive: false,
+      capture: true,
+    });
 
     return () => {
-      html.style.overflowX = prevHtmlOx;
-      body.style.overflow = prevBodyOverflow;
-      html.style.overscrollBehavior = prevHtmlOverscroll;
-      body.style.overscrollBehavior = prevBodyOverscroll;
-      document.removeEventListener("touchmove", onTouchMove);
+      html.style.overflow = prev.htmlOverflow;
+      html.style.overflowX = prev.htmlOx;
+      html.style.overscrollBehavior = prev.htmlOverscroll;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.overscrollBehavior = prev.bodyOverscroll;
+      body.style.position = prev.bodyPosition;
+      body.style.top = prev.bodyTop;
+      body.style.left = prev.bodyLeft;
+      body.style.right = prev.bodyRight;
+      body.style.width = prev.bodyWidth;
+      document.removeEventListener("touchmove", onTouchMove, true);
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -228,7 +257,7 @@ export function OccurredAtPicker({
                 </div>
 
                 <div
-                  className="px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 touch-pan-y"
+                  className="px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1"
                   data-occurred-wheel
                 >
                   <div className="grid grid-cols-5 px-1 pb-1 text-center text-[11px] font-medium text-stone-500">
