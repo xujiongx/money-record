@@ -71,6 +71,7 @@ flowchart LR
 ├── components/
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
 │   │   ├── MobileShell.tsx
+│   │   ├── BackLink.tsx    # 二级页返回：lucide ChevronLeft
 │   │   ├── AppLogo.tsx     # 站标：<img /icon.svg>，与 metadata / manifest 同源
 │   │   ├── DraggableFab.tsx
 │   │   ├── MemberAvatar.tsx
@@ -141,7 +142,7 @@ cp .env.example .env.local
 
 - **TypeScript**、React 19、Next.js 16 App Router、Tailwind 4。  
 - **Server Actions**：`app/actions/*.ts`。  
-- **依赖**：`react-draggable`（浮动按钮拖动）、`undici`（Mistral 上游 fetch）、`openai`（OpenRouter 兼容调用）、`framer-motion`（如输入中动画）、`@ssgoi/react`（路由页过渡，见 [architecture.md §6.1](./architecture.md)）。  
+- **依赖**：`react-draggable`（浮动按钮拖动）、`undici`（Mistral 上游 fetch）、`openai`（OpenRouter 兼容调用）、`framer-motion`（如输入中动画）、`@ssgoi/react`（路由页过渡，见 [architecture.md §6.1](./architecture.md)）、`lucide-react`（统一图标，二级页用 **`BackLink`**）。  
 - **Lint**：避免在 `try/catch` 内直接 `return <JSX />`（见历史 eslint 规则）。  
 - **金额**：`lib/ledger/format.ts` 展示。
 

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import {
   startOfMonth,
   endOfMonth,
@@ -223,10 +224,10 @@ export function AnalysisClient({
       <div className="flex items-center gap-2">
         <Link
           href="/stats"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-2xl text-white/90 transition hover:bg-white/20"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white/90 transition hover:bg-white/20"
           aria-label="返回统计"
         >
-          ‹
+          <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
         </Link>
         <div className="flex flex-1 rounded-xl bg-white/20 p-0.5 ring-1 ring-white/30">
           {(["month", "year"] as Mode[]).map((m) => (
@@ -255,9 +256,13 @@ export function AnalysisClient({
             });
           }}
           aria-label="刷新数据"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xl text-white/90 transition hover:bg-white/20 disabled:opacity-50"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white/90 transition hover:bg-white/20 disabled:opacity-50"
         >
-          <span className={refreshing ? "animate-spin" : ""}>↺</span>
+          <RefreshCw
+            className={`size-[18px] ${refreshing ? "animate-spin" : ""}`}
+            strokeWidth={2.25}
+            aria-hidden
+          />
         </button>
       </div>
 
@@ -268,9 +273,10 @@ export function AnalysisClient({
           <button
             type="button"
             onClick={goPrev}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-lg text-stone-500 transition hover:bg-stone-100"
+            aria-label="上一期"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100"
           >
-            ‹
+            <ChevronLeft className="size-4" strokeWidth={2.25} aria-hidden />
           </button>
           <span className="text-sm font-semibold text-stone-700">
             {anchorLabel}
@@ -278,9 +284,10 @@ export function AnalysisClient({
           <button
             type="button"
             onClick={goNext}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-lg text-stone-500 transition hover:bg-stone-100"
+            aria-label="下一期"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100"
           >
-            ›
+            <ChevronRight className="size-4" strokeWidth={2.25} aria-hidden />
           </button>
         </div>
 

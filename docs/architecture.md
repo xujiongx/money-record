@@ -49,6 +49,7 @@ flowchart TB
 | 服务端访问 DB | **仅** Service Role（`lib/supabase/service.ts`），不经 anon 业务读 |
 | 图表 | Recharts（统计页经 **`StatsChartsGate` 客户端 `dynamic` + `ssr: false`** 分包） |
 | 动效 | Framer Motion（局部使用）；**[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**（路由页过渡） |
+| 图标 | [lucide-react](https://lucide.dev/)（底栏、返回、刷新、搜索等）；二级页统一 **`BackLink`**（`ChevronLeft`） |
 | 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
 | 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/llm/xiaobu-llm.ts`） |
 | 日期 | date-fns |
@@ -120,12 +121,12 @@ flowchart TB
 
 | 文件 | 职责 |
 |------|------|
-| **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（嵌套页 **`drill`**，其余 **`fade`**） |
+| **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（一级 Tab **`slide`**，嵌套页 **`drill`**） |
 | **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-[#fff7f5]`** + 自带顶部渐变，避免过渡时新旧页互相透出 |
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
-| **`MobileShell`** | 底栏 / 小布入口**不进** boundary；过渡壳 `relative z-0 overflow-x-clip`；渐变头改由 route boundary 按页携带 |
+| **`MobileShell`** | 仅一级 Tab 显示底栏 / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip` |
 
-规则摘要：`/stats/**`（除 `/stats`）、`/members/**`（除 `/members`）用 **drill**；其它路径默认 **fade**（底部 Tab 互切）。
+规则摘要：四个一级 Tab（`/`、`/record`、`/stats`、`/members`）用 **slide** 有序互切；`/stats/**`、`/members/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。
 
 ## 7. 小布助手（LLM 对话）
 
@@ -171,3 +172,5 @@ flowchart TB
 | 2026-04-18 | **`lib/app-branding`**、**`app/layout.tsx` metadata/viewport**、**`app/manifest.ts`**、**`app/icon.svg`**、**`AppLogo`**：安装态与标签页展示一致 |
 | 2026-06-15 | **`MobileShell`** 登录页渐变全屏修复；**`/stats/analysis`** 月度/年度分析页（`AnalysisClient`：迷你柱状图、结余月历、分类对比上期） |
 | 2026-09-03 | 接入 **[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**：Tab **fade**、详情 **drill**；底栏等持久壳层不进 route boundary |
+| 2026-09-03 | 引入 **lucide-react**；二级页 **`BackLink`**；底栏 / 刷新 / 搜索 / 前后翻页等图标统一 |
+| 2026-09-03 | 二级页隐藏底栏；Tab 互切由 **fade** 改为 **slide**（消除中间闪白） |

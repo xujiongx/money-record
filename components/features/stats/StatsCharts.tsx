@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -169,9 +170,9 @@ export function StatsCharts({
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, -1))
             }
-            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-lg font-medium text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
+            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
           >
-            ‹
+            <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
           <div className="min-w-0 flex-1 rounded-xl border border-stone-100 bg-stone-50/80 px-2 py-2">
             <p className="text-center text-sm font-semibold leading-snug text-stone-800">
@@ -184,9 +185,9 @@ export function StatsCharts({
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, 1))
             }
-            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-lg font-medium text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
+            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
           >
-            ›
+            <ChevronRight className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
         </div>
 
@@ -294,8 +295,9 @@ export function StatsCharts({
                               <span className="text-stone-400"> · {m.incomeCount} 笔</span>
                             </span>
                           </div>
-                          <p className="mt-1.5 text-center text-[10px] font-medium text-orange-600">
-                            查看收支明细 ›
+                          <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-orange-600">
+                            查看收支明细
+                            <ChevronRight className="size-3" strokeWidth={2.5} aria-hidden />
                           </p>
                         </Link>
                       ) : (

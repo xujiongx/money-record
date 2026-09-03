@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { RefreshCw } from "lucide-react";
 import {
   fetchTransactions,
   deleteTransaction,
@@ -84,7 +85,7 @@ export function DashboardClient({
           }}
           className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/45 bg-white/15 px-3.5 py-2 text-xs font-semibold text-white shadow-sm backdrop-blur-sm transition hover:bg-white/25 active:scale-[0.98] disabled:opacity-55"
         >
-          <RefreshCwIcon className={syncing ? "animate-spin" : ""} />
+          <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} strokeWidth={2} aria-hidden />
           {syncing ? "正在刷新…" : "刷新数据"}
         </button>
       </header>
@@ -205,27 +206,6 @@ export function DashboardClient({
         />
       )}
     </div>
-  );
-}
-
-function RefreshCwIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      className={className}
-      aria-hidden
-    >
-      <path
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 

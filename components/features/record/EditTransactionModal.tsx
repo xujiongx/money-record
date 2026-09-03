@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { updateTransaction } from "@/app/actions/ledger";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
@@ -143,7 +144,7 @@ export function EditTransactionModal({
             className="rounded-full p-2 text-stone-400 transition hover:bg-stone-100 hover:text-stone-600"
             aria-label="关闭"
           >
-            <CloseIcon />
+            <X className="size-5" strokeWidth={2} aria-hidden />
           </button>
         </div>
 
@@ -279,18 +280,5 @@ export function EditTransactionModal({
       </div>
     </div>,
     root,
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 6l12 12M18 6L6 18"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }

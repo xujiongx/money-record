@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -12,6 +11,7 @@ import {
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { Search, X } from "lucide-react";
 import {
   deleteTransaction,
   fetchAllMemberTransactions,
@@ -19,6 +19,7 @@ import {
 } from "@/app/actions/ledger";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
+import { BackLink } from "@/components/common/BackLink";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
@@ -187,15 +188,7 @@ export function MemberLedgerClient({
   return (
     <div className="space-y-5">
       <header>
-        <Link
-          href="/members"
-          className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition hover:text-white"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          成员
-        </Link>
+        <BackLink href="/members">成员</BackLink>
         <div className="mt-3 flex items-center gap-3">
           <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
           <div className="min-w-0">
@@ -243,14 +236,9 @@ export function MemberLedgerClient({
               aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
             >
               {searchOpen ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                </svg>
+                <X className="size-[18px]" strokeWidth={1.75} aria-hidden />
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.75" />
-                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                </svg>
+                <Search className="size-[18px]" strokeWidth={1.75} aria-hidden />
               )}
             </button>
           </div>
@@ -261,17 +249,11 @@ export function MemberLedgerClient({
           <div className="mt-3 space-y-2.5 border-b border-stone-100 pb-3">
             {/* text search */}
             <div className="relative">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-stone-400"
+                strokeWidth={2}
                 aria-hidden
-              >
-                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-                <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              />
               <input
                 type="text"
                 placeholder="搜索分类、备注、金额…"

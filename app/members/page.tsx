@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
@@ -93,12 +94,11 @@ export default async function MembersPage() {
                   <p className="text-emerald-600">+{formatMoney(income)}</p>
                   <p className="text-rose-600">-{formatMoney(expense)}</p>
                 </div>
-                <span
-                  className="shrink-0 text-xl font-medium leading-none text-stone-300"
+                <ChevronRight
+                  className="size-5 shrink-0 text-stone-300"
+                  strokeWidth={2.25}
                   aria-hidden
-                >
-                  ›
-                </span>
+                />
               </Link>
             </li>
           ))}

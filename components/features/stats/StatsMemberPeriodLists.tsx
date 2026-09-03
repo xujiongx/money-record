@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { ChevronDown } from "lucide-react";
+import { BackLink } from "@/components/common/BackLink";
 import { categoryBreakdown } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import type { LedgerType, TransactionRow } from "@/lib/ledger/types";
@@ -21,20 +22,6 @@ function formatPercent(part: number, total: number) {
 
 function byOccurredDesc(a: TransactionRow, b: TransactionRow) {
   return new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime();
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="inline-block">
-      <path
-        d="M6 9l6 6 6-6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 function CategoryGroupedList({
@@ -98,7 +85,7 @@ function CategoryGroupedList({
                 className="mt-1 shrink-0 text-stone-400 transition-transform duration-200 group-open:rotate-180"
                 aria-hidden
               >
-                <ChevronDownIcon />
+                <ChevronDown className="inline-block size-[18px]" strokeWidth={2} aria-hidden />
               </span>
             </summary>
             <ul className="divide-y divide-stone-100 border-t border-stone-100 bg-white/60">
@@ -149,13 +136,7 @@ export function StatsMemberPeriodLists({
   return (
     <div className="space-y-5">
       <header>
-        <Link
-          href="/stats"
-          className="inline-flex items-center gap-1 text-sm font-medium text-white/90 transition hover:text-white"
-        >
-          <span aria-hidden>‹</span>
-          返回统计
-        </Link>
+        <BackLink href="/stats">返回统计</BackLink>
         <h1 className="mt-3 text-2xl font-bold text-white drop-shadow-sm">
           {memberName} · 区间明细
         </h1>
