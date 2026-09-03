@@ -72,7 +72,7 @@ flowchart LR
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
 │   │   ├── MobileShell.tsx
 │   │   ├── BackLink.tsx    # 二级页返回：lucide ChevronLeft
-│   │   ├── SubpageHeader.tsx # 二级页 sticky 顶栏（返回 + 居中标题）
+│   │   ├── SubpageHeader.tsx # 二级页 fixed 顶栏（返回 + 居中标题；防滚轮手势带动）
 │   │   ├── AppLogo.tsx     # 站标：<img /icon.svg>，与 metadata / manifest 同源
 │   │   ├── DraggableFab.tsx
 │   │   ├── MemberAvatar.tsx
