@@ -121,9 +121,9 @@ flowchart TB
 | 文件 | 职责 |
 |------|------|
 | **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（嵌套页 **`drill`**，其余 **`fade`**） |
-| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`，仅包裹路由页面 |
+| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-[#fff7f5]`** + 自带顶部渐变，避免过渡时新旧页互相透出 |
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
-| **`MobileShell`** | 渐变头 / 底栏 / 小布入口**不进** boundary，避免 Tab 切换时壳层闪动 |
+| **`MobileShell`** | 底栏 / 小布入口**不进** boundary；过渡壳 `relative z-0 overflow-x-clip`；渐变头改由 route boundary 按页携带 |
 
 规则摘要：`/stats/**`（除 `/stats`）、`/members/**`（除 `/members`）用 **drill**；其它路径默认 **fade**（底部 Tab 互切）。
 

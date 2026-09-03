@@ -5,14 +5,33 @@ import { usePathname } from "next/navigation";
 
 /**
  * pathname 既是 React remount key，也是 SSGOI 匹配 transition 的 id。
- * 仅包裹路由页面内容；底栏 / 渐变头 / 小布入口留在 MobileShell 外，作为持久壳层。
+ *
+ * 每一页自带实色底 + 顶部渐变：过渡时新旧页层叠不会互相透出。
+ * 底栏 / 小布入口仍在 MobileShell，不进此 boundary。
  */
 export function SsgoiRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const hideNav = pathname.startsWith("/login");
 
   return (
-    <div key={pathname} data-ssgoi-transition={pathname}>
-      {children}
+    <div
+      key={pathname}
+      data-ssgoi-transition={pathname}
+      className="relative isolate min-h-dvh bg-[#fff7f5]"
+    >
+      <div
+        className={`gradient-header pointer-events-none fixed left-1/2 top-0 z-0 w-full max-w-md -translate-x-1/2 opacity-95 ${
+          hideNav ? "min-h-dvh" : "h-52 rounded-b-[2rem]"
+        }`}
+        aria-hidden
+      />
+      <div
+        className={`relative z-10 min-w-0 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${
+          hideNav ? "pb-8" : "pb-28"
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

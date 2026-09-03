@@ -64,26 +64,46 @@ export default async function MembersPage() {
         </p>
       </section>
 
-      <ul className="space-y-3">
-        {stats.map(({ member, count, income, expense }) => (
-          <li key={member.id}>
-            <Link
-              href={`/members/${member.id}`}
-              className="flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 transition hover:ring-orange-200"
-            >
-              <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-stone-800">{member.name}</p>
-                <p className="mt-0.5 text-xs text-stone-500">{count} 笔记账</p>
-              </div>
-              <div className="shrink-0 text-right text-sm">
-                <p className="text-emerald-600">+{formatMoney(income)}</p>
-                <p className="text-rose-600">-{formatMoney(expense)}</p>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <section className="space-y-3">
+        <div className="flex items-end justify-between px-0.5">
+          <h2 className="text-sm font-semibold text-stone-800">家庭成员</h2>
+          <p className="text-[11px] text-stone-500">点击查看全部账单</p>
+        </div>
+        <ul className="space-y-3">
+          {stats.map(({ member, count, income, expense }) => (
+            <li key={member.id}>
+              <Link
+                href={`/members/${member.id}`}
+                className="flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 transition hover:bg-orange-50/60 hover:ring-orange-200 active:scale-[0.99]"
+              >
+                <MemberAvatar
+                  name={member.name}
+                  avatarUrl={member.avatar_url}
+                  size="lg"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-stone-800">{member.name}</p>
+                  <p className="mt-0.5 text-xs text-stone-500">
+                    {count} 笔记账
+                    <span className="text-stone-300"> · </span>
+                    <span className="font-medium text-orange-600">查看明细</span>
+                  </p>
+                </div>
+                <div className="shrink-0 text-right text-sm">
+                  <p className="text-emerald-600">+{formatMoney(income)}</p>
+                  <p className="text-rose-600">-{formatMoney(expense)}</p>
+                </div>
+                <span
+                  className="shrink-0 text-xl font-medium leading-none text-stone-300"
+                  aria-hidden
+                >
+                  ›
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="pt-2">
         <SwitchHouseholdButton />

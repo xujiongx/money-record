@@ -20,16 +20,10 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div
-        className={`gradient-header pointer-events-none fixed left-1/2 top-0 z-0 w-full max-w-md -translate-x-1/2 opacity-95 ${
-          hideNav ? "min-h-dvh" : "h-52 rounded-b-[2rem]"
-        }`}
-      />
-      <main
-        className={`relative z-10 min-h-dvh min-w-0 overflow-x-clip px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${hideNav ? "pb-8" : "pb-28"}`}
-      >
+      {/* 过渡壳：relative + z-0 + overflow-x-clip，让离开页的 absolute 层落在此容器内 */}
+      <div className="relative z-0 min-h-dvh overflow-x-clip">
         <SsgoiRouteBoundary>{children}</SsgoiRouteBoundary>
-      </main>
+      </div>
       {!hideNav && (
       <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 border-t border-white/40 bg-white/85 px-2 pt-2 shadow-[0_-8px_30px_rgba(249,115,22,0.12)] backdrop-blur-md pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <ul className="flex items-center justify-around">
