@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SsgoiRouteBoundary } from "@/app/ssgoi-route-boundary";
 import { FloatingChatBot } from "@/components/features/chat";
 import { usePrefetchAppTabs } from "@/components/common/usePrefetchAppTabs";
 
@@ -25,9 +26,9 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         }`}
       />
       <main
-        className={`relative z-10 min-h-dvh min-w-0 px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${hideNav ? "pb-8" : "pb-28"}`}
+        className={`relative z-10 min-h-dvh min-w-0 overflow-x-clip px-4 pt-[max(1.5rem,env(safe-area-inset-top))] ${hideNav ? "pb-8" : "pb-28"}`}
       >
-        {children}
+        <SsgoiRouteBoundary>{children}</SsgoiRouteBoundary>
       </main>
       {!hideNav && (
       <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 border-t border-white/40 bg-white/85 px-2 pt-2 shadow-[0_-8px_30px_rgba(249,115,22,0.12)] backdrop-blur-md pb-[max(0.5rem,env(safe-area-inset-bottom))]">

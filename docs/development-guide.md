@@ -34,7 +34,7 @@ flowchart LR
 - **写入流水**：`createTransaction` / `updateTransaction` / `deleteTransaction`；不经浏览器直连 Supabase。  
 - **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态；首页另有 **「刷新数据」**，调用 **`refreshLedgerReadCache`**（`revalidateTag` + `revalidatePath`）后 **`router.refresh()`**，强制清读缓存并重跑 RSC。  
 - **读缓存**：`ledger.ts` 中 **家庭编码 → `household_id`**、成员与流水列表经 `unstable_cache`（**`revalidate` 当前 3600s**，标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。**Tab 预取**：底部 **`Link prefetch`** + `MobileShell` 挂载 **`usePrefetchAppTabs`**（首帧立即 **`router.prefetch`** 四 Tab，空闲再补），硬刷新后尽快填满客户端 RSC 缓存，与下面 **`staleTimes`** 配合。  
-- **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。  
+- **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。根布局用 **`SsgoiProvider`** 包住 **`MobileShell`**；**`SsgoiRouteBoundary`** 只包住 `main` 内页面内容（底栏 / 渐变头 / 小布入口持久），见 [architecture.md §6.1](./architecture.md)。  
 - **品牌与元数据（含 PWA）**：**`lib/app-branding.ts`** 为单一文案源：**`APP_DISPLAY_NAME`**（页面 `title`）、**`APP_SHORT_NAME`**（`applicationName` / manifest `short_name`）、**`APP_DESCRIPTION`**。**`app/layout.tsx`** 导出 **`metadata`**（`title`、`description`、`applicationName`）、**`metadata.icons.apple`** 指向 **`/icon.svg`**（与 favicon 同源）、**`appleWebApp`**（全屏 Web App 标题等）；导出 **`viewport`**（`themeColor: #fb923c`、`viewportFit: cover` 等与壳层一致）。**`app/manifest.ts`** 实现 **`MetadataRoute.Manifest`**：`name` / `short_name` / `description` 同上常量；**`start_url: /record`**、**`display: standalone`**、**`background_color` / `theme_color`** 与 UI；**`icons`** 指向 **`/icon.svg`**。**图标文件**：只维护 **`app/icon.svg`**（Next 约定生成 favicon，公网路径 **`/icon.svg`**）。站内装饰性站标用 **`components/common/AppLogo.tsx`**（`<img src="/icon.svg">`），当前 **`EnterHouseholdCode`**（登录页）使用，与标签页 / 主屏幕图标一致。改名或改描述改 **`app-branding.ts`** 即可同步 layout 与 manifest。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
 - **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话（**`mistralLedgerChatAction`**：每轮 **`fetchLedgerSnapshotData`** 直连读库（不经列表 `unstable_cache`），本月摘要拼在**当前 user 消息顶部**，避免沿用 `chat_messages` 里可能过期的数字；结构化 JSON、模型自动识别收/支与分类（不明归「其他」）、缺槽仅追问金额/记账人或实在无法判断收/支、就绪后服务端直接 **`createTransaction`**（提示词不要求二次确认入账））与「本月 / 本年小结」走 **`app/actions/mistral-chat.ts`**，契约见 **`lib/llm/chat-ledger.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；出站 LLM 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**（内部委托 **`lib/foundation/llm`** 的 **`LlmClient`**，实现见 **`implementations/mistral`**、**`openrouter`**、**`mistral-then-openrouter`**（**`mistral-openrouter`** 再导出兼容别名））：优先 Mistral（**`lib/llm/mistral-fetch.ts`**），失败或未配 Mistral 密钥时可走 **OpenRouter**；**密钥仅服务端**，**勿在 Client 中 import `lib/foundation/llm`**。业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**助手回复播报**：**`useChatAssistantTts`** 经 **`lib/foundation/tts/factory.client`** 的 **`createTtsEngine()`**（默认 **`WebSpeechSynthesisTts`**，`NEXT_PUBLIC_TTS_PROVIDER=noop` 可显式关闭能力）、**`stripMarkdownForSpeech`** 在 **`lib/foundation/tts/text`**；标题栏 **播报** 开关（`localStorage` **`xiaobu_chat_tts_enabled`**）、**暂停 / 继续**；关浮层或关播报会 **stop**。部分环境（尤其 iOS）异步返回后首次合成可能被限制，以实机为准。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（**`ChatVoiceInput`** 经 **`lib/foundation/asr`** 的 **`createAsrEngine()`**，默认 **`WebSpeechRecognitionAsrEngine`**；**`NEXT_PUBLIC_ASR_PROVIDER=noop`** 可关闭）；开始识别前会先调用 **`getUserMedia({ audio: true })`** 触发**麦克风权限**（与语音识别同源权限），拿到流后立即 `stop` 轨道以免占用设备；无 `mediaDevices` 的环境则跳过预检直接走识别。`zh-CN` 识别需 **HTTPS 或 localhost**；**iOS WebKit**、**微信内置页**等仍可能无法授权或报 `service-not-allowed`；**Android Chrome** 多依赖云端识别与网络。触控端使用**非连续**识别。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。**历史列表**：**`useChatHistoryLoader`**（`components/features/chat/useChatHistoryLoader.ts`）负责内存缓存、打开时 stale-while-revalidate、**`requestIdleCallback`** 空闲预取、并发请求去重；`FloatingChatBot` 在落库成功后调用 **`appendExchangeToCache`**（详见 [change/2026-04-09.md](./change/2026-04-09.md)）。
@@ -65,7 +65,9 @@ flowchart LR
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
 │   ├── manifest.ts         # PWA Web App Manifest（名称等来自 lib/app-branding）
 │   ├── icon.svg            # 应用图标：favicon、manifest、AppLogo 均引用 /icon.svg
-│   └── layout.tsx          # metadata、viewport、MobileShell 包裹主内容
+│   ├── ssgoi-provider.tsx  # SSGOI 根 Provider + 过渡规则（client）
+│   ├── ssgoi-route-boundary.tsx  # pathname boundary（client）
+│   └── layout.tsx          # metadata、viewport、SsgoiProvider → MobileShell 包裹主内容
 ├── components/
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
 │   │   ├── MobileShell.tsx
@@ -139,7 +141,7 @@ cp .env.example .env.local
 
 - **TypeScript**、React 19、Next.js 16 App Router、Tailwind 4。  
 - **Server Actions**：`app/actions/*.ts`。  
-- **依赖**：`react-draggable`（浮动按钮拖动）、`undici`（Mistral 上游 fetch）、`openai`（OpenRouter 兼容调用）、`framer-motion`（如输入中动画）。  
+- **依赖**：`react-draggable`（浮动按钮拖动）、`undici`（Mistral 上游 fetch）、`openai`（OpenRouter 兼容调用）、`framer-motion`（如输入中动画）、`@ssgoi/react`（路由页过渡，见 [architecture.md §6.1](./architecture.md)）。  
 - **Lint**：避免在 `try/catch` 内直接 `return <JSX />`（见历史 eslint 规则）。  
 - **金额**：`lib/ledger/format.ts` 展示。
 

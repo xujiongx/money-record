@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ssgoi/react": "^7.0.4",
     "@supabase/supabase-js": "^2.101.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",

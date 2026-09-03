@@ -48,7 +48,7 @@ flowchart TB
 | 数据库 | Supabase（PostgreSQL） |
 | 服务端访问 DB | **仅** Service Role（`lib/supabase/service.ts`），不经 anon 业务读 |
 | 图表 | Recharts（统计页经 **`StatsChartsGate` 客户端 `dynamic` + `ssr: false`** 分包） |
-| 动效 | Framer Motion（局部使用） |
+| 动效 | Framer Motion（局部使用）；**[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**（路由页过渡） |
 | 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
 | 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/llm/xiaobu-llm.ts`） |
 | 日期 | date-fns |
@@ -114,6 +114,19 @@ flowchart TB
 
 全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。
 
+### 6.1 路由页过渡（SSGOI）
+
+按 [SSGOI × Next.js](https://ssgoi.dev/docs/frameworks/nextjs) 接入：
+
+| 文件 | 职责 |
+|------|------|
+| **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（嵌套页 **`drill`**，其余 **`fade`**） |
+| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`，仅包裹路由页面 |
+| **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
+| **`MobileShell`** | 渐变头 / 底栏 / 小布入口**不进** boundary，避免 Tab 切换时壳层闪动 |
+
+规则摘要：`/stats/**`（除 `/stats`）、`/members/**`（除 `/members`）用 **drill**；其它路径默认 **fade**（底部 Tab 互切）。
+
 ## 7. 小布助手（LLM 对话）
 
 - **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月 / 本年小结」、标题栏 **播报** 开关与 **暂停/继续**）等子目录组件。  
@@ -157,3 +170,4 @@ flowchart TB
 | 2026-04-18 | 账本读缓存 **`revalidate` 3600s** 与 **`staleTimes.dynamic/static`** 对齐；**`refreshLedgerReadCache`**、**`Link prefetch` + `usePrefetchAppTabs`**（见 [cache-design.md](./cache-design.md)） |
 | 2026-04-18 | **`lib/app-branding`**、**`app/layout.tsx` metadata/viewport**、**`app/manifest.ts`**、**`app/icon.svg`**、**`AppLogo`**：安装态与标签页展示一致 |
 | 2026-06-15 | **`MobileShell`** 登录页渐变全屏修复；**`/stats/analysis`** 月度/年度分析页（`AnalysisClient`：迷你柱状图、结余月历、分类对比上期） |
+| 2026-09-03 | 接入 **[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**：Tab **fade**、详情 **drill**；底栏等持久壳层不进 route boundary |
