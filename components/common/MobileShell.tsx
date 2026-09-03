@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Home, PenLine, Users } from "lucide-react";
 import { SsgoiRouteBoundary } from "@/app/ssgoi-route-boundary";
 import { FloatingChatBot } from "@/components/features/chat";
 import { usePrefetchAppTabs } from "@/components/common/usePrefetchAppTabs";
+import { preloadDefaultAvatars } from "@/lib/avatar/bitmap-cache";
 import { isPrimaryTabPath } from "@/lib/navigation/shell-tabs";
 
 const tabs = [
@@ -20,6 +22,9 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
   /** 仅四个一级 Tab 显示底栏；登录与二级详情页隐藏 */
   const showNav = isPrimaryTabPath(pathname);
   usePrefetchAppTabs();
+  useEffect(() => {
+    preloadDefaultAvatars();
+  }, []);
 
   return (
     <>

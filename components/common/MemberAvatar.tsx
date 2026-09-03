@@ -1,6 +1,11 @@
 "use client";
 
-import Image from "next/image";
+import { useLayoutEffect, useRef, useState } from "react";
+import {
+  getAvatarBitmap,
+  loadAvatarBitmap,
+  resolveAvatarSrc,
+} from "@/lib/avatar/bitmap-cache";
 
 const gradients = [
   "from-orange-400 to-pink-500",
@@ -9,20 +14,33 @@ const gradients = [
   "from-fuchsia-400 to-orange-400",
 ];
 
-/** 默认成员头像（静态资源在 public/） */
-const DEFAULT_NAME_AVATAR: Record<string, string> = {
-  布布: "/bubu.png",
-  一二: "/12.png",
-};
+type PaintStatus = "pending" | "ready" | "error";
 
-function resolveAvatarSrc(
-  name: string,
-  avatarUrl: string | null | undefined,
-): string | null {
-  if (avatarUrl?.trim()) return avatarUrl;
-  return DEFAULT_NAME_AVATAR[name] ?? null;
+function statusForSrc(src: string | null): PaintStatus {
+  if (!src) return "error";
+  return getAvatarBitmap(src) ? "ready" : "pending";
 }
 
+function paintBitmap(
+  canvas: HTMLCanvasElement,
+  bmp: ImageBitmap,
+  px: number,
+) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(px * dpr);
+  canvas.height = Math.round(px * dpr);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, px, px);
+  ctx.drawImage(bmp, 0, 0, px, px);
+}
+
+/**
+ * 头像：用模块级 ImageBitmap 缓存。
+ * SSGOI / 路由切换会重挂载组件，移动 WebKit 常丢掉已解码位图导致闪一下；
+ * 命中缓存时在 useLayoutEffect 里同步画到 canvas，首帧即可显示。
+ */
 export function MemberAvatar({
   name,
   avatarUrl,
@@ -39,41 +57,84 @@ export function MemberAvatar({
   const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const g = gradients[hash % gradients.length];
   const dim =
-    size === "lg" ? "h-16 w-16 text-xl" : size === "sm" ? "h-10 w-10 text-sm" : "h-12 w-12 text-lg";
-  const imgSizes =
-    size === "lg" ? 64 : size === "sm" ? 40 : 48;
+    size === "lg"
+      ? "h-16 w-16 text-xl"
+      : size === "sm"
+        ? "h-10 w-10 text-sm"
+        : "h-12 w-12 text-lg";
+  const px = size === "lg" ? 64 : size === "sm" ? 40 : 48;
 
-  /** 本地 `public/` 资源不走 `/_next/image`，避免 dev 下优化接口禁用缓存导致每次进页都像重新拉图 */
-  const isRemoteSrc =
-    src !== null &&
-    (src.startsWith("http://") || src.startsWith("https://"));
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [status, setStatus] = useState<PaintStatus>(() => statusForSrc(src));
+  const [trackedSrc, setTrackedSrc] = useState(src);
 
-  if (src) {
-    // 304 仍会校验；移动 WebKit 重挂载时常重解码，解码前一帧易显灰——暖底色 + sync 解码减轻
+  // props 变化时在 render 阶段对齐状态，避免在 effect 里同步 setState
+  if (src !== trackedSrc) {
+    setTrackedSrc(src);
+    setStatus(statusForSrc(src));
+  }
+
+  useLayoutEffect(() => {
+    if (!src) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let cancelled = false;
+    const cached = getAvatarBitmap(src);
+    if (cached) {
+      paintBitmap(canvas, cached, px);
+      return;
+    }
+
+    void loadAvatarBitmap(src)
+      .then((bmp) => {
+        if (cancelled) return;
+        const el = canvasRef.current;
+        if (!el) return;
+        paintBitmap(el, bmp, px);
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src, px]);
+
+  if (!src || status === "error") {
     return (
       <div
-        className={`relative shrink-0 overflow-hidden rounded-full bg-[#fff7f5] shadow-md ring-2 ring-white/80 ${dim} ${className}`}
+        className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white shadow-md ring-2 ring-white/80 ${g} ${dim} ${className}`}
+        aria-hidden
       >
-        <Image
-          src={src}
-          alt=""
-          width={imgSizes}
-          height={imgSizes}
-          className="h-full w-full object-cover transform-[translateZ(0)]"
-          sizes={`${imgSizes}px`}
-          unoptimized={!isRemoteSrc}
-          decoding={isRemoteSrc ? "async" : "sync"}
-        />
+        {initial}
       </div>
     );
   }
 
+  const drawn = status === "ready";
+
   return (
     <div
-      className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white shadow-md ring-2 ring-white/80 ${g} ${dim} ${className}`}
-      aria-hidden
+      className={`relative shrink-0 overflow-hidden rounded-full bg-[#fff7f5] shadow-md ring-2 ring-white/80 ${dim} ${className}`}
     >
-      {initial}
+      {!drawn && (
+        <span
+          className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br font-semibold text-white ${g}`}
+          aria-hidden
+        >
+          {initial}
+        </span>
+      )}
+      <canvas
+        ref={canvasRef}
+        className={`h-full w-full object-cover ${drawn ? "opacity-100" : "opacity-0"}`}
+        style={{ width: px, height: px }}
+        aria-hidden
+      />
     </div>
   );
 }

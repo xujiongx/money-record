@@ -50,8 +50,8 @@
 | **生产 `next build` + `next start`（或 Vercel）** | **`/_next/static/*`** 下的 JS/CSS 等文件名带 **内容哈希**，通常带 **`immutable` + 长 `max-age`**，浏览器可长期缓存；换版本后文件名变，自然换资源。 |
 | **`public/` 根路径文件**（如 `/vercel.svg`、成员默认头像 `/bubu.png`） | 由 Next 静态提供，**无哈希**；生产上是否长缓存取决于部署环境与是否自定义 `headers`。若需「改文件不换名仍立刻生效」，不宜配 **`immutable`**。 |
 | **`next/image` 的远程图**（如成员 `avatar_url` 指向 Supabase Storage） | **缓存头由图片所在域名（CDN/存储）返回**，Next 只负责优化/转发，**不在本仓库 `next.config` 里统一控制**。 |
-| **本地 `public/` 头像 + `next/image` 默认** | 会走 **`/_next/image?url=...`**；**`next dev`** 上该接口常为 **no-store**，体感「每次进页都重新加载」。**`MemberAvatar`** 对非 `http(s)` 的 `src` 使用 **`unoptimized`**，直接请求 **`/bubu.png`** 等静态路径，便于浏览器缓存；远程 URL 仍走优化管线。 |
-| **304 仍闪灰（多出现在移动 WebKit）** | 缓存命中也会做 **304 校验**；路由切换时组件 **重挂载**，手机端常 **丢弃已解码位图** 再解码，解码前一帧 **`img` 区域无像素**，易透出默认灰底。**`MemberAvatar`** 用与壳层一致的 **`bg-[#fff7f5]`**、小本地图 **`decoding="sync"`**、**`translateZ(0)`** 合成层以减轻；远程图仍 **`async`** 解码。 |
+| **本地 `public/` 头像 + `next/image` 默认** | 会走 **`/_next/image?url=...`**；**`next dev`** 上该接口常为 **no-store**。现 **`MemberAvatar`** 改为 **`ImageBitmap` 模块缓存 + canvas**，不经 `/_next/image`。 |
+| **路由重挂载闪一下（移动 WebKit）** | SSGOI / `key={pathname}` 会重挂载页面；浏览器常丢弃已解码位图。**`lib/avatar/bitmap-cache.ts`** 在内存保留 `ImageBitmap`，命中时 **`useLayoutEffect` 同步绘制**；壳层 **`preloadDefaultAvatars`** 预热布布/一二。 |
 | **开发者工具** | Chrome「Network」里勾选 **Disable cache** 时，**所有资源**都会绕过缓存，容易误判。 |
 
 ### 4.2 与业务数据缓存的区别
