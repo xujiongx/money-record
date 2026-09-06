@@ -8,7 +8,7 @@
 - **多租户**：以 `households` 为租户边界；应用通过 **6 位数字 `code`（唯一）** 解析 `household_id`，会话见 [api.md](./api.md) 与根目录 `README.md`。
 - **设计原则**：流水不设软删（删除为物理删除）；收支分类为应用层常量，未建维度表；新建家庭默认成员「布布」「一二」由应用逻辑插入。
 
-权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002_household_code_multitenant.sql`](../supabase/migrations/002_household_code_multitenant.sql)、[`003_chat_messages.sql`](../supabase/migrations/003_chat_messages.sql)。
+权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002_household_code_multitenant.sql`](../supabase/migrations/002_household_code_multitenant.sql)、[`003_chat_messages.sql`](../supabase/migrations/003_chat_messages.sql)、[`004_major_events.sql`](../supabase/migrations/004_major_events.sql)、[`005_major_event_categories.sql`](../supabase/migrations/005_major_event_categories.sql)。
 
 ## 2. ER 关系
 
@@ -17,7 +17,11 @@ erDiagram
   households ||--o{ members : contains
   households ||--o{ transactions : owns
   households ||--o{ chat_messages : has
+  households ||--o{ major_events : has
+  households ||--o{ major_event_categories : has
   members ||--o{ transactions : records
+  members ||--o{ major_event_expenses : records
+  major_events ||--o{ major_event_expenses : contains
 ```
 
 ## 3. 表结构说明
@@ -75,9 +79,53 @@ erDiagram
 
 **索引**：`idx_chat_messages_household_created (household_id, created_at DESC)` — 拉取某家庭最近消息。
 
+### 3.5 `major_events` / `major_event_expenses`（`004_major_events.sql`）
+
+大事记账与日常 `transactions` **物理隔离**；记账人仍指向同一家庭 `members`（如布布、一二）。
+
+#### `major_events`
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | uuid | PK | |
+| household_id | uuid | FK → households | 所属家庭 |
+| title | text | NOT NULL | 事项名（如新房装修） |
+| note | text | 可空 | 备注 |
+| status | text | `active` \| `archived` | 状态 |
+| started_at / ended_at | timestamptz | 可空 | 起止（可选） |
+| created_at | timestamptz | default now() | |
+
+#### `major_event_expenses`
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | uuid | PK | |
+| household_id | uuid | FK → households | 冗余便于按家查询 |
+| event_id | uuid | FK → major_events，CASCADE | 所属大事 |
+| member_id | uuid | FK → members，RESTRICT | 记账人 |
+| category | text | NOT NULL | 应用层大事分类常量 |
+| amount | numeric(14,2) | > 0 | 支出金额 |
+| note | text | 可空 | |
+| occurred_at | timestamptz | default now() | 业务发生时间 |
+| created_at | timestamptz | default now() | |
+
+**索引**：`idx_major_events_household_created`；`idx_major_event_expenses_event_occurred`；`idx_major_event_expenses_household_occurred`。
+
+#### `major_event_categories`（`005_major_event_categories.sql`）
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | uuid | PK | |
+| household_id | uuid | FK → households | 所属家庭 |
+| name | text | NOT NULL，同家庭 UNIQUE | 分类名 |
+| sort_order | int | default 0 | 排序 |
+| created_at | timestamptz | default now() | |
+
+新建家庭默认插入 **「其他」** 一条；已有家庭迁移脚本补种。
+
 ## 4. 行级安全（RLS）
 
-业务表（含 **`chat_messages`**）均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
+业务表（含 **`chat_messages`**、**`major_events`**、**`major_event_expenses`**、**`major_event_categories`**）均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
 
 - 业务读写一律经 Next.js **Server Actions**，使用 **Service Role**（绕过 RLS）。  
 - 浏览器 **不** 使用 Supabase 匿名客户端访问业务表；多家庭下无法安全做「按编码动态」的 anon Realtime，故已弃用 Realtime 推送。

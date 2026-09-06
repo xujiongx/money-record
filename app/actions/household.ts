@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
+import { seedMajorEventCategoriesForHousehold } from "@/app/actions/major-events";
 import {
   HOUSEHOLD_CODE_COOKIE,
   normalizeHouseholdCode,
@@ -94,6 +95,14 @@ export async function createHouseholdAndLogin(input: {
   if (mErr) {
     await supabase.from("households").delete().eq("id", householdId);
     throw new Error(mErr.message);
+  }
+
+  try {
+    await seedMajorEventCategoriesForHousehold(householdId);
+  } catch {
+    await supabase.from("members").delete().eq("household_id", householdId);
+    await supabase.from("households").delete().eq("id", householdId);
+    throw new Error("创建家庭失败，请稍后重试");
   }
 
   await writeHouseholdCookie(code);

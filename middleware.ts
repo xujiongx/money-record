@@ -15,7 +15,8 @@ export function middleware(request: NextRequest) {
     pathname === "/" ||
     pathname.startsWith("/record") ||
     pathname.startsWith("/stats") ||
-    pathname.startsWith("/members");
+    pathname.startsWith("/members") ||
+    pathname.startsWith("/tools");
 
   if (!isProtected) {
     return NextResponse.next();
@@ -39,6 +40,8 @@ export const config = {
     "/stats/member/:path*",
     "/members",
     "/members/:path*",
+    "/tools",
+    "/tools/:path*",
     "/login",
   ],
 };

@@ -26,6 +26,10 @@ const config = {
       except: "/members",
       transition: drill(),
     },
+    {
+      on: "/tools/**",
+      transition: drill(),
+    },
   ],
 };
 

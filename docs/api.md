@@ -99,16 +99,31 @@
 - 按 `id` + 当前 `household_id` 删除。  
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/stats`, `/members` 及 `/members` **layout**）。
 
-## 4. Server Actions — 小布助手
+## 4. Server Actions — 大事记账（`app/actions/major-events.ts`）
 
-### 4.0 分层说明
+与日常 `transactions` **隔离**；缓存标签 **`major-events`**（不失效 `ledger`）。复用家庭 `members` 作为记账人。
+
+| Action | 说明 |
+|--------|------|
+| `fetchMajorEvents` | 当前家庭大事列表 + 支出合计/笔数 |
+| `fetchMajorEventBundle` | 单事项 + 其下全部支出（含 `members`） |
+| `createMajorEvent` / `updateMajorEvent` / `deleteMajorEvent` | 事项 CRUD；删除级联支出 |
+| `createMajorEventExpense` / `deleteMajorEventExpense` | 支出写入 / 删除；校验 event、member 属当前家庭 |
+| `fetchMajorEventCategories` | 当前家庭大事支出分类（无则自动补「其他」） |
+| `createMajorEventCategory` / `updateMajorEventCategory` / `deleteMajorEventCategory` | 分类增改删；删非默认分类时已有支出归入「其他」；改名同步历史支出 |
+
+写成功后：`revalidateTag("major-events", "max")` + `revalidatePath`（`/tools`、`/tools/events` 及对应详情/分析）。
+
+## 5. Server Actions — 小布助手
+
+### 5.0 分层说明
 
 - **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**，内部使用 **`lib/foundation/llm`** 的 **`getDefaultLlmClient()`**（默认 **`MistralThenOpenRouterLlmClient`**，兼容别名 **`MistralOpenRouterLlmClient`**）。行为与密钥约定不变：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；失败且配置了 **`OPEN_ROUTER_API_KEY`** 时走 OpenRouter；**`XIAOBU_LLM_PROVIDER=openrouter`** 时仅 OpenRouter。详见 [**`lib/foundation/README.md`**](../lib/foundation/README.md)。**Client Component 不得 import `lib/foundation/llm`**。  
 - **助手播报（客户端）**：**`NEXT_PUBLIC_TTS_PROVIDER`**（`web-speech` | `noop`，默认 `web-speech`），由 **`lib/foundation/tts/factory.client.ts`** 的 **`createTtsEngine`** 选择实现。  
 - **语音输入 ASR（客户端）**：**`NEXT_PUBLIC_ASR_PROVIDER`**（`web-speech` | `noop`，默认 `web-speech`），由 **`lib/foundation/asr/factory.client.ts`** 的 **`createAsrEngine`** 选择实现；**`ChatVoiceInput`** 使用。  
 - **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
 
-### 4.1 返回类型 `MistralTextResult`
+### 5.1 返回类型 `MistralTextResult`
 
 ```ts
 type MistralTextResult =
@@ -118,7 +133,7 @@ type MistralTextResult =
 
 - 网络 / API / 校验失败时返回 **`{ ok: false, error }`**，**不在 Action 边界 `throw`**，以免客户端收到整页 **500**（RSC POST）。
 
-### 4.2 `mistralChatAction(history, userMessage)`
+### 5.2 `mistralChatAction(history, userMessage)`
 
 | 参数 | 说明 |
 |------|------|
@@ -127,7 +142,7 @@ type MistralTextResult =
 
 - 成功：`{ ok: true, data: 助手回复文本 }`。
 
-### 4.2b `mistralLedgerChatAction(history, userMessage)`
+### 5.2b `mistralLedgerChatAction(history, userMessage)`
 
 | 参数 | 说明 |
 |------|------|
@@ -140,39 +155,39 @@ type MistralTextResult =
 - 模型输出契约与校验见 **`lib/llm/chat-ledger.ts`**（`ledgerChatResponseSchema`）：`ledger.intent` 为 `none`（闲聊）| `collect`（仅缺金额 / 记账人、或**实在无法**判断收/支时追问，**不因分类**进入 collect）| `ready`（可执行）。系统提示词要求：由模型从用户话术**自动**识别 **`type`（income/expense）** 与 **category**（映射白名单；对不上则 **「其他」** + `note`），**不要**追问「收入还是支出」或让用户选分类；**不要**在入账前让用户「确认再记」。`ready` 时服务端 **`normalizeReadyLedger`** 校验 `member_id` 属于当前家庭、`amount` 等，通过后调用 **`createTransaction`**；分类仍不在白名单时服务端也会归 **「其他」** 并把原描述并入 `note`。  
 - 执行或校验失败时仍可能 `ok: true`，在 `reply` 末尾追加说明（避免 throw 导致整页 500）。解析/网络失败：`{ ok: false, error }`。
 
-### 4.3 `generateMonthlySummaryAction()`
+### 5.3 `generateMonthlySummaryAction()`
 
 - 经 **`fetchLedgerSnapshotData`** 读取本月账本摘要（与统计「本月」一致的日期范围与成员拆分），调用模型生成「本月小结」文案。  
 - 提示词内注入 **`buildMonthSummaryTimeContext`（同日历进度、上/中/下旬等）**，要求模型按「截至目前」写阶段性小结，避免在月初/月中使用「全月收官」式表述（详见 `app/actions/mistral-chat.ts`）。  
 - 成功：`{ ok: true, data: 小结文本 }`。
 
-### 4.3b `generateYearlySummaryAction()`
+### 5.3b `generateYearlySummaryAction()`
 
 - 经 **`fetchLedgerSnapshotData`** 读取**本年**汇总（与统计「本年」一致：`getStatsDateRange("year")` + `occurred_at`），调用模型生成「本年小结」文案。  
 - 提示词内注入 **`buildYearSummaryTimeContext`**（年初中末、是否 12 月 31 日等），正文篇幅建议约 400～720 字。  
 - 成功：`{ ok: true, data: 小结文本 }`。
 
-### 4.4 `buildMonthlyLedgerDigest()` / `buildYearlyLedgerDigest()` / `compute*LedgerDigest()`（供扩展）
+### 5.4 `buildMonthlyLedgerDigest()` / `buildYearlyLedgerDigest()` / `compute*LedgerDigest()`（供扩展）
 
 - **`buildMonthlyLedgerDigest()`** / **`buildYearlyLedgerDigest()`**（`app/actions/mistral-chat.ts`，Server Action）：读库后返回当月 / 当年汇总纯文本。  
 - **`computeMonthlyLedgerDigest(all, members, anchor?)`**、**`computeYearlyLedgerDigest(all, members, anchor?, categoryTop?)`**（**`lib/ledger/monthly-digest.ts`**）：纯函数；年度版分类行默认取前 **10** 项。**`mistralLedgerChatAction`** 每轮仅用月度摘要注入 user 消息顶部。放在 lib 而非 `"use server"` 文件，因 Next 要求 Server Actions 文件中的 **export 必须为 async**。
 
-### 4.5 `fetchChatMessagesAction()`（`app/actions/chat-history.ts`）
+### 5.5 `fetchChatMessagesAction()`（`app/actions/chat-history.ts`）
 
 - 返回当前家庭最近最多 300 条 **`chat_messages`**，按时间升序。  
 - 成功：`{ ok: true, data: { id, role, content }[] }`；失败：`{ ok: false, error }`（与 Mistral 一致，不 throw）。
 
-### 4.6 `persistChatExchangeAction(userContent, assistantContent)`
+### 5.6 `persistChatExchangeAction(userContent, assistantContent)`
 
 - 依次插入一条 `role=user`、一条 `role=assistant`（同一轮对话）。  
 - 成功：`{ ok: true }`；失败：`{ ok: false, error }`。
 
-## 5. 路由与中间件
+## 6. 路由与中间件
 
-- [`middleware.ts`](../middleware.ts)：访问 `/`、`/record`、`/stats`、`/members` 时，若 Cookie 中无合法 6 位编码，**302 → `/login`**。  
+- [`middleware.ts`](../middleware.ts)：访问 `/`、`/record`、`/stats`、`/members`、`/tools` 时，若 Cookie 中无合法 6 位编码，**302 → `/login`**。  
 - `/login`：若已有合法 Cookie，服务端可 **redirect('/')**（见 `app/login/page.tsx`）。
 
-## 6. 接口设计决策（备忘）
+## 7. 接口设计决策（备忘）
 
 | 议题 | 结论 |
 |------|------|
@@ -181,7 +196,7 @@ type MistralTextResult =
 | 实时推送 | 多租户下弃用 Realtime；靠导航、`revalidatePath` / `revalidateTag("ledger")` 与首页 **`refreshLedgerReadCache`** 刷新 |
 | LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `lib/llm/xiaobu-llm` 封装；客户端只收 `MistralTextResult` 文本结果 |
 
-## 7. 变更记录
+## 8. 变更记录
 
 | 日期 | 说明 |
 |------|------|
@@ -203,3 +218,4 @@ type MistralTextResult =
 | 2026-04-09 | **`RecordForm`**：`datetime-local` + **`occurredAt`**；**`lib/ledger/datetime-local.ts`** 与 **`EditTransactionModal`** 共用 **`toDatetimeLocalValue`** |
 | 2026-09-03 | **`OccurredAtPicker`**：今天/昨天/前天 + **react-mobile-picker**（年/月/日/时/分滚轮底部面板） |
 | 2026-04-18 | **`refreshLedgerReadCache`**：与写流水同级的 **`revalidateTag` + `revalidatePath`**；**`fetchMembers` / `fetchTransactions`** 的 **`unstable_cache` `revalidate`** 记为 **3600s** |
+| 2026-09-06 | **大事记账**：`major-events.ts`；表 `major_events` / `major_event_expenses`；路由 `/tools`、`/tools/events/**`；缓存标签 `major-events` |

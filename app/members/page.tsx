@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Wrench } from "lucide-react";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
@@ -105,7 +105,21 @@ export default async function MembersPage() {
         </ul>
       </section>
 
-      <section className="pt-2">
+      <section className="space-y-3 pt-2">
+        <Link
+          href="/tools"
+          className="flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white py-3.5 pl-4 pr-3 text-sm font-medium text-stone-700 shadow-sm shadow-orange-500/5 transition hover:bg-orange-50/60 active:scale-[0.99]"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 text-white">
+            <Wrench className="size-4" strokeWidth={2.25} aria-hidden />
+          </span>
+          <span className="flex-1 text-left">更多功能</span>
+          <ChevronRight
+            className="size-5 shrink-0 text-stone-300"
+            strokeWidth={2.25}
+            aria-hidden
+          />
+        </Link>
         <SwitchHouseholdButton />
       </section>
     </div>

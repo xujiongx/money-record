@@ -51,6 +51,7 @@ flowchart LR
 │   ├── actions/
 │   │   ├── household.ts    # 会话、创建新家
 │   │   ├── ledger.ts       # 账本读写（读 Cookie）；导出 requireHouseholdId
+│   │   ├── major-events.ts # 大事记账（与 ledger 隔离）
 │   │   ├── chat-history.ts # 小布：chat_messages 拉取与落库
 │   │   └── mistral-chat.ts # 小布：多轮对话、本月与本年小结（经 xiaobu-llm）
 │   ├── login/page.tsx      # 登录 / 创建新家（EnterHouseholdCode）
@@ -61,8 +62,11 @@ flowchart LR
 │   │   ├── loading.tsx     # 统计页专用轻量骨架
 │   │   └── page.tsx
 │   ├── members/
-│   │   ├── page.tsx         # 成员列表
+│   │   ├── page.tsx         # 成员列表（底部「更多功能」）
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
+│   ├── tools/
+│   │   ├── page.tsx         # 工具箱
+│   │   └── events/          # 大事记账列表 / 详情 / 分析
 │   ├── manifest.ts         # PWA Web App Manifest（名称等来自 lib/app-branding）
 │   ├── icon.svg            # 应用图标：favicon、manifest、AppLogo 均引用 /icon.svg
 │   ├── ssgoi-provider.tsx  # SSGOI 根 Provider + 过渡规则（client）
@@ -81,7 +85,8 @@ flowchart LR
 │   └── features/           # 按业务域划分的功能组件
 │       ├── household/      # 登录、切换家庭、无数据提示
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
-│       ├── record/         # 记账（OccurredAtPicker：快捷日 + 滚轮）、仪表盘流水、编辑弹窗、左滑行
+│       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
+│       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
 │       ├── stats/          # StatsCharts + Gate（dynamic 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
 │           ├── index.ts              # 导出 FloatingChatBot
@@ -98,6 +103,7 @@ flowchart LR
 │   ├── app-branding.ts     # 应用显示名、短名、描述（layout + manifest 共用）
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
 │   ├── ledger/             # 账本领域：类型、分类白名单、聚合、统计周期、金额格式、`monthly-digest`（本月摘要纯函数）
+│   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
 │   └── supabase/service.ts # Service Role 客户端
 ├── supabase/migrations/
@@ -113,7 +119,7 @@ cp .env.example .env.local
 # 使用小布助手时配置 MISTRAL_API_KEY 和/或 OPEN_ROUTER_API_KEY（及可选代理，见 .env.example）
 ```
 
-1. Supabase **SQL Editor** 执行 `supabase/migrations/001_init.sql`。  
+1. Supabase **SQL Editor** 按序执行 `supabase/migrations/` 下脚本（含 `004_major_events.sql`）。  
 2. `npm run dev`，打开 http://localhost:3000 → 应进入 `/login`，可用 **`000001`** 加入示例家庭，或 **创建新家**。
 
 ## 5. 常用命令

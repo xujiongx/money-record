@@ -8,7 +8,7 @@
 
 | 层级 | 机制 | 目标 |
 |------|------|------|
-| Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（当前 **3600s**，即 1h） | 与客户端 `staleTimes` 同量级，减少读库 |
+| Next 数据缓存 | `unstable_cache` 包装 **编码 → `household_id`**、`fetchMembers` / `fetchTransactions`（按编码或 `household_id` 分键），标签 **`ledger`**，`revalidate` 兜底（当前 **3600s**，即 1h）；大事列表/明细另用标签 **`major-events`** | 与客户端 `staleTimes` 同量级，减少读库；大事与日常账本缓存互不污染 |
 | 同请求去重 | React **`cache()`** 包装 **`requireHouseholdId()`** | 同一次 RSC 内多次 `fetch*` 只解析一次 Cookie |
 | 客户端预取 | 底部 **`Link prefetch`**（完整预取动态页）+ **`usePrefetchAppTabs`**：挂载时立即 **`router.prefetch`** 四 Tab，空闲再补一轮 | 硬刷新后尽快填满客户端 RSC 缓存，配合 **`staleTimes.dynamic`** 在约 1h 内少重复请求 |
 | 客户端路由复用 | **`next.config` → `experimental.staleTimes.dynamic`** 与 **`staleTimes.static`**（均为 **3600s**） | 同一会话内 Tab 切换少打 Flight |
@@ -77,3 +77,4 @@
 | 2026-04-09 | 补充 §4：静态资源与 `next dev` / 生产 / 远程图缓存说明 |
 | 2026-04-18 | **`unstable_cache` `revalidate`** 与客户端 **`staleTimes`** 统一到 **3600s**；首页 **「刷新数据」**（**`refreshLedgerReadCache`** + **`router.refresh()`**）；底部 **`Link prefetch`** + **`usePrefetchAppTabs`** 首帧 **`router.prefetch`**；**`staleTimes.static`** 与 **dynamic** 同值 |
 | 2026-05-21 | **`money-record:note-history`**：备注按分类本地历史（最多 150 条），记账/编辑页标签回填 |
+| 2026-09-06 | **`major-events`** 标签：大事记账读写独立失效，不触碰 `ledger` |

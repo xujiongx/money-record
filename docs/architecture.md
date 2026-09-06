@@ -111,9 +111,14 @@ flowchart TB
 | `/record` | 拉成员 | `RecordForm`（`OccurredAtPicker`：快捷日 + 滚轮年/月/日/时/分，传 `occurredAt`） |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts` |
 | `/stats/analysis` | 拉流水 | `AnalysisClient`（月度/年度收支分析，迷你柱状图、结余月历、分类对比） |
-| `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`） |
+| `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`）；底部「更多功能」→ `/tools` |
+| `/tools` | — | 工具箱入口（`ToolsHub`） |
+| `/tools/events` | 拉大事列表 | `EventsListClient`：新建/进入大事 |
+| `/tools/events/[eventId]` | 大事 + 支出 + 成员 | `EventDetailClient`：记账、明细、删 |
+| `/tools/events/[eventId]/analysis` | 同上 | `EventAnalysisClient`：成员/分类分析 |
+| `/tools/events/categories` | 拉分类 | `EventCategoriesClient`：分类增改删 |
 
-全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。
+全局 **`MobileShell`**（`app/layout.tsx`）在**非** `/login` 路由展示底部导航，并挂载 **`FloatingChatBot`**（可拖动入口 + 对话 Portal）。一级 Tab 外（含 `/tools/**`）隐藏底栏与小布。
 
 ### 6.1 路由页过渡（SSGOI）
 
@@ -126,7 +131,7 @@ flowchart TB
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
 | **`MobileShell`** | 仅一级 Tab 显示底栏 / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip` |
 
-规则摘要：四个一级 Tab 点击互切用 **slide**；`/stats/**`、`/members/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。无左右拖动手势切 Tab。
+规则摘要：四个一级 Tab 点击互切用 **slide**；`/stats/**`、`/members/**`、`/tools/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。无左右拖动手势切 Tab。
 
 ## 7. 小布助手（LLM 对话）
 
