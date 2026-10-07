@@ -2,9 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # 每 20 天执行一次（UTC 时间 02:00），确保在 30 天活跃期内有访问
-    # cron 语法不支持"每 N 天"，用固定日期列表模拟：1/21 号各触发一次
-    - cron: '0 2 1,21 * *'
+    # 每周一次（UTC 周一 02:00），保持 Supabase 项目在活跃期内
+    - cron: '0 2 * * 1'
   workflow_dispatch:   # 允许手动触发
 
 jobs:

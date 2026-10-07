@@ -95,7 +95,7 @@ flowchart TB
 
 ### 7.2 GitHub Actions 定时保活
 
-`.github/workflows/keep-alive.yml` 在每月 1 日和 21 日（UTC 02:00）自动调用 `/api/health`，确保 30 天内至少有 2 次数据库访问。
+`.github/workflows/keep-alive.yml` 每周一 UTC 02:00 自动调用 `/api/health`，保持 Supabase 项目在活跃期内有访问。
 
 **配置步骤：**
 
