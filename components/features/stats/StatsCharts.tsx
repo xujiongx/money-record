@@ -30,6 +30,7 @@ import {
 } from "@/lib/ledger/stats-period";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
+import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
 
 const COLORS = [
   "#fb923c",
@@ -221,6 +222,89 @@ export function StatsCharts({
         </div>
       </section>
 
+      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <h2 className="text-sm font-semibold text-stone-800">成员明细（本区间）</h2>
+        <p className="mt-1 text-[11px] text-stone-500">
+          按成员汇总收支；有记账时可进入区间明细
+        </p>
+        <ul className="mt-3 space-y-2">
+          {memberDetail.map((m) => {
+            const net = m.income - m.expense;
+            const totalMemberTx = m.expenseCount + m.incomeCount;
+            const detailHref =
+              `/stats/member/${m.memberId}` +
+              `?start=${encodeURIComponent(rangeStart.toISOString())}` +
+              `&end=${encodeURIComponent(rangeEnd.toISOString())}`;
+            return (
+              <li key={m.memberId}>
+                {totalMemberTx > 0 ? (
+                  <Link
+                    href={detailHref}
+                    className="block rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px] text-stone-800 transition active:scale-[0.99] hover:border-orange-200 hover:bg-orange-50/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">{m.name}</span>
+                      <span
+                        className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                          net >= 0 ? "text-emerald-700" : "text-rose-700"
+                        }`}
+                      >
+                        净额 {formatMoney(net)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
+                      <span>
+                        支出 {formatMoney(m.expense)}
+                        <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                      </span>
+                      <span>
+                        收入 {formatMoney(m.income)}
+                        <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                      </span>
+                    </div>
+                    <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-orange-600">
+                      查看收支明细
+                      <ChevronRight className="size-3" strokeWidth={2.5} aria-hidden />
+                    </p>
+                  </Link>
+                ) : (
+                  <div className="rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-stone-800">{m.name}</span>
+                      <span
+                        className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                          net >= 0 ? "text-emerald-700" : "text-rose-700"
+                        }`}
+                      >
+                        净额 {formatMoney(net)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
+                      <span>
+                        支出 {formatMoney(m.expense)}
+                        <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                      </span>
+                      <span>
+                        收入 {formatMoney(m.income)}
+                        <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-stone-400">本区间无记账</p>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <AnalysisDailyTrendChart
+        transactions={scopedTransactions}
+        members={members}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+      />
+
       {/* 不要用含时间戳的 key，否则每次切期都会卸载整块 Recharts，ResponsiveContainer 重测 DOM 很慢 */}
       <div className="space-y-5">
         <ChartCard
@@ -255,80 +339,6 @@ export function StatsCharts({
                 </BarChart>
                 </ResponsiveContainer>
               </div>
-            </div>
-          )}
-          {txCount > 0 && (
-            <div className="mt-3 border-t border-stone-100 pt-3">
-              <p className="text-xs font-semibold text-stone-700">成员明细（本区间）</p>
-              <ul className="mt-2 space-y-2">
-                {memberDetail.map((m) => {
-                  const net = m.income - m.expense;
-                  const totalMemberTx = m.expenseCount + m.incomeCount;
-                  const detailHref =
-                    `/stats/member/${m.memberId}` +
-                    `?start=${encodeURIComponent(rangeStart.toISOString())}` +
-                    `&end=${encodeURIComponent(rangeEnd.toISOString())}`;
-                  return (
-                    <li key={m.memberId}>
-                      {totalMemberTx > 0 ? (
-                        <Link
-                          href={detailHref}
-                          className="block rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px] text-stone-800 transition active:scale-[0.99] hover:border-orange-200 hover:bg-orange-50/40"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-medium">{m.name}</span>
-                            <span
-                              className={`shrink-0 text-[11px] font-semibold tabular-nums ${
-                                net >= 0 ? "text-emerald-700" : "text-rose-700"
-                              }`}
-                            >
-                              净额 {formatMoney(net)}
-                            </span>
-                          </div>
-                          <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
-                            <span>
-                              支出 {formatMoney(m.expense)}
-                              <span className="text-stone-400"> · {m.expenseCount} 笔</span>
-                            </span>
-                            <span>
-                              收入 {formatMoney(m.income)}
-                              <span className="text-stone-400"> · {m.incomeCount} 笔</span>
-                            </span>
-                          </div>
-                          <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-orange-600">
-                            查看收支明细
-                            <ChevronRight className="size-3" strokeWidth={2.5} aria-hidden />
-                          </p>
-                        </Link>
-                      ) : (
-                        <div className="rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px]">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-medium text-stone-800">{m.name}</span>
-                            <span
-                              className={`shrink-0 text-[11px] font-semibold tabular-nums ${
-                                net >= 0 ? "text-emerald-700" : "text-rose-700"
-                              }`}
-                            >
-                              净额 {formatMoney(net)}
-                            </span>
-                          </div>
-                          <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
-                            <span>
-                              支出 {formatMoney(m.expense)}
-                              <span className="text-stone-400"> · {m.expenseCount} 笔</span>
-                            </span>
-                            <span>
-                              收入 {formatMoney(m.income)}
-                              <span className="text-stone-400"> · {m.incomeCount} 笔</span>
-                            </span>
-                          </div>
-                          <p className="mt-1 text-[10px] text-stone-400">本区间无记账</p>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           )}
         </ChartCard>

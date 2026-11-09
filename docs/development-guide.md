@@ -87,7 +87,7 @@ flowchart LR
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
 │       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
-│       ├── stats/          # StatsCharts + Gate（dynamic 分包）
+│       ├── stats/          # StatsCharts + Gate；每日趋势折线（随 StatsCharts 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
 │           ├── index.ts              # 导出 FloatingChatBot
 │           ├── types.ts              # ChatUiMessage、newChatMessageId
@@ -102,7 +102,7 @@ flowchart LR
 │   ├── foundation/         # 基础能力：可插拔 LLM（仅服务端）与 TTS（客户端）；见 foundation/README.md
 │   ├── app-branding.ts     # 应用显示名、短名、描述（layout + manifest 共用）
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
-│   ├── ledger/             # 账本领域：类型、分类白名单、聚合、统计周期、金额格式、`monthly-digest`（本月摘要纯函数）
+│   ├── ledger/             # 账本领域：类型、分类白名单、聚合、按日序列、统计周期、金额格式、`monthly-digest`
 │   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
 │   └── supabase/service.ts # Service Role 客户端

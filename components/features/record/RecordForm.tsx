@@ -102,7 +102,6 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
         }
         setAmount("");
         setNote("");
-        setOccurredAt(toDatetimeLocalValue(new Date().toISOString()));
         setSuccessOpen(true);
         router.refresh();
       } catch (e) {
