@@ -20,19 +20,10 @@ import { filterTransactionsInRange } from "@/lib/ledger/stats-period";
 import { categoryBreakdown, summarizeLedger } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import type { TransactionRow } from "@/lib/ledger/types";
+import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 type Mode = "month" | "year";
 type Tab = "income" | "expense";
-
-const COLORS = [
-  "#fb923c",
-  "#f472b6",
-  "#fbbf24",
-  "#a78bfa",
-  "#34d399",
-  "#60a5fa",
-  "#f87171",
-];
 
 function formatCompact(n: number): string {
   const abs = Math.abs(n);
@@ -47,6 +38,7 @@ export function AnalysisClient({
 }: {
   transactions: TransactionRow[];
 }) {
+  const { series: COLORS } = useThemeChartColors();
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
 
@@ -224,21 +216,21 @@ export function AnalysisClient({
       <div className="flex items-center gap-2">
         <Link
           href="/stats"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white/90 transition hover:bg-white/20"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink transition hover:bg-accent-soft"
           aria-label="返回统计"
         >
           <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
         </Link>
-        <div className="flex flex-1 rounded-xl bg-white/20 p-0.5 ring-1 ring-white/30">
+        <div className="flex flex-1 rounded-lg border border-[var(--line)] bg-paper p-0.5">
           {(["month", "year"] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => switchMode(m)}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition ${
+              className={`flex-1 rounded-md py-2 text-sm font-semibold transition ${
                 mode === m
-                  ? "bg-white text-stone-800 shadow-sm"
-                  : "text-white/90"
+                  ? "bg-accent text-paper"
+                  : "text-stone-600"
               }`}
             >
               {m === "month" ? "月度" : "年度"}
@@ -256,7 +248,7 @@ export function AnalysisClient({
             });
           }}
           aria-label="刷新数据"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white/90 transition hover:bg-white/20 disabled:opacity-50"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink transition hover:bg-accent-soft disabled:opacity-50"
         >
           <RefreshCw
             className={`size-[18px] ${refreshing ? "animate-spin" : ""}`}
@@ -267,7 +259,7 @@ export function AnalysisClient({
       </div>
 
       {/* 汇总卡片 */}
-      <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-4">
         {/* 期间导航 */}
         <div className="mb-3 flex items-center justify-between">
           <button
@@ -309,7 +301,7 @@ export function AnalysisClient({
             </span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-orange-400" />
+            <span className="h-2 w-2 rounded-full bg-accent" />
             <span className="text-stone-500">
               支出{" "}
               <span className="font-semibold tabular-nums text-stone-800">
@@ -332,7 +324,7 @@ export function AnalysisClient({
               type="button"
               onClick={() => setAnchor(p.anchorDate)}
               className={`flex min-w-[20%] shrink-0 flex-col items-center gap-1 rounded-xl py-1.5 transition active:scale-[0.96] ${
-                p.isCurrent ? "bg-orange-50" : "hover:bg-stone-50"
+                p.isCurrent ? "bg-accent-soft" : "hover:bg-stone-50"
               }`}
             >
               <div className="flex h-14 items-end gap-0.5">
@@ -343,7 +335,7 @@ export function AnalysisClient({
                   }}
                 />
                 <div
-                  className="w-2 rounded-sm bg-orange-400"
+                  className="w-2 rounded-sm bg-accent"
                   style={{
                     height: `${Math.max(4, (p.expense / maxBarValue) * 56)}px`,
                   }}
@@ -352,7 +344,7 @@ export function AnalysisClient({
               <p
                 className={`text-[10px] ${
                   p.isCurrent
-                    ? "font-semibold text-orange-600"
+                    ? "font-semibold text-accent"
                     : "text-stone-400"
                 }`}
               >
@@ -368,7 +360,7 @@ export function AnalysisClient({
 
       {/* 年度：结余月历 */}
       {mode === "year" && (
-        <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <div className="paper-panel p-4">
           <h2 className="text-sm font-semibold text-stone-800">结余月历</h2>
           <div className="mt-3 grid grid-cols-4 gap-2">
             {monthlyBalances.map(({ month, balance }) => (
@@ -380,7 +372,7 @@ export function AnalysisClient({
                 {balance !== null ? (
                   <p
                     className={`mt-0.5 text-xs font-semibold tabular-nums ${
-                      balance >= 0 ? "text-emerald-700" : "text-rose-600"
+                      balance >= 0 ? "text-income" : "text-expense"
                     }`}
                   >
                     {formatCompact(balance)}
@@ -395,7 +387,7 @@ export function AnalysisClient({
       )}
 
       {/* 分类汇总 */}
-      <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-4">
         {/* 收入/支出 Tab */}
         <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
           {(["income", "expense"] as Tab[]).map((t) => (
@@ -425,7 +417,7 @@ export function AnalysisClient({
               aria-label={mode === "month" ? "对比上月" : "对比上年"}
               onClick={() => setCompare((c) => !c)}
               className={`relative h-5 w-9 rounded-full transition ${
-                compare ? "bg-orange-400" : "bg-stone-200"
+                compare ? "bg-accent" : "bg-stone-200"
               }`}
             >
               <span
@@ -474,11 +466,11 @@ export function AnalysisClient({
                           className={`text-[10px] font-medium ${
                             isExpense
                               ? diff > 0
-                                ? "text-rose-500"
-                                : "text-emerald-600"
+                                ? "text-expense"
+                                : "text-income"
                               : diff > 0
-                                ? "text-emerald-600"
-                                : "text-rose-500"
+                                ? "text-income"
+                                : "text-expense"
                           }`}
                         >
                           {diff > 0 ? "+" : ""}
@@ -507,7 +499,7 @@ export function AnalysisClient({
       </div>
 
       {/* 交易排行 */}
-      <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">
           {tab === "income" ? "收入" : "支出"}排行
         </h2>
@@ -528,11 +520,11 @@ export function AnalysisClient({
                   <span
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                       rank === 1
-                        ? "bg-amber-400 text-white"
+                        ? "bg-amber-400 text-paper"
                         : rank === 2
-                          ? "bg-stone-300 text-white"
+                          ? "bg-stone-300 text-paper"
                           : rank === 3
-                            ? "bg-orange-300 text-white"
+                            ? "bg-accent text-paper"
                             : "bg-stone-100 text-stone-500"
                     }`}
                   >
@@ -559,7 +551,7 @@ export function AnalysisClient({
                   {/* 金额 */}
                   <span
                     className={`shrink-0 text-sm font-semibold tabular-nums ${
-                      isIncome ? "text-emerald-700" : "text-stone-800"
+                      isIncome ? "text-income" : "text-stone-800"
                     }`}
                   >
                     {isIncome ? "+" : "-"}

@@ -1,6 +1,6 @@
 export function SetupPrompt({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl border border-orange-200 bg-white/90 p-5 shadow-sm">
+    <div className="rounded-2xl border border-[var(--line)] bg-paper p-5 shadow-sm">
       <h1 className="text-lg font-semibold text-stone-800">需要先配置 Supabase</h1>
       <p className="mt-2 text-sm leading-relaxed text-stone-600">{message}</p>
       <p className="mt-4 text-xs text-stone-500">

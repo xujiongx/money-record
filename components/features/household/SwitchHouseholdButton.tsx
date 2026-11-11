@@ -21,7 +21,7 @@ export function SwitchHouseholdButton() {
           router.refresh();
         });
       }}
-      className="w-full rounded-2xl border border-stone-200 bg-white py-3 text-sm font-medium text-stone-600 transition hover:bg-stone-50 active:scale-[0.99] disabled:opacity-50"
+      className="paper-panel w-full py-3 text-sm font-medium text-stone-600 transition hover:bg-accent-soft/40 active:scale-[0.99] disabled:opacity-50"
     >
       {pending ? "处理中…" : "切换家庭 / 重新输入编码"}
     </button>

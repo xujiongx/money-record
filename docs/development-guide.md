@@ -1,6 +1,6 @@
 # 开发指南
 
-> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-04-18（账本读缓存、品牌 / 元数据 / PWA manifest）
+> 项目：家庭记账（Next.js 移动端 + Supabase） · 更新日期：2026-11-11（家用账本纸感 UI；账本读缓存、品牌 / 元数据 / PWA manifest）
 
 ## 1. 环境要求
 
@@ -35,7 +35,8 @@ flowchart LR
 - **列表刷新**：无定时轮询；统计页数据由 RSC 拉取后通过 `StatsChartsGate` 注入客户端图表；`DashboardClient` 在删账/改账后调用 `fetchTransactions()` 等更新状态；首页另有 **「刷新数据」**，调用 **`refreshLedgerReadCache`**（`revalidateTag` + `revalidatePath`）后 **`router.refresh()`**，强制清读缓存并重跑 RSC。  
 - **读缓存**：`ledger.ts` 中 **家庭编码 → `household_id`**、成员与流水列表经 `unstable_cache`（**`revalidate` 当前 3600s**，标签 `ledger`）缓存，变更时 `revalidateTag("ledger", "max")`；同一次 RSC 内 `requireHouseholdId` 经 React `cache()` 去重。**Tab 预取**：底部 **`Link prefetch`** + `MobileShell` 挂载 **`usePrefetchAppTabs`**（首帧立即 **`router.prefetch`** 四 Tab，空闲再补），硬刷新后尽快填满客户端 RSC 缓存，与下面 **`staleTimes`** 配合。  
 - **布局**：`app/layout.tsx` 中 `max-w-md`；**不再**在根布局声明 `force-dynamic`（业务页因 `cookies()` 等仍为动态渲染）。根布局用 **`SsgoiProvider`** 包住 **`MobileShell`**；**`SsgoiRouteBoundary`** 只包住 `main` 内页面内容（底栏 / 渐变头 / 小布入口持久），见 [architecture.md §6.1](./architecture.md)。  
-- **品牌与元数据（含 PWA）**：**`lib/app-branding.ts`** 为单一文案源：**`APP_DISPLAY_NAME`**（页面 `title`）、**`APP_SHORT_NAME`**（`applicationName` / manifest `short_name`）、**`APP_DESCRIPTION`**。**`app/layout.tsx`** 导出 **`metadata`**（`title`、`description`、`applicationName`）、**`metadata.icons.apple`** 指向 **`/icon.svg`**（与 favicon 同源）、**`appleWebApp`**（全屏 Web App 标题等）；导出 **`viewport`**（`themeColor: #fb923c`、`viewportFit: cover` 等与壳层一致）。**`app/manifest.ts`** 实现 **`MetadataRoute.Manifest`**：`name` / `short_name` / `description` 同上常量；**`start_url: /record`**、**`display: standalone`**、**`background_color` / `theme_color`** 与 UI；**`icons`** 指向 **`/icon.svg`**。**图标文件**：只维护 **`app/icon.svg`**（Next 约定生成 favicon，公网路径 **`/icon.svg`**）。站内装饰性站标用 **`components/common/AppLogo.tsx`**（`<img src="/icon.svg">`），当前 **`EnterHouseholdCode`**（登录页）使用，与标签页 / 主屏幕图标一致。改名或改描述改 **`app-branding.ts`** 即可同步 layout 与 manifest。  
+- **品牌与元数据（含 PWA）**：**`lib/app-branding.ts`** 为单一文案源：**`APP_DISPLAY_NAME`**（页面 `title`）、**`APP_SHORT_NAME`**（`applicationName` / manifest `short_name`）、**`APP_DESCRIPTION`**。**`app/layout.tsx`** 导出 **`metadata`**（`title`、`description`、`applicationName`）、**`metadata.icons.apple`** 指向 **`/icon.svg`**（与 favicon 同源）、**`appleWebApp`**（全屏 Web App 标题等）；导出 **`viewport`**（`themeColor: #fb923c`、`viewportFit: cover` 等与壳层一致）；字体为 **Geist**（正文）+ **Noto Serif SC**（`.page-title`）。**`app/manifest.ts`** 实现 **`MetadataRoute.Manifest`**：`name` / `short_name` / `description` 同上常量；**`start_url: /record`**、**`display: standalone`**、**`background_color: #fff7f5` / `theme_color: #fb923c`** 与暖橙粉纸感 UI；**`icons`** 指向 **`/icon.svg`**。**图标文件**：只维护 **`app/icon.svg`**（Next 约定生成 favicon，公网路径 **`/icon.svg`**）。站内装饰性站标用 **`components/common/AppLogo.tsx`**（`<img src="/icon.svg">`），当前 **`EnterHouseholdCode`**（登录页）使用，与标签页 / 主屏幕图标一致。改名或改描述改 **`app-branding.ts`** 即可同步 layout 与 manifest。
+- **视觉壳层（纸感 + 可切换主题）**：全局 token 与工具类在 **`app/globals.css`**（`data-theme`：`warm` / `clay` / `moss` / `ocean` / `grape` / `ink`；`.paper-texture`、`.paper-header`、`.paper-panel`、`.btn-primary`、`.chip`、`.page-title`）。主题定义见 **`lib/theme/themes.ts`**（含 **`THEME_CHART_PALETTES`**）；**`ThemeBootstrap`** 首屏防闪；成员页标题右侧进 **`/members/theme`**（**`ThemePicker`**，`localStorage` 键 **`money-record:color-theme`**）；统计 / 分析 / 大事分析图表经 **`useThemeChartColors`** 跟随主题。**`SsgoiRouteBoundary`** 主 Tab 用主题顶带，登录页全屏渐变洗；底栏细线纸面。  
 - **Loading**：`app/loading.tsx` 为通用路由骨架；`app/stats/loading.tsx` 仅统计页；统计图表由 `components/features/stats/StatsChartsGate.tsx` 内 `dynamic(..., { ssr: false })` 分包加载 Recharts。
 - **小布助手**：`components/common/MobileShell` 挂载 **`components/features/chat`**（`index.ts` 导出 `FloatingChatBot`，`/login` 不显示）；对话（**`mistralLedgerChatAction`**：每轮 **`fetchLedgerSnapshotData`** 直连读库（不经列表 `unstable_cache`），本月摘要拼在**当前 user 消息顶部**，避免沿用 `chat_messages` 里可能过期的数字；结构化 JSON、模型自动识别收/支与分类（不明归「其他」）、缺槽仅追问金额/记账人或实在无法判断收/支、就绪后服务端直接 **`createTransaction`**（提示词不要求二次确认入账））与「本月 / 本年小结」走 **`app/actions/mistral-chat.ts`**，契约见 **`lib/llm/chat-ledger.ts`**，历史落库 **`app/actions/chat-history.ts`**（表 **`chat_messages`**，按家庭）；出站 LLM 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**（内部委托 **`lib/foundation/llm`** 的 **`LlmClient`**，实现见 **`implementations/mistral`**、**`openrouter`**、**`mistral-then-openrouter`**（**`mistral-openrouter`** 再导出兼容别名））：优先 Mistral（**`lib/llm/mistral-fetch.ts`**），失败或未配 Mistral 密钥时可走 **OpenRouter**；**密钥仅服务端**，**勿在 Client 中 import `lib/foundation/llm`**。业务错误以 **`MistralTextResult`（ok/error）** 返回，避免 Action `throw` 导致整页 POST 500。浮动入口拖动基于 **[react-draggable](https://github.com/react-grid-layout/react-draggable)**（`components/common/DraggableFab`）；吉祥物为 **`components/features/chat/mascot/ChatBotMascot`**（SVG SMIL 动画）。**助手侧回复**由 **`components/common/MarkdownText`**（**react-markdown**）渲染，用户消息仍为纯文本。**助手回复播报**：**`useChatAssistantTts`** 经 **`lib/foundation/tts/factory.client`** 的 **`createTtsEngine()`**（默认 **`WebSpeechSynthesisTts`**，`NEXT_PUBLIC_TTS_PROVIDER=noop` 可显式关闭能力）、**`stripMarkdownForSpeech`** 在 **`lib/foundation/tts/text`**；标题栏 **播报** 开关（`localStorage` **`xiaobu_chat_tts_enabled`**）、**暂停 / 继续**；关浮层或关播报会 **stop**。部分环境（尤其 iOS）异步返回后首次合成可能被限制，以实机为准。**底部输入**在支持 **Web Speech API** 的浏览器中显示麦克风（**`ChatVoiceInput`** 经 **`lib/foundation/asr`** 的 **`createAsrEngine()`**，默认 **`WebSpeechRecognitionAsrEngine`**；**`NEXT_PUBLIC_ASR_PROVIDER=noop`** 可关闭）；开始识别前会先调用 **`getUserMedia({ audio: true })`** 触发**麦克风权限**（与语音识别同源权限），拿到流后立即 `stop` 轨道以免占用设备；无 `mediaDevices` 的环境则跳过预检直接走识别。`zh-CN` 识别需 **HTTPS 或 localhost**；**iOS WebKit**、**微信内置页**等仍可能无法授权或报 `service-not-allowed`；**Android Chrome** 多依赖云端识别与网络。触控端使用**非连续**识别。浮层在移动端使用 **`svh` + `max-h-full` + 头尾 `shrink-0`**，保证消息列表在面板内独立滚动且不被底栏遮挡（见 [change/2026-04-08.md](./change/2026-04-08.md) §4）。**历史列表**：**`useChatHistoryLoader`**（`components/features/chat/useChatHistoryLoader.ts`）负责内存缓存、打开时 stale-while-revalidate、**`requestIdleCallback`** 空闲预取、并发请求去重；`FloatingChatBot` 在落库成功后调用 **`appendExchangeToCache`**（详见 [change/2026-04-09.md](./change/2026-04-09.md)）。
 - **Next 配置**：`next.config.ts` 中 **`serverExternalPackages: ["undici"]`**，避免 Turbopack 打包 undici 后代理异常；**`experimental.staleTimes.dynamic`** 与 **`staleTimes.static`**（均为 **3600s**，与账本 **`unstable_cache` 的 `revalidate`** 同量级）用于客户端复用动态路由的 RSC，减轻 Tab 来回切换时的重复请求感。
@@ -62,7 +63,8 @@ flowchart LR
 │   │   ├── loading.tsx     # 统计页专用轻量骨架
 │   │   └── page.tsx
 │   ├── members/
-│   │   ├── page.tsx         # 成员列表（底部「更多功能」）
+│   │   ├── page.tsx         # 成员列表（标题右「主题」、底部「更多功能」）
+│   │   ├── theme/page.tsx   # 颜色主题二级页
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
 │   ├── tools/
 │   │   ├── page.tsx         # 工具箱
@@ -75,6 +77,7 @@ flowchart LR
 ├── components/
 │   ├── common/             # 公共 UI：壳层、可复用小块、统计图骨架
 │   │   ├── MobileShell.tsx
+│   │   ├── ThemeBootstrap.tsx # 首屏 data-theme 防闪脚本
 │   │   ├── BackLink.tsx    # 二级页返回：lucide ChevronLeft
 │   │   ├── SubpageHeader.tsx # 二级页 fixed 顶栏（返回 + 居中标题；防滚轮手势带动）
 │   │   ├── AppLogo.tsx     # 站标：<img /icon.svg>，与 metadata / manifest 同源
@@ -83,7 +86,7 @@ flowchart LR
 │   │   ├── MarkdownText.tsx # react-markdown：小布助手气泡内 Markdown
 │   │   └── StatsChartsSkeleton.tsx
 │   └── features/           # 按业务域划分的功能组件
-│       ├── household/      # 登录、切换家庭、无数据提示
+│       ├── household/      # 登录、切换家庭、ThemePicker、无数据提示
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
 │       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
@@ -101,6 +104,7 @@ flowchart LR
 ├── lib/
 │   ├── foundation/         # 基础能力：可插拔 LLM（仅服务端）与 TTS（客户端）；见 foundation/README.md
 │   ├── app-branding.ts     # 应用显示名、短名、描述（layout + manifest 共用）
+│   ├── theme/              # 颜色主题 id / 色板 / 图表色板 / useThemeChartColors
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
 │   ├── ledger/             # 账本领域：类型、分类白名单、聚合、按日序列、统计周期、金额格式、`monthly-digest`
 │   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
@@ -162,12 +166,12 @@ cp .env.example .env.local
 | 主题 | 文档 |
 |------|------|
 | 产品 | [PRD.md](./PRD.md) |
-| 系统架构 | [architecture.md](./architecture.md) |
+| 系统架构 | [architecture.md](./architecture.md)（含 [stack-diagram 图](./architecture-diagram/household-ledger-stack.html)） |
 | 库表 / RLS | [database-design.md](./database-design.md) |
 | Actions / 会话 | [api.md](./api.md) |
 | 缓存与刷新策略 | [cache-design.md](./cache-design.md) |
 | 部署 | [deployment.md](./deployment.md) |
-| 迭代 | [change/](./change/) |
+| 迭代 | [change/](./change/)（含 [2026-11-11 纸感 UI](./change/2026-11-11.md)） |
 
 ## 10. 常见问题（FAQ）
 

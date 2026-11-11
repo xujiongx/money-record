@@ -1,6 +1,6 @@
 # 家庭记账（Next.js 移动端 + Supabase）
 
-布布与一二共用的家庭账本：移动端视口、橙粉渐变 UI、多家庭编码隔离、收支记账、成员统计与图表；成员页「更多功能」含**大事记账**（与日常流水隔离）。
+布布与一二共用的家庭账本：移动端视口、家用账本纸感 UI（扁平细线面板、Noto Serif SC 标题、可切换颜色主题）、多家庭编码隔离、收支记账、成员统计与图表；成员页标题右侧进**颜色主题**二级页（本机偏好）；「更多功能」含**大事记账**（与日常流水隔离）。
 
 ## 技术栈
 
@@ -8,6 +8,10 @@
 - Supabase（PostgreSQL）
 - Recharts、Framer Motion、[lucide-react](https://lucide.dev/)（统一图标）、[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)（路由页过渡：Tab 用 fade、详情钻入用 drill）、date-fns、[react-mobile-picker](https://github.com/adcentury/react-mobile-picker)（记账发生时间滚轮：年/月/日/时/分）、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
 - **小布助手**：底部导航外的可拖动入口；多轮对话、结构化记账（自动识别支出/收入与分类，对不上归「其他」，信息够则直接入账、不先追问或「确认再记」）、**本月小结**与**本年小结**；每轮结合数据库快照生成事实块，弱化历史气泡里的旧数字。出站 LLM 经 `lib/foundation/llm`：**`MISTRAL_API_KEY` 与 `OPEN_ROUTER_API_KEY` 至少配置其一**（同时配置时优先 Mistral，失败则走 OpenRouter）。可选 **Web Speech** 播报（`lib/foundation/tts`）与语音输入（`lib/foundation/asr`），环境变量见 `.env.example`，模块说明见 [`lib/foundation/README.md`](./lib/foundation/README.md)
+
+![家庭记账技术架构](./docs/architecture-diagram/household-ledger-stack.png)
+
+自包含交互版：[household-ledger-stack.html](./docs/architecture-diagram/household-ledger-stack.html) · [深色 PNG](./docs/architecture-diagram/household-ledger-stack-dark.png) · 说明见 [docs/architecture.md](./docs/architecture.md)
 
 ## 本地运行
 

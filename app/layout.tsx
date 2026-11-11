@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Serif_SC } from "next/font/google";
 import { MobileShell } from "@/components/common/MobileShell";
+import { ThemeBootstrap } from "@/components/common/ThemeBootstrap";
 import { SsgoiProvider } from "@/app/ssgoi-provider";
 import {
   APP_DESCRIPTION,
@@ -17,6 +18,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoSerifSc = Noto_Serif_SC({
+  variable: "--font-noto-serif-sc",
+  subsets: ["latin"],
+  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -51,9 +58,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html
+      lang="zh-CN"
+      data-theme="warm"
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSc.variable} h-full`}
+      suppressHydrationWarning
+    >
       <body className="min-h-dvh antialiased">
-        <div className="relative z-0 mx-auto min-h-dvh w-full min-w-0 max-w-md overflow-x-clip bg-[#fff7f5] shadow-xl shadow-orange-950/10">
+        <ThemeBootstrap />
+        <div className="paper-texture relative z-0 mx-auto min-h-dvh w-full min-w-0 max-w-md overflow-x-clip shadow-sm shadow-stone-900/5">
           <SsgoiProvider>
             <MobileShell>{children}</MobileShell>
           </SsgoiProvider>

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { createTransaction } from "@/app/actions/ledger";
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
@@ -114,24 +113,18 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
     <>
     <div className="min-w-0 space-y-5">
       <header>
-        <p className="text-sm font-medium text-white/90">快速记账</p>
-        <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
-          记一笔
-        </h1>
+        <h1 className="page-title text-2xl">记一笔</h1>
+        <p className="mt-1 text-sm text-stone-500">写进家里的账本</p>
       </header>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="min-w-0 max-w-full rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
-      >
-        <div className="flex rounded-2xl bg-stone-100/80 p-1">
+      <div className="paper-panel min-w-0 max-w-full p-4">
+        <div className="flex rounded-lg border border-[var(--line)] bg-background p-1">
           <button
             type="button"
             onClick={() => onTypeChange("expense")}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+            className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
               type === "expense"
-                ? "bg-white text-rose-600 shadow-sm"
+                ? "bg-expense text-paper"
                 : "text-stone-500"
             }`}
           >
@@ -140,9 +133,9 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           <button
             type="button"
             onClick={() => onTypeChange("income")}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+            className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
               type === "income"
-                ? "bg-white text-emerald-600 shadow-sm"
+                ? "bg-income text-paper"
                 : "text-stone-500"
             }`}
           >
@@ -159,7 +152,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-2xl font-bold text-stone-800 outline-none ring-orange-200 focus:ring-2"
+          className="mt-1 w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-3 text-2xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
         />
 
         <label className="mt-4 block text-xs font-medium text-stone-500">
@@ -171,10 +164,8 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
               key={c}
               type="button"
               onClick={() => setCategory(c)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition active:scale-[0.98] ${
-                category === c
-                  ? "bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-md"
-                  : "bg-stone-100 text-stone-600"
+              className={`chip active:scale-[0.98] ${
+                category === c ? "chip-active" : ""
               }`}
             >
               {c}
@@ -190,7 +181,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
             type="datetime-local"
             value={occurredAt}
             onChange={(e) => setOccurredAt(e.target.value)}
-            className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
+            className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-lg border border-[var(--line)] bg-paper px-2 py-2.5 text-base leading-normal text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 sm:px-4"
           />
         </div>
 
@@ -201,14 +192,14 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
               key={m.id}
               type="button"
               onClick={() => setMemberId(m.id)}
-              className={`flex flex-1 flex-col items-center rounded-2xl border-2 py-3 transition active:scale-[0.98] ${
+              className={`flex flex-1 flex-col items-center rounded-xl border py-3 transition active:scale-[0.98] ${
                 memberId === m.id
-                  ? "border-orange-400 bg-orange-50/80"
-                  : "border-transparent bg-stone-50"
+                  ? "border-accent bg-accent-soft/60"
+                  : "border-[var(--line)] bg-background"
               }`}
             >
               <MemberAvatar name={m.name} avatarUrl={m.avatar_url} size="sm" />
-              <span className="mt-2 text-sm font-medium text-stone-800">
+              <span className="mt-2 text-sm font-medium text-ink">
                 {m.name}
               </span>
             </button>
@@ -223,7 +214,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           placeholder="写点什么…"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+          className="mt-1 w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
         />
         <NoteHistoryTags
           category={category}
@@ -232,7 +223,7 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
         />
 
         {error && (
-          <p className="mt-3 text-sm text-rose-600" role="alert">
+          <p className="mt-3 text-sm text-expense" role="alert">
             {error}
           </p>
         )}
@@ -241,11 +232,11 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
           type="button"
           disabled={pending}
           onClick={submit}
-          className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/35 transition active:scale-[0.98] disabled:opacity-60"
+          className="btn-primary mt-6"
         >
           {pending ? "保存中…" : "保存记录"}
         </button>
-      </motion.div>
+      </div>
     </div>
     <RecordSuccessDialog open={successOpen} onClose={() => setSuccessOpen(false)} />
     </>
@@ -287,7 +278,7 @@ function RecordSuccessDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex w-full max-w-[100dvw] items-center justify-center overflow-x-hidden overscroll-none bg-black/40 p-4 touch-none sm:touch-auto"
+      className="fixed inset-0 z-[100] flex w-full max-w-[100dvw] items-center justify-center overflow-x-hidden overscroll-none bg-stone-900/35 p-4 touch-none sm:touch-auto"
       role="presentation"
       onClick={onClose}
     >
@@ -295,12 +286,12 @@ function RecordSuccessDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="record-success-title"
-        className="w-full max-w-sm min-w-0 touch-pan-y overflow-hidden rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-stone-200"
+        className="paper-panel w-full max-w-sm min-w-0 touch-pan-y overflow-hidden p-6 shadow-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col items-center text-center">
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d1fae5] text-income"
             aria-hidden
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
@@ -315,17 +306,17 @@ function RecordSuccessDialog({
           </div>
           <h2
             id="record-success-title"
-            className="mt-4 text-lg font-semibold text-stone-800"
+            className="page-title mt-4 text-lg"
           >
-            保存成功
+            记好了
           </h2>
           <p className="mt-2 text-sm text-stone-500">
-            该笔记录已保存，可继续记账。
+            已写入账本，可以继续记。
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition active:scale-[0.98]"
+            className="btn-primary mt-6"
           >
             知道了
           </button>

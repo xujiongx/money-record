@@ -62,13 +62,13 @@ export function ChatPanelFooter({
         onTranscript={onInputChange}
         onListeningChange={onListeningChange}
       >
-        <div className="shrink-0 border-t border-orange-100/80 bg-gradient-to-t from-orange-50/50 to-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="shrink-0 border-t border-[var(--line)] bg-paper px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
           <div className="mb-3 grid grid-cols-2 gap-2">
             <button
               type="button"
               disabled={busy}
               aria-label="帮我生成本月小结"
-              className="flex items-center justify-center gap-1.5 rounded-2xl border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 px-2 py-2.5 text-xs font-medium text-orange-800 shadow-sm transition hover:border-orange-300 hover:from-orange-100/80 hover:to-amber-50 disabled:opacity-45 sm:text-sm"
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-background px-2 py-2.5 text-xs font-medium text-ink transition hover:bg-accent-soft disabled:opacity-45 sm:text-sm"
               onClick={onMonthlyShortcut}
             >
               <svg
@@ -76,7 +76,7 @@ export function ChatPanelFooter({
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="shrink-0 text-orange-500"
+                className="shrink-0 text-accent"
                 aria-hidden
               >
                 <path
@@ -98,7 +98,7 @@ export function ChatPanelFooter({
               type="button"
               disabled={busy}
               aria-label="帮我生成本年小结"
-              className="flex items-center justify-center gap-1.5 rounded-2xl border border-amber-200/90 bg-gradient-to-r from-amber-50 to-yellow-50/90 px-2 py-2.5 text-xs font-medium text-amber-900 shadow-sm transition hover:border-amber-300 hover:from-amber-100/70 hover:to-yellow-50 disabled:opacity-45 sm:text-sm"
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-background px-2 py-2.5 text-xs font-medium text-ink transition hover:bg-accent-soft disabled:opacity-45 sm:text-sm"
               onClick={onYearlyShortcut}
             >
               <svg
@@ -106,7 +106,7 @@ export function ChatPanelFooter({
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="shrink-0 text-amber-600"
+                className="shrink-0 text-accent"
                 aria-hidden
               >
                 <path
@@ -143,7 +143,7 @@ export function ChatPanelFooter({
                     ? "正在听…说完后点麦克风结束"
                     : "和小布说点什么…"
                 }
-                className="min-w-0 flex-1 rounded-2xl border border-stone-200/90 bg-white px-3.5 py-2.5 text-sm text-stone-800 shadow-inner shadow-stone-100 outline-none ring-orange-200/50 transition placeholder:text-stone-400 focus:border-orange-300 focus:ring-2"
+                className="min-w-0 flex-1 rounded-lg border border-[var(--line)] bg-paper px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-stone-400 focus:border-accent focus:ring-2 focus:ring-accent/25"
                 disabled={busy || voiceListening}
                 autoComplete="off"
               />
@@ -151,7 +151,7 @@ export function ChatPanelFooter({
               <button
                 type="submit"
                 disabled={busy || !input.trim() || voiceListening}
-                className="shrink-0 rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-300/40 transition hover:brightness-105 disabled:opacity-40"
+                className="shrink-0 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-paper transition active:scale-[0.97] disabled:opacity-40"
               >
                 发送
               </button>

@@ -25,25 +25,17 @@ export function ChatPanelHeader({
   const showTransport = ttsSession === "playing" || ttsSession === "paused";
 
   return (
-    <header className="relative shrink-0 overflow-hidden border-b border-orange-100/90 bg-gradient-to-r from-orange-50 via-white to-pink-50/90 px-4 py-3.5">
-      <div
-        className="pointer-events-none absolute -right-8 -top-12 h-36 w-36 rounded-full bg-orange-200/25 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-pink-200/20 blur-2xl"
-        aria-hidden
-      />
+    <header className="relative shrink-0 border-b border-[var(--line)] bg-paper px-4 py-3.5">
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white/95 shadow-lg shadow-orange-200/40 ring-1 ring-orange-100/80">
+          <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--line)] bg-background">
             <ChatBotMascot variant="header" className="absolute inset-0" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <h2
                 id="chatbot-title"
-                className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-base font-semibold text-transparent"
+                className="page-title text-base"
               >
                 小布助手
               </h2>
@@ -55,14 +47,14 @@ export function ChatPanelHeader({
                     aria-checked={ttsEnabled}
                     aria-label={ttsEnabled ? "关闭语音播报" : "开启语音播报"}
                     onClick={() => onTtsEnabledChange(!ttsEnabled)}
-                    className={`inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-stone-200/80 px-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400 ${
+                    className={`inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-[var(--line)] px-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                       ttsEnabled
-                        ? "justify-end bg-orange-400/90 shadow-inner shadow-orange-600/20"
+                        ? "justify-end bg-accent"
                         : "justify-start bg-stone-200/90"
                     }`}
                   >
                     <span
-                      className="pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm"
+                      className="pointer-events-none block h-4 w-4 rounded-full bg-paper shadow-sm"
                       aria-hidden
                     />
                   </button>
@@ -79,7 +71,7 @@ export function ChatPanelHeader({
                   <button
                     type="button"
                     onClick={onTtsPause}
-                    className="rounded-full border border-orange-200/90 bg-white/90 px-2.5 py-1 text-xs font-medium text-orange-800 shadow-sm transition hover:bg-orange-50"
+                    className="rounded-lg border border-[var(--line)] bg-paper px-2.5 py-1 text-xs font-medium text-accent transition hover:bg-accent-soft"
                   >
                     暂停播报
                   </button>
@@ -87,7 +79,7 @@ export function ChatPanelHeader({
                   <button
                     type="button"
                     onClick={onTtsResume}
-                    className="rounded-full border border-orange-200/90 bg-white/90 px-2.5 py-1 text-xs font-medium text-orange-800 shadow-sm transition hover:bg-orange-50"
+                    className="rounded-lg border border-[var(--line)] bg-paper px-2.5 py-1 text-xs font-medium text-accent transition hover:bg-accent-soft"
                   >
                     继续播报
                   </button>
@@ -98,7 +90,7 @@ export function ChatPanelHeader({
         </div>
         <button
           type="button"
-          className="shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium text-stone-500 transition hover:bg-white/80 hover:text-stone-700"
+          className="shrink-0 rounded-lg px-3.5 py-1.5 text-sm font-medium text-stone-500 transition hover:bg-background hover:text-ink"
           onClick={onClose}
         >
           关闭

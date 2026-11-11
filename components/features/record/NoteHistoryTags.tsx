@@ -57,7 +57,7 @@ function NoteHistoryRow({
           key={`${e.category}-${e.note}-${e.usedAt}`}
           type="button"
           onClick={() => onSelect(e.note)}
-          className="shrink-0 max-w-48 truncate rounded-full bg-stone-100 px-3 py-1 text-xs font-medium text-stone-600 transition active:scale-[0.98] hover:bg-orange-50 hover:text-orange-700"
+          className="chip shrink-0 max-w-48 truncate !py-1 text-xs transition active:scale-[0.98] hover:bg-accent-soft hover:text-accent"
           title={e.note}
         >
           {e.note}

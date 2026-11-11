@@ -149,13 +149,13 @@ export function EditTransactionModal({
         </div>
 
         <div className="min-w-0 space-y-4 p-4 pb-6">
-          <div className="flex rounded-2xl bg-stone-100/80 p-1">
+          <div className="flex rounded-lg border border-[var(--line)] bg-background p-1">
             <button
               type="button"
               onClick={() => onTypeChange("expense")}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+              className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
                 type === "expense"
-                  ? "bg-white text-rose-600 shadow-sm"
+                  ? "bg-expense text-paper"
                   : "text-stone-500"
               }`}
             >
@@ -164,9 +164,9 @@ export function EditTransactionModal({
             <button
               type="button"
               onClick={() => onTypeChange("income")}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+              className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
                 type === "income"
-                  ? "bg-white text-emerald-600 shadow-sm"
+                  ? "bg-income text-paper"
                   : "text-stone-500"
               }`}
             >
@@ -182,7 +182,7 @@ export function EditTransactionModal({
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-xl font-bold text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-3 text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           />
 
           <label className="block text-xs font-medium text-stone-500">
@@ -194,10 +194,8 @@ export function EditTransactionModal({
                 key={c}
                 type="button"
                 onClick={() => setCategory(c)}
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition active:scale-[0.98] ${
-                  category === c
-                    ? "bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-md"
-                    : "bg-stone-100 text-stone-600"
+                className={`chip active:scale-[0.98] ${
+                  category === c ? "chip-active" : ""
                 }`}
               >
                 {c}
@@ -213,7 +211,7 @@ export function EditTransactionModal({
               type="datetime-local"
               value={occurredAt}
               onChange={(e) => setOccurredAt(e.target.value)}
-              className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
+              className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-lg border border-[var(--line)] bg-paper px-2 py-2.5 text-base leading-normal text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25 sm:px-4"
             />
           </div>
 
@@ -224,10 +222,10 @@ export function EditTransactionModal({
                 key={m.id}
                 type="button"
                 onClick={() => setMemberId(m.id)}
-                className={`flex flex-1 flex-col items-center rounded-2xl border-2 py-3 transition active:scale-[0.98] ${
+                className={`flex flex-1 flex-col items-center rounded-xl border py-3 transition active:scale-[0.98] ${
                   memberId === m.id
-                    ? "border-orange-400 bg-orange-50/80"
-                    : "border-transparent bg-stone-50"
+                    ? "border-accent bg-accent-soft/60"
+                    : "border-[var(--line)] bg-background"
                 }`}
               >
                 <MemberAvatar name={m.name} avatarUrl={m.avatar_url} size="sm" />
@@ -245,7 +243,7 @@ export function EditTransactionModal({
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-2.5 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           />
           <NoteHistoryTags
             category={category}
@@ -254,7 +252,7 @@ export function EditTransactionModal({
           />
 
           {error && (
-            <p className="text-sm text-rose-600" role="alert">
+            <p className="text-sm text-expense" role="alert">
               {error}
             </p>
           )}
@@ -263,7 +261,7 @@ export function EditTransactionModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-2xl border border-stone-200 py-3 text-sm font-semibold text-stone-600 transition hover:bg-stone-50"
+              className="flex-1 rounded-lg border border-[var(--line)] py-3 text-sm font-semibold text-stone-600 transition hover:bg-background"
             >
               取消
             </button>
@@ -271,7 +269,7 @@ export function EditTransactionModal({
               type="button"
               disabled={pending}
               onClick={submit}
-              className="flex-1 rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] disabled:opacity-60"
+              className="btn-primary flex-1 !w-auto py-3 text-sm disabled:opacity-60"
             >
               {pending ? "保存中…" : "保存修改"}
             </button>

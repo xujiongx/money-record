@@ -206,8 +206,8 @@ export function MemberLedgerClient({
             }}
             className={`flex h-10 w-10 items-center justify-center rounded-xl transition active:scale-[0.97] ${
               searchOpen
-                ? "bg-orange-100 text-orange-600"
-                : "text-stone-600 hover:bg-orange-50"
+                ? "bg-accent-soft text-accent"
+                : "text-stone-600 hover:bg-accent-soft"
             }`}
             aria-label={searchOpen ? "关闭搜索" : "搜索账单"}
           >
@@ -220,7 +220,7 @@ export function MemberLedgerClient({
         }
       />
 
-      <div className="flex items-center gap-3 rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="flex items-center gap-3 paper-panel px-4 py-3">
         <MemberAvatar
           name={member.name}
           avatarUrl={member.avatar_url}
@@ -238,7 +238,7 @@ export function MemberLedgerClient({
         </div>
       </div>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
+      <section className="paper-panel p-4">
         {/* card header */}
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -266,7 +266,7 @@ export function MemberLedgerClient({
                 placeholder="搜索分类、备注、金额…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-8 pr-3 text-sm text-stone-800 placeholder-stone-400 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+                className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-8 pr-3 text-sm text-stone-800 placeholder-stone-400 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
 
@@ -279,10 +279,10 @@ export function MemberLedgerClient({
                   className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
                     typeFilter === t
                       ? t === "income"
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-[#d1fae5] text-income"
                         : t === "expense"
-                          ? "bg-rose-100 text-rose-800"
-                          : "bg-orange-100 text-orange-800"
+                          ? "bg-[#ffe4e6] text-expense"
+                          : "bg-accent-soft text-accent"
                       : "bg-stone-100 text-stone-500 hover:bg-stone-200"
                   }`}
                 >
@@ -297,7 +297,7 @@ export function MemberLedgerClient({
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 aria-label="按分类筛选"
-                className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+                className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
               >
                 <option value="">全部分类</option>
                 {categories.map((c) => (
@@ -312,14 +312,14 @@ export function MemberLedgerClient({
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
               <span className="shrink-0 text-xs text-stone-400">至</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
+                className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-700 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
 
@@ -332,7 +332,7 @@ export function MemberLedgerClient({
                   setDateFrom("");
                   setDateTo("");
                 }}
-                className="text-xs text-orange-500 hover:underline"
+                className="text-xs text-accent hover:underline"
               >
                 清除全部筛选
               </button>
@@ -383,8 +383,8 @@ export function MemberLedgerClient({
                         <span
                           className={
                             isIn
-                              ? "shrink-0 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
-                              : "shrink-0 rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800"
+                              ? "shrink-0 rounded-md bg-[#d1fae5] px-1.5 py-0.5 text-[10px] font-semibold text-income"
+                              : "shrink-0 rounded-md bg-[#ffe4e6] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
                           }
                         >
                           {isIn ? "收入" : "支出"}
@@ -403,7 +403,7 @@ export function MemberLedgerClient({
                     </div>
                     <span
                       className={`shrink-0 self-start pt-0.5 text-right text-sm font-bold tabular-nums tracking-tight ${
-                        isIn ? "text-emerald-600" : "text-rose-600"
+                        isIn ? "text-income" : "text-expense"
                       }`}
                     >
                       {isIn ? "+" : "-"}

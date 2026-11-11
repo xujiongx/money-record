@@ -14,20 +14,7 @@ import {
 import { dailyMemberTypeSeries } from "@/lib/ledger/daily-breakdown";
 import { formatMoney } from "@/lib/ledger/format";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
-
-const MEMBER_COLORS = [
-  "#f472b6",
-  "#a78bfa",
-  "#34d399",
-  "#fbbf24",
-  "#60a5fa",
-  "#f87171",
-];
-
-const TOTAL_COLOR: Record<LedgerType, string> = {
-  expense: "#f97316",
-  income: "#3b82f6",
-};
+import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 type ChartTab = LedgerType;
 
@@ -43,6 +30,12 @@ export function AnalysisDailyTrendChart({
   rangeEnd: Date;
 }) {
   const [tab, setTab] = useState<ChartTab>("expense");
+  const {
+    series: MEMBER_COLORS,
+    trendExpense,
+    trendIncome,
+  } = useThemeChartColors();
+  const totalColor = tab === "expense" ? trendExpense : trendIncome;
 
   const series = useMemo(
     () =>
@@ -77,7 +70,7 @@ export function AnalysisDailyTrendChart({
   );
 
   return (
-    <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+    <div className="paper-panel p-4">
       <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold text-stone-800">每日趋势</h2>
@@ -150,7 +143,7 @@ export function AnalysisDailyTrendChart({
                 type="monotone"
                 dataKey="total"
                 name="总额"
-                stroke={TOTAL_COLOR[tab]}
+                stroke={totalColor}
                 strokeWidth={2.25}
                 dot={false}
                 activeDot={{ r: 4 }}

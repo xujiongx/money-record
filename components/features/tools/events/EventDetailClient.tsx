@@ -157,16 +157,16 @@ export function EventDetailClient({
           <Link
             href={`/tools/events/${event.id}/analysis`}
             aria-label="分析"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-orange-600 transition hover:bg-orange-50 active:scale-[0.97]"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-accent transition hover:bg-accent-soft active:scale-[0.97]"
           >
             <BarChart3 className="size-5" strokeWidth={2.25} aria-hidden />
           </Link>
         }
       />
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <p className="text-xs font-medium text-stone-500">项目总支出</p>
-        <p className="mt-1 text-2xl font-bold text-rose-600">
+        <p className="mt-1 text-2xl font-bold text-expense">
           {formatMoney(summary.total)}
         </p>
         <p className="mt-1 text-xs text-stone-500">共 {summary.count} 笔</p>
@@ -186,7 +186,7 @@ export function EventDetailClient({
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">记一笔支出</h2>
 
         <p className="mt-3 text-xs font-medium text-stone-500">成员</p>
@@ -198,7 +198,7 @@ export function EventDetailClient({
               onClick={() => setMemberId(m.id)}
               className={`flex flex-1 flex-col items-center rounded-2xl border-2 py-3 transition active:scale-[0.98] ${
                 memberId === m.id
-                  ? "border-orange-400 bg-orange-50/80"
+                  ? "border-accent bg-accent-soft/80"
                   : "border-transparent bg-stone-50"
               }`}
             >
@@ -219,14 +219,14 @@ export function EventDetailClient({
           placeholder="0.00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-xl font-bold text-stone-800 outline-none ring-orange-200 focus:ring-2"
+          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-xl font-bold text-stone-800 outline-none ring-accent/25 focus:ring-2"
         />
 
         <div className="mt-2 flex items-center justify-between gap-2">
           <span className="text-xs font-medium text-stone-500">分类</span>
           <Link
             href="/tools/events/categories"
-            className="text-xs font-medium text-orange-600 hover:text-orange-700"
+            className="text-xs font-medium text-accent hover:text-accent"
           >
             管理分类
           </Link>
@@ -237,7 +237,7 @@ export function EventDetailClient({
               暂无分类，请先
               <Link
                 href="/tools/events/categories"
-                className="mx-1 font-medium text-orange-600"
+                className="mx-1 font-medium text-accent"
               >
                 添加分类
               </Link>
@@ -250,7 +250,7 @@ export function EventDetailClient({
                 onClick={() => setCategory(c)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition active:scale-[0.98] ${
                   category === c
-                    ? "bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-md"
+                    ? "bg-accent text-paper"
                     : "bg-stone-100 text-stone-600"
                 }`}
               >
@@ -268,7 +268,7 @@ export function EventDetailClient({
             type="datetime-local"
             value={occurredAt}
             onChange={(e) => setOccurredAt(e.target.value)}
-            className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-orange-200 focus:ring-2 sm:px-4"
+            className="box-border col-span-1 min-h-11 min-w-0 w-full max-w-full rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-base leading-normal text-stone-800 outline-none ring-accent/25 focus:ring-2 sm:px-4"
           />
         </div>
 
@@ -280,11 +280,11 @@ export function EventDetailClient({
           placeholder="写点什么…"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+          className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-accent/25 focus:ring-2"
         />
 
         {error ? (
-          <p className="mt-3 text-sm text-rose-600" role="alert">
+          <p className="mt-3 text-sm text-expense" role="alert">
             {error}
           </p>
         ) : null}
@@ -293,7 +293,7 @@ export function EventDetailClient({
           type="button"
           disabled={pending}
           onClick={submitExpense}
-          className="mt-5 w-full rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/35 transition active:scale-[0.98] disabled:opacity-60"
+          className="btn-primary mt-5"
         >
           {pending ? "保存中…" : "保存支出"}
         </button>
@@ -302,7 +302,7 @@ export function EventDetailClient({
       <section className="space-y-3">
         <h2 className="px-0.5 text-sm font-semibold text-stone-800">支出明细</h2>
         {expenses.length === 0 ? (
-          <div className="rounded-2xl bg-white/95 p-5 text-center text-sm text-stone-500 ring-1 ring-orange-100/80">
+          <div className="paper-panel p-5 text-center text-sm text-stone-500 border border-[var(--line)]">
             暂无支出，记一笔吧
           </div>
         ) : (
@@ -310,7 +310,7 @@ export function EventDetailClient({
             {expenses.map((e) => (
               <li
                 key={e.id}
-                className="flex items-center gap-3 rounded-2xl bg-white/95 px-3 py-3 shadow-sm ring-1 ring-orange-100/80"
+                className="flex items-center gap-3 paper-panel px-3 py-3 shadow-sm border border-[var(--line)]"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -328,7 +328,7 @@ export function EventDetailClient({
                     {e.note ? ` · ${e.note}` : ""}
                   </p>
                 </div>
-                <p className="shrink-0 text-sm font-bold text-rose-600">
+                <p className="shrink-0 text-sm font-bold text-expense">
                   -{formatMoney(e.amount)}
                 </p>
                 <button
@@ -336,7 +336,7 @@ export function EventDetailClient({
                   aria-label="删除"
                   disabled={pending && deletingId === e.id}
                   onClick={() => onDeleteExpense(e.id)}
-                  className="flex size-9 shrink-0 items-center justify-center rounded-xl text-stone-400 transition hover:bg-rose-50 hover:text-rose-600"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl text-stone-400 transition hover:bg-[#ffe4e6] hover:text-expense"
                 >
                   <Trash2 className="size-4" aria-hidden />
                 </button>
@@ -350,7 +350,7 @@ export function EventDetailClient({
         type="button"
         disabled={pending}
         onClick={onDeleteEvent}
-        className="w-full rounded-2xl border border-rose-200 bg-white py-3 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+        className="w-full rounded-2xl border border-expense/30 bg-white py-3 text-sm font-medium text-expense transition hover:bg-[#ffe4e6] disabled:opacity-50"
       >
         删除此大事
       </button>

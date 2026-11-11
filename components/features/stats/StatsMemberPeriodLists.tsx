@@ -1,3 +1,5 @@
+"use client";
+
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";
@@ -5,15 +7,7 @@ import { SubpageHeader } from "@/components/common/SubpageHeader";
 import { categoryBreakdown } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import type { LedgerType, TransactionRow } from "@/lib/ledger/types";
-
-const COLORS = [
-  "#fb923c",
-  "#f472b6",
-  "#fbbf24",
-  "#a78bfa",
-  "#34d399",
-  "#60a5fa",
-];
+import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 function formatPercent(part: number, total: number) {
   if (total <= 0) return "0%";
@@ -33,8 +27,9 @@ function CategoryGroupedList({
   type: LedgerType;
   breakdown: { name: string; value: number; count: number }[];
 }) {
+  const { series: COLORS } = useThemeChartColors();
   const tone: "expense" | "income" = type === "expense" ? "expense" : "income";
-  const amountClass = tone === "expense" ? "text-rose-600" : "text-emerald-600";
+  const amountClass = tone === "expense" ? "text-expense" : "text-income";
   const prefix = tone === "expense" ? "-" : "+";
 
   if (rows.length === 0) {
@@ -58,7 +53,7 @@ function CategoryGroupedList({
             key={row.name}
             className="group overflow-hidden rounded-xl border border-stone-100 bg-stone-50/50 open:bg-stone-50/80"
           >
-            <summary className="flex cursor-pointer list-none items-start gap-2 bg-white/90 px-3 py-2.5 outline-none transition hover:bg-orange-50/30 focus-visible:ring-2 focus-visible:ring-orange-200/80 [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-start gap-2 bg-paper px-3 py-2.5 outline-none transition hover:bg-accent-soft/30 focus-visible:ring-2 focus-visible:ring-accent/25 [&::-webkit-details-marker]:hidden">
               <span
                 className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
@@ -141,7 +136,7 @@ export function StatsMemberPeriodLists({
         title="区间明细"
       />
 
-      <div className="rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel px-4 py-3">
         <p className="text-sm font-semibold text-stone-800">{memberName}</p>
         <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
           {rangeBounds}
@@ -151,7 +146,7 @@ export function StatsMemberPeriodLists({
         </p>
       </div>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">支出</h2>
         <p className="mt-1 text-[11px] text-stone-500">
           {expenses.length} 笔 · 合计 {formatMoney(expenseTotal)}
@@ -174,7 +169,7 @@ export function StatsMemberPeriodLists({
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">收入</h2>
         <p className="mt-1 text-[11px] text-stone-500">
           {incomes.length} 笔 · 合计 {formatMoney(incomeTotal)}

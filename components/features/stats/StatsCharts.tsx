@@ -31,16 +31,7 @@ import {
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
-
-const COLORS = [
-  "#fb923c",
-  "#f472b6",
-  "#fbbf24",
-  "#a78bfa",
-  "#34d399",
-  "#60a5fa",
-  "#f87171",
-];
+import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 function formatPercent(part: number, total: number) {
   if (total <= 0) return "0%";
@@ -66,6 +57,7 @@ export function StatsCharts({
   const [period, setPeriod] = useState<StatsPeriod>("month");
   /** 当前统计区间锚点（切换日/周/月/年时用「今天」重置） */
   const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const { series: COLORS } = useThemeChartColors();
 
   const { start: rangeStart, end: rangeEnd } = useMemo(
     () => getStatsDateRange(period, anchorDate),
@@ -124,25 +116,22 @@ export function StatsCharts({
     <div className="space-y-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-white/90">可视化分析</p>
-          <h1 className="mt-1 text-2xl font-bold text-white drop-shadow-sm">
-            收支统计
-          </h1>
-          <p className="mt-1 font-mono text-xs text-white/80">
-            家庭编码 {householdCode}
+          <h1 className="page-title text-2xl">这个月花在哪</h1>
+          <p className="mt-1 font-mono text-xs text-stone-500">
+            编码 {householdCode}
           </p>
         </div>
         <Link
           href="/stats/analysis"
-          className="mt-1 shrink-0 rounded-xl border border-white/30 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-white/30 active:scale-[0.97]"
+          className="mt-1 shrink-0 rounded-lg border border-[var(--line)] bg-paper px-3 py-2 text-sm font-semibold text-accent transition hover:bg-accent-soft active:scale-[0.97]"
         >
           分析
         </Link>
       </header>
 
-      <div className="rounded-2xl bg-white/95 p-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-3">
         <p className="text-center text-xs font-medium text-stone-500">
-          统计维度
+          看哪一段时间
         </p>
         <div className="mt-2 grid grid-cols-4 gap-1.5">
           {PERIOD_TABS.map(({ id, label }) => (
@@ -153,10 +142,10 @@ export function StatsCharts({
                 setPeriod(id);
                 setAnchorDate(new Date());
               }}
-              className={`rounded-xl py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
+              className={`rounded-lg py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
                 period === id
-                  ? "bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-md"
-                  : "bg-stone-100 text-stone-600"
+                  ? "bg-accent text-paper"
+                  : "bg-background text-stone-600"
               }`}
             >
               {label}
@@ -195,7 +184,7 @@ export function StatsCharts({
         <button
           type="button"
           onClick={() => setAnchorDate(new Date())}
-          className="mt-2 w-full rounded-lg py-2 text-xs font-medium text-orange-600 transition hover:bg-orange-50"
+          className="mt-2 w-full rounded-lg py-2 text-xs font-medium text-accent transition hover:bg-accent-soft"
         >
           回到今天
         </button>
@@ -205,7 +194,7 @@ export function StatsCharts({
         </p>
       </div>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">本区间汇总</h2>
         <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
           {formatStatsRangeBounds(rangeStart, rangeEnd)}
@@ -222,7 +211,7 @@ export function StatsCharts({
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">成员明细（本区间）</h2>
         <p className="mt-1 text-[11px] text-stone-500">
           按成员汇总收支；有记账时可进入区间明细
@@ -240,13 +229,13 @@ export function StatsCharts({
                 {totalMemberTx > 0 ? (
                   <Link
                     href={detailHref}
-                    className="block rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px] text-stone-800 transition active:scale-[0.99] hover:border-orange-200 hover:bg-orange-50/40"
+                    className="block rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2 text-[12px] text-stone-800 transition active:scale-[0.99] hover:border-accent/30 hover:bg-accent-soft/40"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium">{m.name}</span>
                       <span
                         className={`shrink-0 text-[11px] font-semibold tabular-nums ${
-                          net >= 0 ? "text-emerald-700" : "text-rose-700"
+                          net >= 0 ? "text-income" : "text-expense"
                         }`}
                       >
                         净额 {formatMoney(net)}
@@ -262,7 +251,7 @@ export function StatsCharts({
                         <span className="text-stone-400"> · {m.incomeCount} 笔</span>
                       </span>
                     </div>
-                    <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-orange-600">
+                    <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-accent">
                       查看收支明细
                       <ChevronRight className="size-3" strokeWidth={2.5} aria-hidden />
                     </p>
@@ -273,7 +262,7 @@ export function StatsCharts({
                       <span className="font-medium text-stone-800">{m.name}</span>
                       <span
                         className={`shrink-0 text-[11px] font-semibold tabular-nums ${
-                          net >= 0 ? "text-emerald-700" : "text-rose-700"
+                          net >= 0 ? "text-income" : "text-expense"
                         }`}
                       >
                         净额 {formatMoney(net)}
@@ -454,7 +443,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+    <section className="paper-panel p-4">
       <h2 className="text-sm font-semibold text-stone-800">{title}</h2>
       {subtitle ? (
         <p className="mt-1 text-[11px] leading-relaxed text-stone-500">{subtitle}</p>
@@ -475,14 +464,14 @@ function SummaryTile({
 }) {
   const toneClass =
     tone === "income"
-      ? "text-emerald-700"
+      ? "text-income"
       : tone === "expense"
-        ? "text-rose-700"
+        ? "text-expense"
         : value >= 0
-          ? "text-emerald-700"
-          : "text-rose-700";
+          ? "text-income"
+          : "text-expense";
   return (
-    <div className="rounded-xl border border-stone-100 bg-stone-50/90 px-3 py-2.5">
+    <div className="rounded-lg border border-[var(--line)] bg-background px-3 py-2.5">
       <p className="text-[11px] font-medium text-stone-500">{label}</p>
       <p className={`mt-0.5 text-base font-bold tabular-nums ${toneClass}`}>
         {formatMoney(value)}

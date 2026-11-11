@@ -99,7 +99,7 @@ export function SwipeTransactionRow({
       >
         <button
           type='button'
-          className='flex flex-1 items-center justify-center bg-orange-500 text-xs font-semibold text-white transition active:bg-orange-600'
+          className='flex flex-1 items-center justify-center bg-accent text-xs font-semibold text-paper transition active:bg-accent'
           onClick={() => {
             closeRow();
             onEdit();
@@ -109,7 +109,7 @@ export function SwipeTransactionRow({
         </button>
         <button
           type='button'
-          className='flex flex-1 items-center justify-center border-l border-white/25 bg-rose-600 text-xs font-semibold text-white transition active:bg-rose-700'
+          className='flex flex-1 items-center justify-center border-l border-white/25 bg-expense text-xs font-semibold text-paper transition active:brightness-95'
           onClick={() => {
             closeRow();
             onDelete();
@@ -121,7 +121,7 @@ export function SwipeTransactionRow({
 
       {/* 前景必须不透明且铺满行宽，否则会与金额、底层按钮叠色 */}
       <div
-        className={`relative z-10 w-full min-w-0 select-none bg-white shadow-[4px_0_12px_-8px_rgba(0,0,0,0.12)] touch-pan-y ${
+        className={`relative z-10 w-full min-w-0 select-none bg-paper shadow-[4px_0_12px_-8px_rgba(0,0,0,0.08)] touch-pan-y ${
           dragging ? '' : 'transition-[transform] duration-200 ease-out'
         }`}
         style={{ transform: `translate3d(${tx}px,0,0)` }}

@@ -1,19 +1,123 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="warm"] {
+  /* 橙粉暖意（默认） */
   --background: #fff7f5;
   --foreground: #1c1917;
+  --paper: #ffffff;
+  --ink: #1c1917;
+  --accent: #fb923c;
+  --accent-soft: #ffedd5;
+  --accent-pink: #ec4899;
+  --income: #059669;
+  --expense: #e11d48;
+  --line: rgba(28, 25, 23, 0.1);
+  --header-wash: #ffe4d6;
   --gradient-from: #fb923c;
+  --gradient-mid: #f97316;
   --gradient-to: #ec4899;
-  /* iOS 主屏幕 Web App 路由切换时，避免 html 默认白底闪一下 */
   color-scheme: light;
+}
+
+[data-theme="clay"] {
+  --background: #f6f1e8;
+  --foreground: #2a241c;
+  --paper: #fffdf8;
+  --ink: #2a241c;
+  --accent: #c45c26;
+  --accent-soft: #f0ddd0;
+  --accent-pink: #8b6b4a;
+  --income: #3f6b4f;
+  --expense: #a63d40;
+  --line: rgba(42, 36, 28, 0.1);
+  --header-wash: #ebe4d8;
+  --gradient-from: #c45c26;
+  --gradient-mid: #a84e20;
+  --gradient-to: #8b6b4a;
+}
+
+[data-theme="moss"] {
+  --background: #f3f7f2;
+  --foreground: #1c241c;
+  --paper: #ffffff;
+  --ink: #1c241c;
+  --accent: #5f8f6b;
+  --accent-soft: #dde9e0;
+  --accent-pink: #3f6b4f;
+  --income: #2f6b45;
+  --expense: #b4534a;
+  --line: rgba(28, 36, 28, 0.1);
+  --header-wash: #e2eee4;
+  --gradient-from: #5f8f6b;
+  --gradient-mid: #4d7a58;
+  --gradient-to: #3f6b4f;
+}
+
+[data-theme="ocean"] {
+  --background: #f2f7fb;
+  --foreground: #0f172a;
+  --paper: #ffffff;
+  --ink: #0f172a;
+  --accent: #3b82f6;
+  --accent-soft: #dbeafe;
+  --accent-pink: #0ea5e9;
+  --income: #0d9488;
+  --expense: #e11d48;
+  --line: rgba(15, 23, 42, 0.1);
+  --header-wash: #dbeafe;
+  --gradient-from: #3b82f6;
+  --gradient-mid: #2563eb;
+  --gradient-to: #0ea5e9;
+}
+
+[data-theme="grape"] {
+  --background: #faf5ff;
+  --foreground: #1e1b2e;
+  --paper: #ffffff;
+  --ink: #1e1b2e;
+  --accent: #a855f7;
+  --accent-soft: #f3e8ff;
+  --accent-pink: #ec4899;
+  --income: #059669;
+  --expense: #e11d48;
+  --line: rgba(30, 27, 46, 0.1);
+  --header-wash: #f3e8ff;
+  --gradient-from: #a855f7;
+  --gradient-mid: #9333ea;
+  --gradient-to: #ec4899;
+}
+
+[data-theme="ink"] {
+  --background: #f4f5f7;
+  --foreground: #0f172a;
+  --paper: #ffffff;
+  --ink: #0f172a;
+  --accent: #334155;
+  --accent-soft: #e2e8f0;
+  --accent-pink: #64748b;
+  --income: #0f766e;
+  --expense: #be123c;
+  --line: rgba(15, 23, 42, 0.1);
+  --header-wash: #e2e8f0;
+  --gradient-from: #334155;
+  --gradient-mid: #475569;
+  --gradient-to: #64748b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-pink: var(--accent-pink);
+  --color-income: var(--income);
+  --color-expense: var(--expense);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-noto-serif-sc);
 }
 
 html {
@@ -24,17 +128,102 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  /* 减轻 iOS 独立 WebView 整页橡皮筋与底部栏区域的抖动感 */
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.gradient-header {
+.paper-texture {
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+.paper-header {
   background: linear-gradient(
-    135deg,
-    #fb923c 0%,
-    #f97316 35%,
-    #f472b6 70%,
-    #ec4899 100%
+    180deg,
+    var(--header-wash) 0%,
+    var(--background) 100%
   );
+}
+
+.paper-header-login {
+  background: linear-gradient(
+    160deg,
+    var(--gradient-from) 0%,
+    var(--gradient-mid) 40%,
+    var(--accent-pink) 75%,
+    var(--gradient-to) 100%
+  );
+}
+
+.paper-panel {
+  border-radius: 0.75rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.btn-primary {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    var(--gradient-from) 0%,
+    var(--gradient-mid) 45%,
+    var(--gradient-to) 100%
+  );
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  transition: transform 160ms ease-out, opacity 160ms ease-out;
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.chip-active {
+  border-color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--gradient-from) 0%,
+    var(--gradient-to) 100%
+  );
+  color: #ffffff;
+}
+
+.page-title {
+  font-family: var(--font-noto-serif-sc), ui-serif, Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.text-income {
+  color: var(--income);
+}
+
+.text-expense {
+  color: var(--expense);
 }

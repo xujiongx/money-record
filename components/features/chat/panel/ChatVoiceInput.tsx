@@ -146,8 +146,8 @@ export function ChatVoiceMicButton() {
       onClick={toggle}
       className={`flex size-[42px] shrink-0 items-center justify-center rounded-2xl border transition ${
         listening
-          ? "border-orange-400 bg-orange-100 text-orange-700 shadow-inner ring-2 ring-orange-300/60"
-          : "border-stone-200/90 bg-white text-stone-500 hover:border-orange-200 hover:text-orange-600"
+          ? "border-accent bg-accent-soft text-accent shadow-inner ring-2 ring-accent/40"
+          : "border-stone-200/90 bg-white text-stone-500 hover:border-accent/40 hover:text-accent"
       } disabled:opacity-40`}
     >
       <svg
@@ -155,7 +155,7 @@ export function ChatVoiceMicButton() {
         height="20"
         viewBox="0 0 24 24"
         fill="none"
-        className={listening ? "text-orange-600" : undefined}
+        className={listening ? "text-accent" : undefined}
         aria-hidden
       >
         <path

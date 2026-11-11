@@ -13,17 +13,7 @@ import type {
 } from "@/lib/events/types";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow } from "@/lib/ledger/types";
-
-const COLORS = [
-  "#fb923c",
-  "#f472b6",
-  "#fbbf24",
-  "#a78bfa",
-  "#34d399",
-  "#60a5fa",
-  "#f87171",
-  "#94a3b8",
-];
+import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 export function EventAnalysisClient({
   event,
@@ -34,6 +24,7 @@ export function EventAnalysisClient({
   expenses: MajorEventExpenseRow[];
   members: MemberRow[];
 }) {
+  const { series: COLORS } = useThemeChartColors();
   const summary = useMemo(() => summarizeEventExpenses(expenses), [expenses]);
   const categories = useMemo(
     () => eventCategoryBreakdown(expenses),
@@ -54,15 +45,15 @@ export function EventAnalysisClient({
         subtitle={event.title}
       />
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <p className="text-xs font-medium text-stone-500">项目总支出</p>
-        <p className="mt-1 text-2xl font-bold text-rose-600">
+        <p className="mt-1 text-2xl font-bold text-expense">
           {formatMoney(summary.total)}
         </p>
         <p className="mt-1 text-xs text-stone-500">共 {summary.count} 笔记录</p>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">成员对比</h2>
         <p className="mt-1 text-xs text-stone-500">按一二 / 布布等记账人汇总</p>
         <ul className="mt-4 space-y-3">
@@ -97,7 +88,7 @@ export function EventAnalysisClient({
         </ul>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">分类占比</h2>
         {categories.length === 0 ? (
           <p className="mt-3 text-sm text-stone-500">暂无数据</p>

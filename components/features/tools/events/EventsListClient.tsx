@@ -53,7 +53,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
             type="button"
             aria-label="新建事项"
             onClick={() => setOpen((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-orange-600 transition hover:bg-orange-50 active:scale-[0.97]"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-accent transition hover:bg-accent-soft active:scale-[0.97]"
           >
             <Plus className="size-6" strokeWidth={2.25} aria-hidden />
           </button>
@@ -62,9 +62,9 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
 
       <Link
         href="/tools/events/categories"
-        className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-white/95 px-4 py-3 text-sm font-medium text-stone-700 shadow-sm ring-1 ring-orange-100/80 transition hover:bg-orange-50/60 active:scale-[0.99]"
+        className="flex items-center gap-2 paper-panel px-4 py-3 text-sm font-medium text-ink transition hover:bg-accent-soft/60 active:scale-[0.99]"
       >
-        <Tags className="size-4 text-orange-500" aria-hidden />
+        <Tags className="size-4 text-accent" aria-hidden />
         管理支出分类
         <ChevronRight
           className="ml-auto size-4 text-stone-300"
@@ -74,7 +74,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
       </Link>
 
       {open ? (
-        <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <section className="paper-panel p-4">
           <h2 className="text-sm font-semibold text-stone-800">新建大事</h2>
           <label className="mt-3 block text-xs font-medium text-stone-500">
             事项名称
@@ -84,7 +84,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="例如：新房装修、婚礼筹备"
-            className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-accent/25 focus:ring-2"
           />
           <label className="mt-3 block text-xs font-medium text-stone-500">
             备注（可选）
@@ -94,10 +94,10 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="简要说明"
-            className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-accent/25 focus:ring-2"
           />
           {error ? (
-            <p className="mt-2 text-sm text-rose-600" role="alert">
+            <p className="mt-2 text-sm text-expense" role="alert">
               {error}
             </p>
           ) : null}
@@ -113,7 +113,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
               type="button"
               disabled={pending}
               onClick={submit}
-              className="flex-1 rounded-xl bg-gradient-to-r from-orange-400 to-pink-500 py-2.5 text-sm font-semibold text-white shadow-md disabled:opacity-60"
+              className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-semibold text-paper disabled:opacity-60"
             >
               {pending ? "创建中…" : "创建"}
             </button>
@@ -122,7 +122,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
       ) : null}
 
       {events.length === 0 ? (
-        <section className="rounded-2xl bg-white/95 p-6 text-center shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+        <section className="paper-panel p-6 text-center border border-[var(--line)]">
           <p className="text-sm font-medium text-stone-700">还没有大事</p>
           <p className="mt-1 text-xs text-stone-500">
             点击右上角 + 创建第一个大项目
@@ -130,7 +130,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="mt-4 inline-flex items-center gap-1 rounded-full bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700"
+            className="mt-4 inline-flex items-center gap-1 rounded-full bg-accent-soft px-4 py-2 text-sm font-medium text-accent"
           >
             <Plus className="size-4" aria-hidden />
             新建事项
@@ -142,7 +142,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
             <li key={ev.id}>
               <Link
                 href={`/tools/events/${ev.id}`}
-                className="flex items-center gap-3 rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 transition hover:bg-orange-50/60 active:scale-[0.99]"
+                className="flex items-center gap-3 paper-panel p-4 transition hover:bg-accent-soft/60 active:scale-[0.99]"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-sm font-bold text-rose-600">
+                  <p className="text-sm font-bold text-expense">
                     {formatMoney(ev.expense_total)}
                   </p>
                 </div>

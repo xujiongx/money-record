@@ -93,7 +93,7 @@ export function EventCategoriesClient({
         subtitle="大事记账专用"
       />
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">新增分类</h2>
         <div className="mt-3 flex gap-2">
           <input
@@ -101,13 +101,13 @@ export function EventCategoriesClient({
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="例如：装修、家具"
-            className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-orange-200 focus:ring-2"
+            className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-800 outline-none ring-accent/25 focus:ring-2"
           />
           <button
             type="button"
             disabled={pending || !newName.trim()}
             onClick={onCreate}
-            className="flex shrink-0 items-center gap-1 rounded-xl bg-gradient-to-r from-orange-400 to-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md disabled:opacity-60"
+            className="flex shrink-0 items-center gap-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-paper disabled:opacity-60"
           >
             <Plus className="size-4" aria-hidden />
             添加
@@ -118,7 +118,7 @@ export function EventCategoriesClient({
         </p>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">已有分类</h2>
         <ul className="mt-3 space-y-2">
           {categories.map((row) => {
@@ -135,14 +135,14 @@ export function EventCategoriesClient({
                       type="text"
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value)}
-                      className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm outline-none ring-orange-200 focus:ring-2"
+                      className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm outline-none ring-accent/25 focus:ring-2"
                       autoFocus
                     />
                     <button
                       type="button"
                       disabled={pending}
                       onClick={onSaveEdit}
-                      className="rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                      className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-paper disabled:opacity-60"
                     >
                       保存
                     </button>
@@ -169,7 +169,7 @@ export function EventCategoriesClient({
                       type="button"
                       aria-label={`编辑 ${row.name}`}
                       onClick={() => startEdit(row)}
-                      className="flex size-8 items-center justify-center rounded-lg text-stone-500 transition hover:bg-white hover:text-orange-600"
+                      className="flex size-8 items-center justify-center rounded-lg text-stone-500 transition hover:bg-white hover:text-accent"
                     >
                       <Pencil className="size-3.5" aria-hidden />
                     </button>
@@ -179,7 +179,7 @@ export function EventCategoriesClient({
                         aria-label={`删除 ${row.name}`}
                         disabled={pending}
                         onClick={() => onDelete(row)}
-                        className="flex size-8 items-center justify-center rounded-lg text-stone-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+                        className="flex size-8 items-center justify-center rounded-lg text-stone-400 transition hover:bg-[#ffe4e6] hover:text-expense disabled:opacity-50"
                       >
                         <Trash2 className="size-3.5" aria-hidden />
                       </button>
@@ -195,7 +195,7 @@ export function EventCategoriesClient({
       </section>
 
       {error ? (
-        <p className="text-sm text-rose-600" role="alert">
+        <p className="text-sm text-expense" role="alert">
           {error}
         </p>
       ) : null}

@@ -22,7 +22,7 @@ export function MarkdownText({ content, className = "" }: MarkdownTextProps) {
             <p className="mb-2 whitespace-pre-wrap last:mb-0">{children}</p>
           ),
           h1: ({ children }) => (
-            <h3 className="mb-1.5 mt-3 border-b border-orange-100/80 pb-1 text-base font-semibold first:mt-0">
+            <h3 className="mb-1.5 mt-3 border-b border-[var(--line)] pb-1 text-base font-semibold first:mt-0">
               {children}
             </h3>
           ),
@@ -46,17 +46,17 @@ export function MarkdownText({ content, className = "" }: MarkdownTextProps) {
           ),
           em: ({ children }) => <em className="italic">{children}</em>,
           blockquote: ({ children }) => (
-            <blockquote className="mb-2 border-l-[3px] border-orange-200/90 pl-2.5 text-stone-600 last:mb-0">
+            <blockquote className="mb-2 border-l-[3px] border-[var(--line)] pl-2.5 text-stone-600 last:mb-0">
               {children}
             </blockquote>
           ),
-          hr: () => <hr className="my-3 border-orange-100/90" />,
+          hr: () => <hr className="my-3 border-[var(--line)]" />,
           a: ({ href, children }) => (
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-orange-600 underline decoration-orange-300 underline-offset-2 hover:text-orange-700"
+              className="font-medium text-accent underline decoration-accent/40 underline-offset-2 hover:text-accent"
             >
               {children}
             </a>
@@ -77,7 +77,7 @@ export function MarkdownText({ content, className = "" }: MarkdownTextProps) {
               );
             }
             return (
-              <code className="rounded bg-orange-100/80 px-1 py-0.5 font-mono text-[0.9em] text-stone-800">
+              <code className="rounded bg-accent-soft/80 px-1 py-0.5 font-mono text-[0.9em] text-stone-800">
                 {children}
               </code>
             );

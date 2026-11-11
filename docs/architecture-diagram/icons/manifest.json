@@ -1,0 +1,122 @@
+{
+  "openai": {
+    "source": "gilbarbara",
+    "url": "https://cdn.jsdelivr.net/gh/gilbarbara/logos/logos/openai-icon.svg",
+    "file": "openai.svg",
+    "bytes": 3741
+  },
+  "zod": {
+    "source": "gilbarbara",
+    "url": "https://cdn.jsdelivr.net/gh/gilbarbara/logos/logos/zod.svg",
+    "file": "zod.svg",
+    "bytes": 2691
+  },
+  "vercel": {
+    "source": "devicon",
+    "url": "https://raw.githubusercontent.com/devicons/devicon/master/icons/vercel/vercel-original.svg",
+    "file": "vercel.svg",
+    "bytes": 113
+  },
+  "github": {
+    "source": "devicon",
+    "url": "https://raw.githubusercontent.com/devicons/devicon/master/icons/github/github-original.svg",
+    "file": "github.svg",
+    "bytes": 1866
+  },
+  "user": {
+    "source": "lucide",
+    "url": "https://cdn.jsdelivr.net/npm/lucide-static/icons/user.svg",
+    "file": "user.svg",
+    "bytes": 371
+  },
+  "middleware": {
+    "source": "lucide",
+    "url": "https://cdn.jsdelivr.net/npm/lucide-static/icons/shield.svg",
+    "file": "middleware.svg",
+    "bytes": 460
+  },
+  "actions": {
+    "source": "lucide",
+    "url": "https://cdn.jsdelivr.net/npm/lucide-static/icons/server.svg",
+    "file": "actions.svg",
+    "bytes": 487
+  },
+  "pwa": {
+    "source": "lucide",
+    "url": "https://cdn.jsdelivr.net/npm/lucide-static/icons/smartphone.svg",
+    "file": "pwa.svg",
+    "bytes": 372
+  },
+  "mistral": {
+    "source": "explicit",
+    "url": "manual/svgl",
+    "file": "mistral.svg",
+    "bytes": 1569
+  },
+  "openrouter": {
+    "source": "explicit",
+    "url": "manual/simpleicons",
+    "file": "openrouter.svg",
+    "bytes": 699
+  },
+  "recharts": {
+    "source": "explicit",
+    "url": "manual/github-avatar",
+    "file": "recharts.png",
+    "bytes": 3268
+  },
+  "ssgoi": {
+    "source": "explicit",
+    "url": "manual/ssgoi.dev",
+    "file": "ssgoi.png",
+    "bytes": 14910
+  },
+  "framer": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "framer.svg",
+    "bytes": 405
+  },
+  "lucide": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "lucide.svg",
+    "bytes": 643
+  },
+  "nextjs": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "nextjs.svg",
+    "bytes": 749
+  },
+  "postgresql": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "postgresql.svg",
+    "bytes": 9178
+  },
+  "react": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "react.svg",
+    "bytes": 2387
+  },
+  "supabase": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "supabase.svg",
+    "bytes": 1067
+  },
+  "tailwindcss": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "tailwindcss.svg",
+    "bytes": 689
+  },
+  "typescript": {
+    "source": "prior-fetch",
+    "url": "",
+    "file": "typescript.svg",
+    "bytes": 943
+  }
+}

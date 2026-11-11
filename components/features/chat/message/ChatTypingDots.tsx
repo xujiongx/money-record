@@ -13,7 +13,7 @@ export function ChatTypingDots() {
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
-          className="h-2 w-2 rounded-full bg-gradient-to-br from-orange-400 to-pink-400 shadow-sm"
+          className="h-2 w-2 rounded-full bg-accent"
           animate={{ y: [0, -5, 0], opacity: [0.45, 1, 0.45] }}
           transition={{
             duration: 0.75,

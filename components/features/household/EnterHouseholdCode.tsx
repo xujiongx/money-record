@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   createHouseholdAndLogin,
   setHouseholdSession,
@@ -127,7 +126,7 @@ export function EnterHouseholdCode() {
           value={d}
           onChange={(e) => onDigitChange(i, e.target.value)}
           onKeyDown={(e) => onKeyDown(i, e)}
-          className="h-12 w-10 rounded-xl border border-stone-200 text-center text-xl font-bold text-stone-800 outline-none ring-orange-300 focus:border-orange-400 focus:ring-2"
+          className="h-12 w-10 rounded-lg border border-[var(--line)] bg-paper text-center text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           aria-label={`第 ${i + 1} 位`}
         />
       ))}
@@ -138,26 +137,25 @@ export function EnterHouseholdCode() {
     <div className="flex min-h-[70vh] flex-col justify-center space-y-6 px-1">
       <header className="text-center">
         <div className="flex justify-center">
-          <AppLogo size={72} className="drop-shadow-md" />
+          <AppLogo size={72} />
         </div>
-        <p className="mt-4 text-sm font-medium text-white/90">欢迎使用</p>
-        <h1 className="mt-2 text-2xl font-bold text-white drop-shadow-sm">
-          家庭记账
+        <h1 className="mt-4 font-[family-name:var(--font-noto-serif-sc)] text-2xl font-bold text-white">
+          小账本
         </h1>
-        <p className="mx-auto mt-3 max-w-xs text-sm text-white/85">
+        <p className="mx-auto mt-2 max-w-xs text-sm text-white/85">
           {mode === "login"
-            ? "输入已有家庭的 6 位数字编码进入账本。"
-            : "新建家庭后将自动添加成员「布布」「一二」，可用新编码登录。"}
+            ? "输入家里的 6 位编码，打开账本。"
+            : "建一个新家：自动加上布布、一二，记好新编码。"}
         </p>
       </header>
 
-      <div className="flex rounded-2xl bg-white/20 p-1 ring-1 ring-white/30">
+      <div className="flex rounded-lg bg-white/20 p-1 ring-1 ring-white/30">
         <button
           type="button"
           onClick={() => onModeChange("login")}
-          className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
             mode === "login"
-              ? "bg-white text-orange-600 shadow-sm"
+              ? "bg-white text-accent"
               : "text-white/90"
           }`}
         >
@@ -166,9 +164,9 @@ export function EnterHouseholdCode() {
         <button
           type="button"
           onClick={() => onModeChange("create")}
-          className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
             mode === "create"
-              ? "bg-white text-pink-600 shadow-sm"
+              ? "bg-white text-accent-pink"
               : "text-white/90"
           }`}
         >
@@ -176,13 +174,7 @@ export function EnterHouseholdCode() {
         </button>
       </div>
 
-      <motion.div
-        key={mode}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className="rounded-2xl bg-white/95 p-6 shadow-xl shadow-orange-500/15 ring-1 ring-orange-100/80"
-      >
+      <div className="paper-panel p-6">
         {mode === "create" && (
           <>
             <label className="block text-center text-xs font-medium text-stone-500">
@@ -197,7 +189,7 @@ export function EnterHouseholdCode() {
                 setHouseholdName(e.target.value);
                 setError(null);
               }}
-              className="mt-2 w-full rounded-xl border border-stone-200 px-4 py-3 text-stone-800 outline-none ring-orange-200 focus:ring-2"
+              className="mt-2 w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
               maxLength={60}
             />
           </>
@@ -213,7 +205,7 @@ export function EnterHouseholdCode() {
         {DigitRow}
 
         {error && (
-          <p className="mt-4 text-center text-sm text-rose-600" role="alert">
+          <p className="mt-4 text-center text-sm text-expense" role="alert">
             {error}
           </p>
         )}
@@ -223,7 +215,7 @@ export function EnterHouseholdCode() {
             type="button"
             disabled={pending || codeString.length !== 6}
             onClick={submitLogin}
-            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-orange-400 via-orange-500 to-pink-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/35 transition active:scale-[0.98] disabled:opacity-50"
+            className="btn-primary mt-6"
           >
             {pending ? "验证中…" : "进入账本"}
           </button>
@@ -234,7 +226,7 @@ export function EnterHouseholdCode() {
               pending || codeString.length !== 6 || !householdName.trim()
             }
             onClick={submitCreate}
-            className="mt-6 w-full rounded-2xl bg-gradient-to-r from-pink-500 via-orange-500 to-orange-400 py-3.5 text-base font-semibold text-white shadow-lg shadow-pink-500/35 transition active:scale-[0.98] disabled:opacity-50"
+            className="btn-primary mt-6"
           >
             {pending ? "创建中…" : "创建并进入"}
           </button>
@@ -245,7 +237,7 @@ export function EnterHouseholdCode() {
             示例编码：<span className="font-mono text-stone-600">000001</span>
           </p>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

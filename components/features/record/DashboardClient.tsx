@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { motion } from "framer-motion";
 import { RefreshCw } from "lucide-react";
 import {
   fetchTransactions,
@@ -59,20 +58,39 @@ export function DashboardClient({
     [transactions, initialMembers],
   );
   const recent = useMemo(() => transactions.slice(0, 20), [transactions]);
+  const coupleNames = initialMembers
+    .slice(0, 2)
+    .map((m) => m.name)
+    .join(" & ");
 
   return (
     <div className="space-y-5">
-      <header>
-        <p className="text-sm font-medium text-white/90">家庭财务概览</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
-          温暖小账本
-        </h1>
-        <p className="mt-1 font-mono text-xs text-white/80">
-          家庭编码 {householdCode}
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex -space-x-2">
+            {initialMembers.slice(0, 2).map((m) => (
+              <MemberAvatar
+                key={m.id}
+                name={m.name}
+                avatarUrl={m.avatar_url}
+                size="md"
+                className="ring-2 ring-background"
+              />
+            ))}
+          </div>
+          <div className="min-w-0">
+            <h1 className="page-title text-2xl leading-tight">
+              {coupleNames || "我们的账本"}
+            </h1>
+            <p className="mt-0.5 font-mono text-xs text-stone-500">
+              编码 {householdCode}
+            </p>
+          </div>
+        </div>
         <button
           type="button"
           disabled={syncing}
+          aria-label={syncing ? "正在刷新" : "刷新数据"}
           onClick={() => {
             startSyncTransition(async () => {
               try {
@@ -83,62 +101,51 @@ export function DashboardClient({
               }
             });
           }}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/45 bg-white/15 px-3.5 py-2 text-xs font-semibold text-white shadow-sm backdrop-blur-sm transition hover:bg-white/25 active:scale-[0.98] disabled:opacity-55"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-paper text-ink transition hover:bg-accent-soft active:scale-[0.98] disabled:opacity-55"
         >
-          <RefreshCw className={`size-3.5 ${syncing ? "animate-spin" : ""}`} strokeWidth={2} aria-hidden />
-          {syncing ? "正在刷新…" : "刷新数据"}
+          <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} strokeWidth={2} aria-hidden />
         </button>
       </header>
 
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-3 gap-2"
-      >
-        <SummaryCard label="总收入" value={income} tone="income" />
-        <SummaryCard label="总支出" value={expense} tone="expense" />
-        <SummaryCard label="结余" value={balance} tone="balance" highlight />
-      </motion.section>
+      <section className="paper-panel grid grid-cols-3 divide-x divide-[var(--line)] overflow-hidden p-0">
+        <SummaryCell label="总收入" value={income} tone="income" />
+        <SummaryCell label="总支出" value={expense} tone="expense" />
+        <SummaryCell label="结余" value={balance} tone="balance" />
+      </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
-        <h2 className="text-sm font-semibold text-stone-800">家庭成员</h2>
+      <section className="paper-panel p-4">
+        <h2 className="text-sm font-semibold text-ink">家里人</h2>
         <div className="mt-3 flex justify-around gap-3">
           {stats.map(({ member, count, income: inc, expense: exp }) => (
             <div key={member.id} className="flex flex-col items-center text-center">
               <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-              <p className="mt-2 font-medium text-stone-800">{member.name}</p>
+              <p className="mt-2 font-medium text-ink">{member.name}</p>
               <p className="text-xs text-stone-500">{count} 笔记账</p>
-              <p className="mt-1 text-[11px] text-emerald-600">+{formatMoney(inc)}</p>
-              <p className="text-[11px] text-rose-600">-{formatMoney(exp)}</p>
+              <p className="mt-1 text-[11px] text-income">+{formatMoney(inc)}</p>
+              <p className="text-[11px] text-expense">-{formatMoney(exp)}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80 backdrop-blur-sm">
+      <section className="paper-panel p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-semibold text-stone-800">最近账单</h2>
-            <p className="mt-0.5 text-[10px] text-stone-400">向左滑动单条可编辑、删除</p>
+            <h2 className="text-sm font-semibold text-ink">最近账单</h2>
+            <p className="mt-0.5 text-[10px] text-stone-400">向左滑动可编辑、删除</p>
           </div>
           {pending && (
             <span className="shrink-0 text-xs text-stone-400">处理中…</span>
           )}
         </div>
-        <ul className="mt-2 divide-y divide-stone-100">
+        <ul className="mt-2 divide-y divide-[var(--line)]">
           {recent.length === 0 && (
             <li className="py-8 text-center text-sm text-stone-500">暂无记录，去记一笔吧</li>
           )}
-          {recent.map((t, i) => {
+          {recent.map((t) => {
             const isIn = t.type === "income";
             return (
-              <motion.li
-                key={t.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.015, duration: 0.15 }}
-                className="py-0 first:pt-0"
-              >
+              <li key={t.id} className="py-0 first:pt-0">
                 <SwipeTransactionRow
                   rowId={t.id}
                   openSwipeId={swipeOpenId}
@@ -159,13 +166,13 @@ export function DashboardClient({
                         <span
                           className={
                             isIn
-                              ? "shrink-0 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
-                              : "shrink-0 rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800"
+                              ? "shrink-0 rounded-md bg-[#d1fae5] px-1.5 py-0.5 text-[10px] font-semibold text-income"
+                              : "shrink-0 rounded-md bg-[#ffe4e6] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
                           }
                         >
                           {isIn ? "收入" : "支出"}
                         </span>
-                        <span className="truncate text-sm font-semibold text-stone-800">
+                        <span className="truncate text-sm font-semibold text-ink">
                           {t.category}
                         </span>
                       </div>
@@ -179,7 +186,7 @@ export function DashboardClient({
                     </div>
                     <span
                       className={`shrink-0 self-start pt-0.5 text-right text-sm font-bold tabular-nums tracking-tight ${
-                        isIn ? "text-emerald-600" : "text-rose-600"
+                        isIn ? "text-income" : "text-expense"
                       }`}
                     >
                       {isIn ? "+" : "-"}
@@ -187,7 +194,7 @@ export function DashboardClient({
                     </span>
                   </div>
                 </SwipeTransactionRow>
-              </motion.li>
+              </li>
             );
           })}
         </ul>
@@ -209,39 +216,28 @@ export function DashboardClient({
   );
 }
 
-function SummaryCard({
+function SummaryCell({
   label,
   value,
   tone,
-  highlight,
 }: {
   label: string;
   value: number;
   tone: "income" | "expense" | "balance";
-  highlight?: boolean;
 }) {
   const color =
     tone === "income"
-      ? "text-emerald-700"
+      ? "text-income"
       : tone === "expense"
-        ? "text-rose-700"
+        ? "text-expense"
         : value >= 0
-          ? "text-orange-700"
-          : "text-rose-700";
+          ? "text-accent"
+          : "text-expense";
 
   return (
-    <div
-      className={`rounded-2xl px-2 py-3 text-center shadow-md ring-1 ring-white/60 ${
-        highlight
-          ? "bg-gradient-to-br from-white to-orange-50"
-          : "bg-white/95"
-      }`}
-    >
-      <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">
-        {label}
-      </p>
+    <div className="px-2 py-3.5 text-center">
+      <p className="text-[11px] font-medium text-stone-500">{label}</p>
       <p className={`mt-1 truncate text-sm font-bold ${color}`}>{formatMoney(value)}</p>
     </div>
   );
 }
-

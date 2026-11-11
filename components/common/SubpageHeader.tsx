@@ -22,7 +22,7 @@ export function SubpageHeader({
   return (
     <>
       <header
-        className="fixed left-1/2 top-0 z-30 w-full max-w-md -translate-x-1/2 border-b border-orange-100/90 bg-[#fff7f5]/95 shadow-[0_8px_24px_rgba(249,115,22,0.08)] backdrop-blur-xl"
+        className="fixed left-1/2 top-0 z-30 w-full max-w-md -translate-x-1/2 border-b border-[var(--line)] bg-background"
         style={{
           paddingTop: "max(0.65rem, env(safe-area-inset-top))",
         }}
@@ -31,13 +31,13 @@ export function SubpageHeader({
           <Link
             href={backHref}
             aria-label={backLabel}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-stone-700 transition hover:bg-orange-50 active:scale-[0.97]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-ink transition hover:bg-accent-soft active:scale-[0.97]"
           >
             <ChevronLeft className="size-6" strokeWidth={2.25} aria-hidden />
           </Link>
 
           <div className="min-w-0 flex-1 text-center">
-            <h1 className="truncate text-[17px] font-bold leading-tight text-stone-800">
+            <h1 className="page-title truncate text-[17px] leading-tight">
               {title}
             </h1>
             {subtitle ? (

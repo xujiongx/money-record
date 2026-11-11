@@ -1,11 +1,13 @@
 # 系统架构说明
 
-> 项目：家庭记账 · 更新日期：2026-04-18（含小布助手 / Mistral；账本读缓存、品牌与 PWA 元数据）  
+> 项目：家庭记账 · 更新日期：2026-11-11（含 stack-diagram 技术栈图；小布 / Mistral；账本读缓存、品牌与 PWA）  
 > 本文描述**当前实现**的技术架构、数据流与安全边界；细节契约见 [api.md](./api.md)，表结构见 [database-design.md](./database-design.md)，缓存见 [cache-design.md](./cache-design.md)。
 
 ## 1. 架构总览
 
 本应用为 **Next.js 16 App Router** 驱动的**移动端优先**单页式多路由产品：以 **服务端为信任边界** 访问数据库，浏览器通过 **Server Actions** 与 **RSC 首屏数据** 与后端交互；**不使用**浏览器直连 Supabase 业务读、**不使用** Realtime 推送。
+
+**技术栈总览图**（[stack-diagram](https://stacks.caru.moe/)）：[architecture-diagram/household-ledger-stack.html](./architecture-diagram/household-ledger-stack.html) · [PNG（浅色）](./architecture-diagram/household-ledger-stack.png) · [PNG（深色）](./architecture-diagram/household-ledger-stack-dark.png)
 
 ```mermaid
 flowchart TB
@@ -127,7 +129,7 @@ flowchart TB
 | 文件 | 职责 |
 |------|------|
 | **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（一级 Tab **`slide`**，嵌套页 **`drill`**） |
-| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-[#fff7f5]`** + 自带顶部渐变，避免过渡时新旧页互相透出 |
+| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-background`（纸底 `#fff7f5`）** + **`.paper-header`** 顶带（登录页全屏橙粉洗），避免过渡时新旧页互相透出 |
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
 | **`MobileShell`** | 仅一级 Tab 显示底栏 / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip` |
 

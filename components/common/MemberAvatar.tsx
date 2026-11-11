@@ -7,11 +7,12 @@ import {
   resolveAvatarSrc,
 } from "@/lib/avatar/bitmap-cache";
 
-const gradients = [
-  "from-orange-400 to-pink-500",
-  "from-rose-400 to-orange-400",
-  "from-amber-400 to-rose-500",
-  "from-fuchsia-400 to-orange-400",
+/** 暖橙粉实色 fallback（沿用原品牌色相） */
+const solidFalls = [
+  "bg-[#fb923c]",
+  "bg-[#ec4899]",
+  "bg-[#f97316]",
+  "bg-[#f472b6]",
 ];
 
 type PaintStatus = "pending" | "ready" | "error";
@@ -55,7 +56,7 @@ export function MemberAvatar({
   const src = resolveAvatarSrc(name, avatarUrl);
   const initial = name.slice(0, 1);
   const hash = name.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const g = gradients[hash % gradients.length];
+  const g = solidFalls[hash % solidFalls.length];
   const dim =
     size === "lg"
       ? "h-16 w-16 text-xl"
@@ -107,7 +108,7 @@ export function MemberAvatar({
   if (!src || status === "error") {
     return (
       <div
-        className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white shadow-md ring-2 ring-white/80 ${g} ${dim} ${className}`}
+        className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-paper ring-1 ring-[var(--line)] ${g} ${dim} ${className}`}
         aria-hidden
       >
         {initial}
@@ -119,11 +120,11 @@ export function MemberAvatar({
 
   return (
     <div
-      className={`relative shrink-0 overflow-hidden rounded-full bg-[#fff7f5] shadow-md ring-2 ring-white/80 ${dim} ${className}`}
+      className={`relative shrink-0 overflow-hidden rounded-full bg-paper ring-1 ring-[var(--line)] ${dim} ${className}`}
     >
       {!drawn && (
         <span
-          className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br font-semibold text-white ${g}`}
+          className={`absolute inset-0 flex items-center justify-center font-semibold text-paper ${g}`}
           aria-hidden
         >
           {initial}

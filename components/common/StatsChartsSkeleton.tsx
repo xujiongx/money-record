@@ -8,16 +8,16 @@ export function StatsChartsSkeleton({
   return (
     <div className="space-y-4 pb-2" aria-busy="true" aria-label={hint ?? "加载中"}>
       <header>
-        <div className="h-4 w-20 animate-pulse rounded-md bg-white/45" />
-        <div className="mt-2 h-8 w-32 animate-pulse rounded-lg bg-white/55" />
-        <div className="mt-2 h-3 w-36 animate-pulse rounded-md bg-white/40" />
+        <div className="h-4 w-20 animate-pulse rounded-md bg-stone-200/80" />
+        <div className="mt-2 h-8 w-32 animate-pulse rounded-lg bg-stone-200" />
+        <div className="mt-2 h-3 w-36 animate-pulse rounded-md bg-stone-200/70" />
       </header>
 
       {hint ? (
-        <p className="text-center text-[11px] text-white/75">{hint}</p>
+        <p className="text-center text-[11px] text-stone-500">{hint}</p>
       ) : null}
 
-      <div className="rounded-2xl bg-white/95 p-3 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-3">
         <div className="mx-auto h-3 w-16 animate-pulse rounded bg-stone-200/80" />
         <div className="mt-2 grid grid-cols-4 gap-1.5">
           {[1, 2, 3, 4].map((i) => (
@@ -32,7 +32,7 @@ export function StatsChartsSkeleton({
         <div className="mx-auto mt-2 h-8 w-full max-w-[200px] animate-pulse rounded-lg bg-stone-100" />
       </div>
 
-      <div className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80">
+      <div className="paper-panel p-4">
         <div className="h-4 w-24 animate-pulse rounded bg-stone-200" />
         <div className="mt-2 h-3 w-full animate-pulse rounded bg-stone-100" />
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -45,7 +45,7 @@ export function StatsChartsSkeleton({
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="rounded-2xl bg-white/95 p-4 shadow-lg shadow-orange-500/10 ring-1 ring-orange-100/80"
+          className="paper-panel p-4"
         >
           <div className="h-4 w-28 animate-pulse rounded bg-stone-200" />
           <div className="mt-2 h-3 w-[75%] max-w-[240px] animate-pulse rounded bg-stone-100" />
