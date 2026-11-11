@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { MemberLedgerClient } from "@/components/features/members/MemberLedgerClient";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import {
+  fetchLedgerCategories,
   fetchMembers,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
@@ -18,8 +19,12 @@ export default async function MemberLedgerPage({
   const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
 
   let members;
+  let categories;
   try {
-    members = await fetchMembers();
+    [members, categories] = await Promise.all([
+      fetchMembers(),
+      fetchLedgerCategories(),
+    ]);
   } catch (e) {
     const message =
       e instanceof Error ? e.message : "无法连接数据库，请检查环境变量与迁移脚本。";
@@ -47,6 +52,7 @@ export default async function MemberLedgerPage({
       memberId={memberId}
       member={member}
       initialMembers={members}
+      ledgerCategories={categories}
       initialItems={firstPage.items}
       initialHasMore={firstPage.hasMore}
     />

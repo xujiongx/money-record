@@ -1,16 +1,22 @@
 import { DashboardClient } from "@/components/features/record/DashboardClient";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
-import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
+import {
+  fetchLedgerCategories,
+  fetchMembers,
+  fetchTransactions,
+} from "@/app/actions/ledger";
 import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 export default async function HomePage() {
   const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   let members;
   let transactions;
+  let categories;
   try {
-    [members, transactions] = await Promise.all([
+    [members, transactions, categories] = await Promise.all([
       fetchMembers(),
       fetchTransactions(),
+      fetchLedgerCategories(),
     ]);
   } catch (e) {
     const message =
@@ -23,6 +29,7 @@ export default async function HomePage() {
       householdCode={householdCode}
       initialMembers={members}
       initialTransactions={transactions}
+      categories={categories}
     />
   );
 }

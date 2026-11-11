@@ -12,6 +12,7 @@ import {
 } from "@/app/actions/ledger";
 import { summarizeLedger, memberStats } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
+import type { LedgerCategoryRow } from "@/lib/ledger/categories";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
@@ -21,10 +22,12 @@ export function DashboardClient({
   householdCode,
   initialMembers,
   initialTransactions,
+  categories,
 }: {
   householdCode: string;
   initialMembers: MemberRow[];
   initialTransactions: TransactionRow[];
+  categories: LedgerCategoryRow[];
 }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
@@ -205,6 +208,7 @@ export function DashboardClient({
           key={editing.id}
           transaction={editing}
           members={initialMembers}
+          categories={categories}
           onClose={() => {
             setEditing(null);
             setSwipeOpenId(null);

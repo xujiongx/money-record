@@ -1,14 +1,14 @@
 # 数据库设计文档
 
-> 项目：家庭记账 · 载体：Supabase（PostgreSQL） · 更新日期：2026-04-08
+> 项目：家庭记账 · 载体：Supabase（PostgreSQL） · 更新日期：2026-11-11
 
 ## 1. 概述
 
 - **数据库类型**：PostgreSQL（由 Supabase 托管）。
 - **多租户**：以 `households` 为租户边界；应用通过 **6 位数字 `code`（唯一）** 解析 `household_id`，会话见 [api.md](./api.md) 与根目录 `README.md`。
-- **设计原则**：流水不设软删（删除为物理删除）；收支分类为应用层常量，未建维度表；新建家庭默认成员「布布」「一二」由应用逻辑插入。
+- **设计原则**：流水不设软删（删除为物理删除）；日常收支分类存于 **`ledger_categories`**（按家庭）；新建家庭默认成员「布布」「一二」与默认分类由应用 / 迁移种子写入。
 
-权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002_household_code_multitenant.sql`](../supabase/migrations/002_household_code_multitenant.sql)、[`003_chat_messages.sql`](../supabase/migrations/003_chat_messages.sql)、[`004_major_events.sql`](../supabase/migrations/004_major_events.sql)、[`005_major_event_categories.sql`](../supabase/migrations/005_major_event_categories.sql)。
+权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002`](../supabase/migrations/002_household_code_multitenant.sql)–[`006_ledger_categories.sql`](../supabase/migrations/006_ledger_categories.sql)。
 
 ## 2. ER 关系
 
@@ -19,6 +19,7 @@ erDiagram
   households ||--o{ chat_messages : has
   households ||--o{ major_events : has
   households ||--o{ major_event_categories : has
+  households ||--o{ ledger_categories : has
   members ||--o{ transactions : records
   members ||--o{ major_event_expenses : records
   major_events ||--o{ major_event_expenses : contains
@@ -141,15 +142,24 @@ erDiagram
 | income | 收入 |
 | expense | 支出 |
 
-### 5.2 分类（应用层 `lib/ledger/categories.ts`）
+### 5.2 日常分类（表 `ledger_categories`，`006_ledger_categories.sql`）
 
-**支出**：餐饮、购物、交通、教育、医疗、娱乐、其他。  
-**收入**：工资、奖金、投资、红包、其他。
+按家庭 + `type`（`income` / `expense`）存储；同家庭同类型下 `name` 唯一。默认种子见 `lib/ledger/categories.ts` 的 **`DEFAULT_EXPENSE_CATEGORIES` / `DEFAULT_INCOME_CATEGORIES`**（含「其他」）。删除非默认分类时，同类型流水的 `category` 会改写为「其他」。
+
+| 列 | 类型 | 说明 |
+|----|------|------|
+| id | uuid | PK |
+| household_id | uuid | FK → households |
+| type | text | `income` / `expense` |
+| name | text | 分类名 |
+| sort_order | int | 展示排序 |
+| created_at | timestamptz | 创建时间 |
 
 ## 6. 迁移与版本
 
-- **新库**：执行 `001_init.sql`（含示例家庭 `000001`、`000002`）。  
+- **新库**：执行 `001_init.sql`（含示例家庭 `000001`、`000002`），再依次 `002`–`006`。  
 - **旧库（无 code / 仍有 anon 策略）**：执行 `002_household_code_multitenant.sql`，并确保无重复 `code` 后再 `NOT NULL`。  
+- **已有库缺日常分类表**：执行 `006_ledger_categories.sql`（会为已有家庭写入默认收支分类）。  
 - 结构性变更建议在 [change/](./change/) 登记。
 
 ## 7. 备份与恢复

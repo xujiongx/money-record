@@ -1,7 +1,8 @@
 import { z } from "zod";
 import {
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
+  DEFAULT_EXPENSE_CATEGORIES,
+  DEFAULT_INCOME_CATEGORIES,
+  DEFAULT_LEDGER_CATEGORY,
 } from "@/lib/ledger/categories";
 import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 
@@ -54,12 +55,23 @@ export function parseLedgerChatResponse(
   return { ok: true, data: parsed.data };
 }
 
-export function buildLedgerChatSystemPrompt(members: MemberRow[]): string {
+export function buildLedgerChatSystemPrompt(
+  members: MemberRow[],
+  categoryLists?: { expense: string[]; income: string[] },
+): string {
   const memberLines = members.map(
     (m) => `- id=${m.id} name=${m.name}`,
   );
-  const expenseList = EXPENSE_CATEGORIES.join("、");
-  const incomeList = INCOME_CATEGORIES.join("、");
+  const expenseList = (
+    categoryLists?.expense?.length
+      ? categoryLists.expense
+      : [...DEFAULT_EXPENSE_CATEGORIES]
+  ).join("、");
+  const incomeList = (
+    categoryLists?.income?.length
+      ? categoryLists.income
+      : [...DEFAULT_INCOME_CATEGORIES]
+  ).join("、");
 
   return `你是家庭记账应用里的助手「小布」。本轮你必须只输出一个 JSON 对象，不要 Markdown、不要代码块、不要前后解释文字。
 
@@ -89,17 +101,17 @@ JSON 结构（字段名必须一致）：
 - **income 收入**：工资、奖金、到账、进账、收款、发红包收到、投资收益、红包收入、报销到账、退款**进账**（钱回到兜里）、兼职费等明确**钱流入**的表述。
 - 仅当用户表述**同时**像收又像支且无任何上下文可采信时，才把 type 放进 missing；能合理推断则**必须**填 expense 或 income。
 
-分类（**自动识别**；识别不出 →「其他」）：
+分类（**自动识别**；识别不出 →「${DEFAULT_LEDGER_CATEGORY}」）：
 - 结合 type 与用户描述，选白名单里**最贴近**的一项（如餐饮/吃饭/外卖→餐饮，地铁/油费→交通，电影→娱乐，药/医院→医疗，课/培训→教育等）；多义时选最主要用途。
-- 无法归入任一类或用户只给金额+极泛描述 → category=「其他」，note 保留细节。
+- 无法归入任一类或用户只给金额+极泛描述 → category=「${DEFAULT_LEDGER_CATEGORY}」，note 保留细节。
 
 记账判定：用户表达记账意图时，由你**自动**判定收/支与分类；只要 member_id、amount、type 可定（type 靠上条规则推断），**立即** intent=ready。**禁止**在 reply 里要求用户「确认一下再记」「要不要帮你记」「这是收入还是支出」等二次确认后才 ready；信息够就记，reply 简短肯定即可。仅与记账无关或完全无法判断是否在记账时用 intent=none。**不要**用「先确认要不要记账」代替 collect/ready。
 
 成员（member_id 只能填下列 id，禁止编造）：
 ${memberLines.length > 0 ? memberLines.join("\n") : "（暂无成员，若用户要记账请在 reply 中说明无法记账）"}
 
-分类白名单（自动映射到此；对不上则用「其他」，note 写清原始描述）：
-- category 必须严格等于下列某一词，或填「其他」。
+分类白名单（自动映射到此；对不上则用「${DEFAULT_LEDGER_CATEGORY}」，note 写清原始描述）：
+- category 必须严格等于下列某一词，或填「${DEFAULT_LEDGER_CATEGORY}」。
 - 支出 type=expense：${expenseList}
 - 收入 type=income：${incomeList}
 
@@ -121,6 +133,7 @@ export type NormalizedLedgerPayload = {
 export function normalizeReadyLedger(
   ledger: LedgerChatResponse["ledger"],
   validMemberIds: Set<string>,
+  categoryLists?: { expense: string[]; income: string[] },
 ):
   | { ok: true; payload: NormalizedLedgerPayload }
   | { ok: false; reason: string } {
@@ -146,19 +159,23 @@ export function normalizeReadyLedger(
   }
 
   const list =
-    ledger.type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    ledger.type === "expense"
+      ? categoryLists?.expense?.length
+        ? categoryLists.expense
+        : [...DEFAULT_EXPENSE_CATEGORIES]
+      : categoryLists?.income?.length
+        ? categoryLists.income
+        : [...DEFAULT_INCOME_CATEGORIES];
   const rawCat = ledger.category?.trim() ?? "";
   let category: string;
   let note = ledger.note?.trim() || undefined;
 
-  if (rawCat && (list as readonly string[]).includes(rawCat)) {
+  if (rawCat && list.includes(rawCat)) {
     category = rawCat;
   } else {
-    category = "其他";
+    category = DEFAULT_LEDGER_CATEGORY;
     const extra =
-      rawCat && !(list as readonly string[]).includes(rawCat)
-        ? `自动录入：${rawCat}`
-        : undefined;
+      rawCat && !list.includes(rawCat) ? `自动录入：${rawCat}` : undefined;
     const merged = [note, extra].filter(Boolean).join("；");
     note = merged || undefined;
   }

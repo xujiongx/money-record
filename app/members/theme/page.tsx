@@ -1,15 +1,6 @@
-import { SubpageHeader } from "@/components/common/SubpageHeader";
-import { ThemePicker } from "@/components/features/household/ThemePicker";
+import { redirect } from "next/navigation";
 
-export default function ThemePage() {
-  return (
-    <div className="space-y-5">
-      <SubpageHeader
-        backHref="/members"
-        title="颜色主题"
-        subtitle="只改本机外观，不影响账本数据"
-      />
-      <ThemePicker />
-    </div>
-  );
+/** 旧路径兼容：主题已迁入设置 */
+export default function ThemePageRedirect() {
+  redirect("/members/settings/theme");
 }

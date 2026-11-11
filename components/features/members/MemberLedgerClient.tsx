@@ -17,6 +17,7 @@ import {
   fetchAllMemberTransactions,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
+import type { LedgerCategoryRow } from "@/lib/ledger/categories";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
@@ -43,6 +44,7 @@ export function MemberLedgerClient({
   memberId,
   member,
   initialMembers,
+  ledgerCategories,
   initialItems,
   initialHasMore,
 }: {
@@ -50,6 +52,7 @@ export function MemberLedgerClient({
   memberId: string;
   member: MemberRow;
   initialMembers: MemberRow[];
+  ledgerCategories: LedgerCategoryRow[];
   initialItems: TransactionRow[];
   initialHasMore: boolean;
 }) {
@@ -433,6 +436,7 @@ export function MemberLedgerClient({
           key={editing.id}
           transaction={editing}
           members={initialMembers}
+          categories={ledgerCategories}
           onClose={() => {
             setEditing(null);
             setSwipeOpenId(null);

@@ -76,6 +76,16 @@
 - 并行 **`loadMembersForHousehold` + `loadTransactionsForHousehold`**（与 `fetchMembers` / `fetchTransactions` 同源查询），但**不经过** `unstable_cache`。  
 - 供 **`mistralLedgerChatAction`**、**`buildMonthlyLedgerDigest`**、**`buildYearlyLedgerDigest`**（月年小结）使用，避免页面列表读缓存延迟或边界情况下小布读到旧账本。
 
+### 3.1d 日常分类（`ledger_categories`）
+
+| Action | 说明 |
+|--------|------|
+| `fetchLedgerCategories` | 当前家庭收支分类（`unstable_cache` + 标签 `ledger`；缺类型时自动写入默认种子） |
+| `createLedgerCategory(type, name)` | 新增；同家庭同类型名称唯一 |
+| `updateLedgerCategory(id, name)` | 改名并同步同类型历史流水的 `category` |
+| `deleteLedgerCategory(id)` | 删除；「其他」不可删；已有流水归入「其他」 |
+| `seedLedgerCategoriesForHousehold` | 创建家庭时写入默认支出/收入清单 |
+
 ### 3.2 `createTransaction(input)`
 
 | 字段 | 类型 | 必填 |

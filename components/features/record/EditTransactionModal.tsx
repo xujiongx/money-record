@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { updateTransaction } from "@/app/actions/ledger";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
+import {
+  DEFAULT_LEDGER_CATEGORY,
+  categoryNamesForType,
+  type LedgerCategoryRow,
+} from "@/lib/ledger/categories";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
@@ -14,11 +18,13 @@ import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
 export function EditTransactionModal({
   transaction,
   members,
+  categories: categoryRows,
   onClose,
   onSaved,
 }: {
   transaction: TransactionRow;
   members: MemberRow[];
+  categories: LedgerCategoryRow[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -56,21 +62,30 @@ export function EditTransactionModal({
     };
   }, []);
 
+  const expenseNames = useMemo(
+    () => categoryNamesForType(categoryRows, "expense"),
+    [categoryRows],
+  );
+  const incomeNames = useMemo(
+    () => categoryNamesForType(categoryRows, "income"),
+    [categoryRows],
+  );
+
   const categories = useMemo((): string[] => {
-    const base = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+    const base = type === "expense" ? expenseNames : incomeNames;
     const list: string[] = [...base];
-    if (!list.includes(category)) {
+    if (category && !list.includes(category)) {
       list.unshift(category);
     }
     return list;
-  }, [type, category]);
+  }, [type, category, expenseNames, incomeNames]);
 
   const onTypeChange = (next: LedgerType) => {
     setType(next);
-    const list: string[] = [
-      ...(next === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES),
-    ];
-    setCategory(list.includes(category) ? category : list[0]!);
+    const list = next === "expense" ? expenseNames : incomeNames;
+    setCategory(
+      list.includes(category) ? category : (list[0] ?? DEFAULT_LEDGER_CATEGORY),
+    );
   };
 
   const submit = () => {

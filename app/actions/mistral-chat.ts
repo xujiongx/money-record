@@ -2,8 +2,10 @@
 
 import {
   createTransaction,
+  fetchLedgerCategories,
   fetchLedgerSnapshotData,
 } from "@/app/actions/ledger";
+import { categoryNamesForType } from "@/lib/ledger/categories";
 import {
   computeMonthlyLedgerDigest,
   computeYearlyLedgerDigest,
@@ -173,9 +175,16 @@ export async function mistralLedgerChatAction(
     const trimmed = userMessage.trim();
     if (!trimmed) return { ok: false, error: "消息不能为空" };
 
-    const { transactions: all, members } = await fetchLedgerSnapshotData();
+    const [{ transactions: all, members }, categoryRows] = await Promise.all([
+      fetchLedgerSnapshotData(),
+      fetchLedgerCategories(),
+    ]);
+    const categoryLists = {
+      expense: categoryNamesForType(categoryRows, "expense"),
+      income: categoryNamesForType(categoryRows, "income"),
+    };
     const digest = computeMonthlyLedgerDigest(all, members);
-    const system = `${buildLedgerChatSystemPrompt(members)}\n\n${buildLedgerTruthRulesForSystem()}`;
+    const system = `${buildLedgerChatSystemPrompt(members, categoryLists)}\n\n${buildLedgerTruthRulesForSystem()}`;
     const userWithSnapshot = wrapUserMessageWithLedgerSnapshot(digest, trimmed);
     const messages: { role: ChatRole; content: string }[] = [
       { role: "system", content: system },
@@ -200,7 +209,7 @@ export async function mistralLedgerChatAction(
       return { ok: true, reply };
     }
 
-    const normalized = normalizeReadyLedger(ledger, memberIdSet);
+    const normalized = normalizeReadyLedger(ledger, memberIdSet, categoryLists);
     if (!normalized.ok) {
       return {
         ok: true,

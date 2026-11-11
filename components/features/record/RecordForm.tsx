@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createTransaction } from "@/app/actions/ledger";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/ledger/categories";
+import {
+  DEFAULT_LEDGER_CATEGORY,
+  categoryNamesForType,
+  type LedgerCategoryRow,
+} from "@/lib/ledger/categories";
 import { toDatetimeLocalValue } from "@/lib/ledger/datetime-local";
 import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
@@ -13,12 +17,26 @@ import { pushNoteHistory } from "@/lib/ledger/note-history";
 
 const LAST_RECORD_MEMBER_KEY = "money-record:last-record-member-id";
 
-export function RecordForm({ members }: { members: MemberRow[] }) {
+export function RecordForm({
+  members,
+  categories: categoryRows,
+}: {
+  members: MemberRow[];
+  categories: LedgerCategoryRow[];
+}) {
   const router = useRouter();
   const [type, setType] = useState<LedgerType>("expense");
   const [memberId, setMemberId] = useState(members[0]?.id ?? "");
+  const expenseNames = useMemo(
+    () => categoryNamesForType(categoryRows, "expense"),
+    [categoryRows],
+  );
+  const incomeNames = useMemo(
+    () => categoryNamesForType(categoryRows, "income"),
+    [categoryRows],
+  );
   const [category, setCategory] = useState<string>(
-    EXPENSE_CATEGORIES[0] ?? "其他",
+    () => expenseNames[0] ?? DEFAULT_LEDGER_CATEGORY,
   );
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -30,13 +48,13 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
   const [noteHistoryRefresh, setNoteHistoryRefresh] = useState(0);
   const [pending, startTransition] = useTransition();
 
-  const categories = useMemo(
-    () =>
-      type === "expense"
-        ? [...EXPENSE_CATEGORIES]
-        : [...INCOME_CATEGORIES],
-    [type],
-  );
+  const categories = type === "expense" ? expenseNames : incomeNames;
+
+  useEffect(() => {
+    if (!categories.includes(category)) {
+      setCategory(categories[0] ?? DEFAULT_LEDGER_CATEGORY);
+    }
+  }, [categories, category]);
 
   useEffect(() => {
     if (members.length === 0) return;
@@ -52,11 +70,8 @@ export function RecordForm({ members }: { members: MemberRow[] }) {
 
   const onTypeChange = (next: LedgerType) => {
     setType(next);
-    setCategory(
-      next === "expense"
-        ? EXPENSE_CATEGORIES[0]
-        : INCOME_CATEGORIES[0],
-    );
+    const list = next === "expense" ? expenseNames : incomeNames;
+    setCategory(list[0] ?? DEFAULT_LEDGER_CATEGORY);
   };
 
   const submit = () => {

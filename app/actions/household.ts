@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
+import { seedLedgerCategoriesForHousehold } from "@/app/actions/ledger";
 import { seedMajorEventCategoriesForHousehold } from "@/app/actions/major-events";
 import {
   HOUSEHOLD_CODE_COOKIE,
@@ -98,7 +99,10 @@ export async function createHouseholdAndLogin(input: {
   }
 
   try {
-    await seedMajorEventCategoriesForHousehold(householdId);
+    await Promise.all([
+      seedMajorEventCategoriesForHousehold(householdId),
+      seedLedgerCategoriesForHousehold(householdId),
+    ]);
   } catch {
     await supabase.from("members").delete().eq("household_id", householdId);
     await supabase.from("households").delete().eq("id", householdId);

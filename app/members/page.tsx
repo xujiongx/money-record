@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Palette, Wrench } from "lucide-react";
+import { ChevronRight, Settings, Wrench } from "lucide-react";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
@@ -36,12 +36,11 @@ export default async function MembersPage() {
           </p>
         </div>
         <Link
-          href="/members/theme"
-          aria-label="切换颜色主题"
-          className="mt-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[var(--line)] bg-paper px-3 py-2 text-xs font-semibold text-accent transition hover:bg-accent-soft active:scale-[0.97]"
+          href="/members/settings"
+          aria-label="设置"
+          className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-paper text-ink transition hover:bg-accent-soft active:scale-[0.97]"
         >
-          <Palette className="size-3.5" strokeWidth={2.25} aria-hidden />
-          主题
+          <Settings className="size-4" strokeWidth={2.25} aria-hidden />
         </Link>
       </header>
 
