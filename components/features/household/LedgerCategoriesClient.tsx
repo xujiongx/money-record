@@ -94,8 +94,8 @@ export function LedgerCategoriesClient({
   return (
     <div className="space-y-5">
       <SubpageHeader
-        backHref="/members/settings"
-        title="分类设置"
+        backHref="/members"
+        title="分类管理"
         subtitle="日常记账收支分类"
       />
 

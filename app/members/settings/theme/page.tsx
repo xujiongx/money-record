@@ -5,7 +5,7 @@ export default function ThemeSettingsPage() {
   return (
     <div className="space-y-5">
       <SubpageHeader
-        backHref="/members/settings"
+        backHref="/members"
         title="主题设置"
         subtitle="只改本机外观，不影响账本数据"
       />

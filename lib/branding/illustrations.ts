@@ -2,8 +2,7 @@
  * 场景插画路径（PNG 透明底）
  *
  * 角色原型：布布=`public/bubu.png`，一二=`public/12.png`
- * 壳层氛围只用奶油 CSS 渐变（`.paper-header` / `.paper-header-subpage` / `.tab-bar-scrim`），
- * 不引入第三方矢量角色库，避免与 Milk & Mocha 风冲突。
+ * 页级氛围底图见 `lib/branding/page-backgrounds.ts`（水彩洗色 JPG + `.shell-page-bg`）。
  * 布局对齐 `docs/assets` 设计稿。
  */
 

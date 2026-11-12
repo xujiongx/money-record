@@ -3,30 +3,32 @@
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { isPrimaryTabPath } from "@/lib/navigation/shell-tabs";
+import { resolvePageBackground } from "@/lib/branding/page-backgrounds";
 
 /**
  * pathname 既是 React remount key，也是 SSGOI 匹配 transition 的 id。
- * 一级 Tab：奶油顶洗；登录：橙渐变全屏；二级：交给 SubpageHeader。
+ * 一级 Tab / 登录：水彩氛围底图 + 奶油蒙版渐隐；二级无顶图，仅轻量 SubpageHeader。
+ * 页层必须实色底（`bg-background`），否则 drill/slide 叠层会透出上一页。
  */
 export function SsgoiRouteBoundary({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const showNav = isPrimaryTabPath(pathname);
-  const isLogin = pathname.startsWith("/login");
+  const pageBg = resolvePageBackground(pathname);
 
   return (
     <div
       key={pathname}
       data-ssgoi-transition={pathname}
-      className="relative isolate min-h-dvh"
+      className="relative isolate min-h-dvh bg-background"
     >
-      {isLogin ? (
+      {pageBg ? (
         <div
-          className="paper-header-login pointer-events-none fixed left-1/2 top-0 z-0 min-h-dvh w-full max-w-md -translate-x-1/2"
-          aria-hidden
-        />
-      ) : showNav ? (
-        <div
-          className="paper-header pointer-events-none fixed left-1/2 top-0 z-0 h-56 w-full max-w-md -translate-x-1/2"
+          className={
+            pageBg.variant === "login"
+              ? "shell-page-bg shell-page-bg-login"
+              : "shell-page-bg"
+          }
+          style={{ backgroundImage: `url(${pageBg.src})` }}
           aria-hidden
         />
       ) : null}
