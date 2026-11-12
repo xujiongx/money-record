@@ -32,7 +32,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         <SsgoiRouteBoundary>{children}</SsgoiRouteBoundary>
       </div>
       {showNav && (
-        <nav className="fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 border-t border-[var(--line)] bg-paper px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <nav className="tab-bar fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))]">
           <ul className="flex items-center justify-around">
             {tabs.map(({ href, label, icon: Icon }) => {
               const active =
@@ -44,27 +44,29 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
                   <Link
                     prefetch
                     href={href}
-                    className="relative flex min-w-[4.25rem] flex-col items-center gap-0.5 py-1 text-xs font-medium [-webkit-tap-highlight-color:transparent]"
+                    className="relative flex min-w-[4.5rem] flex-col items-center gap-0.5 py-1.5 text-[11px] font-bold [-webkit-tap-highlight-color:transparent]"
                   >
-                    {active && (
+                    {active ? (
                       <span
-                        className="absolute inset-x-1 -inset-y-0.5 rounded-lg bg-accent-soft transition-opacity duration-150"
+                        className="absolute inset-x-2 -inset-y-0.5 rounded-2xl bg-accent-soft/80"
                         aria-hidden
                       />
-                    )}
+                    ) : null}
                     <span className="relative z-10 flex flex-col items-center gap-0.5">
                       <Icon
                         className={
                           active
                             ? "size-[22px] text-accent"
-                            : "size-[22px] text-stone-400"
+                            : "size-[22px] text-[color:var(--muted)]"
                         }
-                        strokeWidth={1.8}
+                        strokeWidth={active ? 2.4 : 1.9}
                         aria-hidden
                       />
                       <span
                         className={
-                          active ? "text-accent" : "text-stone-500"
+                          active
+                            ? "text-accent"
+                            : "text-[color:var(--muted)]"
                         }
                       >
                         {label}

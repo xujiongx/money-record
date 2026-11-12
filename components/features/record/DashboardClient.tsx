@@ -19,7 +19,12 @@ import {
 } from "@/lib/ledger/stats-period";
 import type { LedgerCategoryRow } from "@/lib/ledger/categories";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
+import { CategoryIcon } from "@/components/common/CategoryIcon";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
+import {
+  MascotEmpty,
+  MascotIllustration,
+} from "@/components/common/MascotIllustration";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 
@@ -140,10 +145,10 @@ export function DashboardClient({
     .join(" & ");
 
   return (
-    <div className="space-y-5">
-      <header className="flex items-start justify-between gap-3">
+    <div className="space-y-4">
+      <header className="flex items-start justify-between gap-3 px-0.5">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-2.5">
             {initialMembers.slice(0, 2).map((m) => (
               <MemberAvatar
                 key={m.id}
@@ -155,7 +160,7 @@ export function DashboardClient({
             ))}
           </div>
           <div className="min-w-0">
-            <h1 className="page-title text-2xl leading-tight">
+            <h1 className="page-title text-[1.65rem] leading-tight">
               {coupleNames || "我们的账本"}
             </h1>
           </div>
@@ -174,7 +179,7 @@ export function DashboardClient({
               }
             });
           }}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-paper text-ink transition hover:bg-accent-soft active:scale-[0.98] disabled:opacity-55"
+          className="pressable inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-paper text-ink shadow-[var(--shadow-soft)] hover:bg-accent-soft disabled:opacity-55"
         >
           <RefreshCw
             className={`size-4 ${syncing ? "animate-spin" : ""}`}
@@ -184,73 +189,94 @@ export function DashboardClient({
         </button>
       </header>
 
-      <section className="paper-panel p-4">
-        <p className="text-[11px] font-medium text-stone-500">本月已花</p>
-        <p className="page-title mt-1 text-3xl tabular-nums tracking-tight text-expense">
-          {formatMoney(insights.thisSum.expense)}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <p className="text-income">
-            <span className="text-[11px] text-stone-500">收入 </span>
-            <span className="font-semibold tabular-nums">
-              {formatMoney(insights.thisSum.income)}
-            </span>
+      {/* 设计稿首页：本月已花 KPI + 右侧角色点缀 */}
+      <section className="paper-panel relative overflow-hidden p-5">
+        <div className="relative z-10 min-h-[8.25rem] pr-[9.25rem]">
+          <p className="text-[11px] font-bold text-[color:var(--muted)]">
+            本月已花
           </p>
-          <p>
-            <span className="text-[11px] text-stone-500">结余 </span>
-            <span
-              className={`font-semibold tabular-nums ${
-                insights.thisSum.balance >= 0 ? "text-accent" : "text-expense"
-              }`}
-            >
-              {formatMoney(insights.thisSum.balance)}
-            </span>
+          <p className="kpi-number mt-1.5 text-[2.35rem] text-expense">
+            {formatMoney(insights.thisSum.expense)}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <p>
+              <span className="text-[11px] text-[color:var(--muted)]">收入 </span>
+              <span className="font-bold tabular-nums text-income">
+                {formatMoney(insights.thisSum.income)}
+              </span>
+            </p>
+            <p>
+              <span className="text-[11px] text-[color:var(--muted)]">结余 </span>
+              <span
+                className={`font-bold tabular-nums ${
+                  insights.thisSum.balance >= 0 ? "text-accent" : "text-expense"
+                }`}
+              >
+                {formatMoney(insights.thisSum.balance)}
+              </span>
+            </p>
+          </div>
+
+          {insights.lastSum.expense > 0 ? (
+            <div className="progress-track mt-4" aria-hidden>
+              <div
+                className="progress-fill"
+                style={{
+                  width: `${Math.max(4, Math.min(insights.vsLastRatio * 100, 100))}%`,
+                }}
+              />
+            </div>
+          ) : null}
+
+          <p className="mt-2 text-xs leading-relaxed text-ink/70">
+            {insights.expenseLine}
+          </p>
+          <p className="mt-0.5 text-[11px] text-[color:var(--muted)]">
+            {insights.paceLine}
           </p>
         </div>
-
-        {insights.lastSum.expense > 0 ? (
-          <div
-            className="mt-3 h-1.5 overflow-hidden rounded-full bg-background"
-            aria-hidden
-          >
-            <div
-              className="h-full rounded-full bg-expense/80 transition-[width] duration-300 ease-out"
-              style={{
-                width: `${Math.max(4, Math.min(insights.vsLastRatio * 100, 100))}%`,
-              }}
-            />
-          </div>
-        ) : null}
-
-        <p className="mt-2 text-xs leading-relaxed text-stone-600">
-          {insights.expenseLine}
-        </p>
-        <p className="mt-0.5 text-[11px] text-stone-400">{insights.paceLine}</p>
+        <MascotIllustration
+          name="homeKpi"
+          size="peek"
+          className="absolute bottom-1 right-1 z-0"
+          alt=""
+        />
       </section>
 
-      <section className="paper-panel px-4 py-3">
-        <p className="text-[11px] font-medium text-stone-500">今日小结</p>
-        {insights.todayCount === 0 ? (
-          <p className="mt-1 text-sm text-stone-500">今天还没记账</p>
-        ) : (
-          <p className="mt-1 text-sm text-ink">
-            <span className="font-semibold">{insights.todayCount}</span> 笔
-            <span className="text-stone-300"> · </span>
-            花了{" "}
-            <span className="font-semibold tabular-nums text-expense">
-              {formatMoney(insights.todaySum.expense)}
-            </span>
-            {insights.todaySum.income > 0 ? (
-              <>
-                <span className="text-stone-300"> · </span>
-                收入{" "}
-                <span className="font-semibold tabular-nums text-income">
-                  {formatMoney(insights.todaySum.income)}
-                </span>
-              </>
-            ) : null}
+      {/* 设计稿：今日小结白底 + 一二右侧 */}
+      <section className="paper-panel relative flex min-h-[6.25rem] items-center overflow-hidden py-3.5 pl-4 pr-2">
+        <div className="relative z-10 min-w-0 flex-1 pr-[5.75rem]">
+          <p className="text-[11px] font-bold text-[color:var(--muted)]">
+            今日小结
           </p>
-        )}
+          {insights.todayCount === 0 ? (
+            <p className="mt-1 text-sm text-ink/70">今天还没记账，去记一笔吧</p>
+          ) : (
+            <p className="mt-1 text-sm text-ink">
+              <span className="font-extrabold">{insights.todayCount}</span> 笔
+              <span className="text-ink/25"> · </span>
+              花了{" "}
+              <span className="font-extrabold tabular-nums text-expense">
+                {formatMoney(insights.todaySum.expense)}
+              </span>
+              {insights.todaySum.income > 0 ? (
+                <>
+                  <span className="text-ink/25"> · </span>
+                  收入{" "}
+                  <span className="font-extrabold tabular-nums text-income">
+                    {formatMoney(insights.todaySum.income)}
+                  </span>
+                </>
+              ) : null}
+            </p>
+          )}
+        </div>
+        <MascotIllustration
+          name="dailyTip"
+          size="sm"
+          className="absolute bottom-0 right-1 z-0"
+          alt=""
+        />
       </section>
 
       {partnerRecent.length > 0 ? (
@@ -300,8 +326,8 @@ export function DashboardClient({
       <section className="paper-panel p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-semibold text-ink">最近账单</h2>
-            <p className="mt-0.5 text-[10px] text-stone-400">
+            <h2 className="text-sm font-extrabold text-ink">最近账单</h2>
+            <p className="mt-0.5 text-[10px] text-[color:var(--muted)]">
               向左滑动可编辑、删除
             </p>
           </div>
@@ -311,8 +337,12 @@ export function DashboardClient({
         </div>
         <ul className="mt-2 divide-y divide-[var(--line)]">
           {recent.length === 0 ? (
-            <li className="py-8 text-center text-sm text-stone-500">
-              暂无记录，去记一笔吧
+            <li>
+              <MascotEmpty
+                name="emptyNoRecords"
+                title="暂无记录"
+                description="去记一笔吧，布布和一二等着你"
+              />
             </li>
           ) : null}
           {recent.map((t) => {
@@ -333,20 +363,21 @@ export function DashboardClient({
                     });
                   }}
                 >
-                  <div className="flex cursor-grab gap-3 py-2.5 pl-1 pr-2 active:cursor-grabbing">
+                  <div className="flex cursor-grab items-center gap-3 py-2.5 pl-1 pr-2 active:cursor-grabbing">
+                    <CategoryIcon name={t.category} size="sm" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-bold text-ink">
+                          {t.category}
+                        </span>
                         <span
                           className={
                             isIn
-                              ? "shrink-0 rounded-md bg-[#d1fae5] px-1.5 py-0.5 text-[10px] font-semibold text-income"
-                              : "shrink-0 rounded-md bg-[#ffe4e6] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
+                              ? "shrink-0 rounded-full bg-[#e8f8e8] px-1.5 py-0.5 text-[10px] font-semibold text-income"
+                              : "shrink-0 rounded-full bg-[#ffe8e8] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
                           }
                         >
                           {isIn ? "收入" : "支出"}
-                        </span>
-                        <span className="truncate text-sm font-semibold text-ink">
-                          {t.category}
                         </span>
                       </div>
                       <p className="mt-1 truncate text-[11px] leading-snug text-stone-500">
@@ -358,7 +389,7 @@ export function DashboardClient({
                       </p>
                     </div>
                     <span
-                      className={`shrink-0 self-start pt-0.5 text-right text-sm font-bold tabular-nums tracking-tight ${
+                      className={`shrink-0 self-center text-right text-base font-extrabold tabular-nums tracking-tight ${
                         isIn ? "text-income" : "text-expense"
                       }`}
                     >

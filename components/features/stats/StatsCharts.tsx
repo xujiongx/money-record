@@ -30,6 +30,7 @@ import {
 } from "@/lib/ledger/stats-period";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
+import { MascotEmpty } from "@/components/common/MascotIllustration";
 import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
 import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
@@ -111,24 +112,24 @@ export function StatsCharts({
   );
 
   return (
-    <div className="space-y-5">
-      <header className="flex items-start justify-between gap-3">
+    <div className="space-y-4">
+      <header className="flex items-start justify-between gap-3 px-0.5">
         <div>
-          <h1 className="page-title text-2xl">这个月花在哪</h1>
+          <h1 className="page-title text-[1.65rem]">月度统计</h1>
         </div>
         <Link
           href="/stats/analysis"
-          className="mt-1 shrink-0 rounded-lg border border-[var(--line)] bg-paper px-3 py-2 text-sm font-semibold text-accent transition hover:bg-accent-soft active:scale-[0.97]"
+          className="pressable mt-1 shrink-0 rounded-2xl border border-[var(--line)] bg-paper px-3.5 py-2 text-sm font-extrabold text-accent shadow-[var(--shadow-soft)] hover:bg-accent-soft"
         >
           分析
         </Link>
       </header>
 
-      <div className="paper-panel p-3">
-        <p className="text-center text-xs font-medium text-stone-500">
+      <div className="paper-panel p-3.5">
+        <p className="text-center text-xs font-bold text-[color:var(--muted)]">
           看哪一段时间
         </p>
-        <div className="mt-2 grid grid-cols-4 gap-1.5">
+        <div className="segmented mt-2">
           {PERIOD_TABS.map(({ id, label }) => (
             <button
               key={id}
@@ -137,10 +138,8 @@ export function StatsCharts({
                 setPeriod(id);
                 setAnchorDate(new Date());
               }}
-              className={`rounded-lg py-2.5 text-sm font-semibold transition active:scale-[0.98] ${
-                period === id
-                  ? "bg-accent text-paper"
-                  : "bg-background text-stone-600"
+              className={`segmented-item ${
+                period === id ? "segmented-item-active" : ""
               }`}
             >
               {label}
@@ -155,12 +154,12 @@ export function StatsCharts({
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, -1))
             }
-            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
+            className="pressable flex w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-background text-ink"
           >
             <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
-          <div className="min-w-0 flex-1 rounded-xl border border-stone-100 bg-stone-50/80 px-2 py-2">
-            <p className="text-center text-sm font-semibold leading-snug text-stone-800">
+          <div className="min-w-0 flex-1 rounded-2xl bg-background px-2 py-2.5">
+            <p className="text-center text-sm font-extrabold leading-snug text-ink">
               {periodLabel}
             </p>
           </div>
@@ -170,7 +169,7 @@ export function StatsCharts({
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, 1))
             }
-            className="flex w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition hover:bg-stone-50 active:scale-[0.97]"
+            className="pressable flex w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-background text-ink"
           >
             <ChevronRight className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
@@ -179,29 +178,31 @@ export function StatsCharts({
         <button
           type="button"
           onClick={() => setAnchorDate(new Date())}
-          className="mt-2 w-full rounded-lg py-2 text-xs font-medium text-accent transition hover:bg-accent-soft"
+          className="mt-2 w-full rounded-xl py-2 text-xs font-bold text-accent transition hover:bg-accent-soft"
         >
           回到今天
         </button>
-
-        <p className="mt-2 text-center text-[11px] text-stone-400">
-          以下数据均按此时间范围筛选（以记账时间 occurred_at 为准）
-        </p>
       </div>
 
       <section className="paper-panel p-4">
-        <h2 className="text-sm font-semibold text-stone-800">本区间汇总</h2>
-        <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
+        <h2 className="text-sm font-extrabold text-ink">本区间汇总</h2>
+        <p className="mt-1 text-[11px] leading-relaxed text-[color:var(--muted)]">
           {formatStatsRangeBounds(rangeStart, rangeEnd)}
         </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           <SummaryTile label="总收入" value={periodSummary.income} tone="income" />
           <SummaryTile label="总支出" value={periodSummary.expense} tone="expense" />
           <SummaryTile label="结余" value={periodSummary.balance} tone="balance" />
-          <div className="rounded-xl border border-stone-100 bg-stone-50/90 px-3 py-2.5">
-            <p className="text-[11px] font-medium text-stone-500">记账笔数</p>
-            <p className="mt-0.5 text-lg font-bold tabular-nums text-stone-800">{txCount}</p>
-            <p className="mt-0.5 text-[10px] text-stone-400">收入 + 支出条数合计</p>
+          <div className="rounded-2xl bg-background px-3 py-2.5">
+            <p className="text-[11px] font-bold text-[color:var(--muted)]">
+              记账笔数
+            </p>
+            <p className="mt-0.5 text-lg font-extrabold tabular-nums text-ink">
+              {txCount}
+            </p>
+            <p className="mt-0.5 text-[10px] text-[color:var(--muted)]">
+              收入 + 支出合计
+            </p>
           </div>
         </div>
       </section>
@@ -439,9 +440,11 @@ function ChartCard({
 }) {
   return (
     <section className="paper-panel p-4">
-      <h2 className="text-sm font-semibold text-stone-800">{title}</h2>
+      <h2 className="text-sm font-extrabold text-ink">{title}</h2>
       {subtitle ? (
-        <p className="mt-1 text-[11px] leading-relaxed text-stone-500">{subtitle}</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-[color:var(--muted)]">
+          {subtitle}
+        </p>
       ) : null}
       <div className="mt-2">{children}</div>
     </section>
@@ -463,12 +466,12 @@ function SummaryTile({
       : tone === "expense"
         ? "text-expense"
         : value >= 0
-          ? "text-income"
+          ? "text-accent"
           : "text-expense";
   return (
-    <div className="rounded-lg border border-[var(--line)] bg-background px-3 py-2.5">
-      <p className="text-[11px] font-medium text-stone-500">{label}</p>
-      <p className={`mt-0.5 text-base font-bold tabular-nums ${toneClass}`}>
+    <div className="rounded-2xl bg-background px-3 py-2.5">
+      <p className="text-[11px] font-bold text-[color:var(--muted)]">{label}</p>
+      <p className={`mt-0.5 text-base font-extrabold tabular-nums ${toneClass}`}>
         {formatMoney(value)}
       </p>
     </div>
@@ -525,6 +528,11 @@ function CategoryDetailList({
 
 function Empty() {
   return (
-    <p className="py-10 text-center text-sm text-stone-500">该维度下暂无数据</p>
+    <MascotEmpty
+      name="emptyNoData"
+      title="暂无数据"
+      description="换个时间段，或先去记一笔吧"
+      className="py-4"
+    />
   );
 }

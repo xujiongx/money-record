@@ -10,7 +10,7 @@ import {
   HOUSEHOLD_CODE_STORAGE_KEY,
   normalizeHouseholdCode,
 } from "@/lib/household";
-import { AppLogo } from "@/components/common/AppLogo";
+import { MascotIllustration } from "@/components/common/MascotIllustration";
 
 type Mode = "login" | "create";
 
@@ -126,7 +126,7 @@ export function EnterHouseholdCode() {
           value={d}
           onChange={(e) => onDigitChange(i, e.target.value)}
           onKeyDown={(e) => onKeyDown(i, e)}
-          className="h-12 w-10 rounded-lg border border-[var(--line)] bg-paper text-center text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+          className="h-12 w-10 rounded-2xl border border-[var(--line)] bg-paper text-center text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           aria-label={`第 ${i + 1} 位`}
         />
       ))}
@@ -137,23 +137,28 @@ export function EnterHouseholdCode() {
     <div className="flex min-h-[70vh] flex-col justify-center space-y-6 px-1">
       <header className="text-center">
         <div className="flex justify-center">
-          <AppLogo size={72} />
+          <MascotIllustration
+            name="loginHero"
+            size="lg"
+            className="drop-shadow-sm"
+            alt=""
+          />
         </div>
-        <h1 className="mt-4 font-[family-name:var(--font-noto-serif-sc)] text-2xl font-bold text-white">
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white">
           小账本
         </h1>
-        <p className="mx-auto mt-2 max-w-xs text-sm text-white/85">
+        <p className="mx-auto mt-2 max-w-xs text-sm text-white/90">
           {mode === "login"
             ? "输入家里的 6 位编码，打开账本。"
             : "建一个新家：自动加上布布、一二，记好新编码。"}
         </p>
       </header>
 
-      <div className="flex rounded-lg bg-white/20 p-1 ring-1 ring-white/30">
+      <div className="flex rounded-full bg-white/20 p-1 ring-1 ring-white/30">
         <button
           type="button"
           onClick={() => onModeChange("login")}
-          className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
             mode === "login"
               ? "bg-white text-accent"
               : "text-white/90"
@@ -164,9 +169,9 @@ export function EnterHouseholdCode() {
         <button
           type="button"
           onClick={() => onModeChange("create")}
-          className={`flex-1 rounded-md py-2.5 text-sm font-semibold transition ${
+          className={`flex-1 rounded-full py-2.5 text-sm font-bold transition ${
             mode === "create"
-              ? "bg-white text-accent-pink"
+              ? "bg-white text-accent"
               : "text-white/90"
           }`}
         >
@@ -177,7 +182,7 @@ export function EnterHouseholdCode() {
       <div className="paper-panel p-6">
         {mode === "create" && (
           <>
-            <label className="block text-center text-xs font-medium text-stone-500">
+            <label className="block text-center text-xs font-semibold text-stone-500">
               家庭名称
             </label>
             <input
@@ -189,7 +194,7 @@ export function EnterHouseholdCode() {
                 setHouseholdName(e.target.value);
                 setError(null);
               }}
-              className="mt-2 w-full rounded-lg border border-[var(--line)] bg-paper px-4 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              className="mt-2 w-full rounded-2xl border border-[var(--line)] bg-paper px-4 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
               maxLength={60}
             />
           </>

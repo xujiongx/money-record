@@ -7,12 +7,12 @@ import {
   resolveAvatarSrc,
 } from "@/lib/avatar/bitmap-cache";
 
-/** 暖橙粉实色 fallback（沿用原品牌色相） */
+/** 暖橙实色 fallback（与默认 warm 主题一致） */
 const solidFalls = [
-  "bg-[#fb923c]",
-  "bg-[#ec4899]",
-  "bg-[#f97316]",
-  "bg-[#f472b6]",
+  "bg-[#f47732]",
+  "bg-[#ffb347]",
+  "bg-[#ff4d4f]",
+  "bg-[#52c41a]",
 ];
 
 type PaintStatus = "pending" | "ready" | "error";

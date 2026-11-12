@@ -1,10 +1,10 @@
 # 家庭记账（Next.js 移动端 + Supabase）
 
-布布与一二共用的家庭账本：移动端视口、家用账本纸感 UI（扁平细线面板、Noto Serif SC 标题、可切换颜色主题）、多家庭编码隔离、收支记账、成员统计与图表；成员页右上角进**设置**（分类增删改查、本机主题）；「更多功能」含**大事记账**（与日常流水隔离）。
+布布与一二共用的家庭账本：移动端视口、对齐 `docs/assets` 设计稿的暖橙奶油 UI（大圆角软卡片、胶囊按钮、分段控件、Nunito + Noto Sans SC），角色场景插画以布布/一二原型为准；多家庭编码隔离、收支记账、成员统计与图表；成员页含**更多功能四宫格**与设置（分类 / 主题）。
 
 ## 技术栈
 
-- Next.js 16（App Router）+ TypeScript + Tailwind CSS 4；**`app/manifest.ts`**（PWA）、**`app/icon.svg`** 与 **`lib/app-branding.ts`** 统一应用名 / 描述 / 主题色（详见 [docs/development-guide.md](./docs/development-guide.md)）
+- Next.js 16（App Router）+ TypeScript + Tailwind CSS 4；**`app/manifest.ts`**（PWA）、**`app/icon.svg`** 与 **`lib/app-branding.ts`** 统一应用名 / 描述 / 主题色；场景插画见 **`public/illustrations/`**（详见 [docs/development-guide.md](./docs/development-guide.md)）
 - Supabase（PostgreSQL）
 - Recharts、Framer Motion、[lucide-react](https://lucide.dev/)（统一图标）、[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)（路由页过渡：Tab 用 fade、详情钻入用 drill）、date-fns、[react-mobile-picker](https://github.com/adcentury/react-mobile-picker)（记账发生时间滚轮：年/月/日/时/分）、[react-draggable](https://github.com/react-grid-layout/react-draggable)（浮动按钮）、[react-markdown](https://github.com/remarkjs/react-markdown)（助手气泡）、zod、undici（Mistral 上游与代理）、`openai`（OpenRouter 兼容调用）
 - **小布助手**：底部导航外的可拖动入口；多轮对话、结构化记账（自动识别支出/收入与分类，对不上归「其他」，信息够则直接入账、不先追问或「确认再记」）、**本月小结**与**本年小结**；每轮结合数据库快照生成事实块，弱化历史气泡里的旧数字。出站 LLM 经 `lib/foundation/llm`：**`MISTRAL_API_KEY` 与 `OPEN_ROUTER_API_KEY` 至少配置其一**（同时配置时优先 Mistral，失败则走 OpenRouter）。可选 **Web Speech** 播报（`lib/foundation/tts`）与语音输入（`lib/foundation/asr`），环境变量见 `.env.example`，模块说明见 [`lib/foundation/README.md`](./lib/foundation/README.md)
@@ -61,7 +61,7 @@ npm run dev
 | `/record` | 快速记账（金额 / 分类 / 记录人）；时间与备注默认折叠（默认此刻）；分类过多时「更多」展开；保存后 Toast 轻反馈；备注历史标签在展开区 |
 | `/stats` | 收支统计（日/周/月/年）；本区间汇总、成员明细、**每日趋势折线**（总额+成员）；右上角进 **分析**；图表按需加载 |
 | `/stats/analysis` | 月度/年度收支分析（柱图滑动、分类汇总、交易排行） |
-| `/members` | 成员列表与各人明细；右上角进设置；底部可切换家庭 |
+| `/members` | 家庭汇总横幅 + 成员列表；底部「更多功能」四宫格（工具 / 分类 / 主题 / 设置） |
 | `/members/settings` | 设置：家庭编码、分类、主题、切换家庭 |
 | `/members/settings/categories` | 日常收支分类增删改查（按家庭；「其他」不可删） |
 | `/members/settings/theme` | 颜色主题（本机偏好） |

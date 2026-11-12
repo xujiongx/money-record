@@ -31,7 +31,7 @@ export function SubpageHeader({
           <Link
             href={backHref}
             aria-label={backLabel}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-ink transition hover:bg-accent-soft active:scale-[0.97]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-ink transition hover:bg-accent-soft active:scale-[0.97]"
           >
             <ChevronLeft className="size-6" strokeWidth={2.25} aria-hidden />
           </Link>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Serif_SC } from "next/font/google";
+import { Geist_Mono, Noto_Sans_SC, Nunito } from "next/font/google";
 import { MobileShell } from "@/components/common/MobileShell";
 import { ThemeBootstrap } from "@/components/common/ThemeBootstrap";
 import { SsgoiProvider } from "@/app/ssgoi-provider";
@@ -10,20 +10,21 @@ import {
 } from "@/lib/app-branding";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+});
+
+const notoSansSc = Noto_Sans_SC({
+  variable: "--font-noto-sans-sc",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const notoSerifSc = Noto_Serif_SC({
-  variable: "--font-noto-serif-sc",
-  subsets: ["latin"],
-  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -46,7 +47,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#fb923c",
+  themeColor: "#f47732",
   colorScheme: "light",
   /** 与刘海屏安全区配合，避免独立 WebView 里背景露白 */
   viewportFit: "cover",
@@ -61,7 +62,7 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       data-theme="warm"
-      className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSc.variable} h-full`}
+      className={`${nunito.variable} ${notoSansSc.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">
