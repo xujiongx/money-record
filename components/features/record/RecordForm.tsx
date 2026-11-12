@@ -160,7 +160,6 @@ export function RecordForm({
       <div className="min-w-0 space-y-5">
         <header>
           <h1 className="page-title text-2xl">记一笔</h1>
-          <p className="mt-1 text-sm text-stone-500">金额、分类、谁记 —— 几秒搞定</p>
         </header>
 
         <div className="paper-panel min-w-0 max-w-full p-4">

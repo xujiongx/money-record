@@ -19,12 +19,10 @@ import { EditTransactionModal } from "@/components/features/record/EditTransacti
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 
 export function DashboardClient({
-  householdCode,
   initialMembers,
   initialTransactions,
   categories,
 }: {
-  householdCode: string;
   initialMembers: MemberRow[];
   initialTransactions: TransactionRow[];
   categories: LedgerCategoryRow[];
@@ -81,9 +79,6 @@ export function DashboardClient({
             <h1 className="page-title text-2xl leading-tight">
               {coupleNames || "我们的账本"}
             </h1>
-            <p className="mt-0.5 font-mono text-xs text-stone-500">
-              编码 {householdCode}
-            </p>
           </div>
         </div>
         <button

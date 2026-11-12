@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { StatsMemberPeriodLists } from "@/components/features/stats/StatsMemberPeriodLists";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 import {
   filterTransactionsInRange,
   formatStatsRangeBounds,
@@ -35,8 +34,6 @@ export default async function StatsMemberPeriodPage({
   ) {
     redirect("/stats");
   }
-
-  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
 
   let members;
   let transactions;
@@ -73,7 +70,6 @@ export default async function StatsMemberPeriodPage({
 
   return (
     <StatsMemberPeriodLists
-      householdCode={householdCode}
       memberName={member.name}
       rangeBounds={rangeBounds}
       expenses={expenses}

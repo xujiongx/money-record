@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ChevronRight, Palette, Tags } from "lucide-react";
 import { SubpageHeader } from "@/components/common/SubpageHeader";
+import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
+import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 const SETTINGS = [
   {
@@ -17,10 +19,25 @@ const SETTINGS = [
   },
 ] as const;
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
+
   return (
     <div className="space-y-5">
       <SubpageHeader backHref="/members" title="设置" />
+
+      {householdCode ? (
+        <section className="paper-panel px-4 py-3">
+          <p className="text-xs font-medium text-stone-500">家庭编码</p>
+          <p className="mt-1 font-mono text-lg font-semibold tracking-wider text-ink">
+            {householdCode}
+          </p>
+          <p className="mt-1 text-[11px] text-stone-400">
+            分享给家人即可加入同一账本
+          </p>
+        </section>
+      ) : null}
+
       <ul className="space-y-2">
         {SETTINGS.map(({ href, title, subtitle, icon: Icon }) => (
           <li key={href}>
@@ -48,6 +65,7 @@ export default function SettingsPage() {
           </li>
         ))}
       </ul>
+      <SwitchHouseholdButton />
     </div>
   );
 }

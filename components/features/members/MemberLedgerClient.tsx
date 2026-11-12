@@ -40,7 +40,6 @@ function matchesQuery(t: TransactionRow, q: string): boolean {
 }
 
 export function MemberLedgerClient({
-  householdCode,
   memberId,
   member,
   initialMembers,
@@ -48,7 +47,6 @@ export function MemberLedgerClient({
   initialItems,
   initialHasMore,
 }: {
-  householdCode: string;
   memberId: string;
   member: MemberRow;
   initialMembers: MemberRow[];
@@ -231,9 +229,6 @@ export function MemberLedgerClient({
         />
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-stone-800">{member.name}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-stone-400">
-            家庭编码 {householdCode}
-          </p>
           <p className="mt-0.5 text-[11px] text-stone-500">
             {(pending || loadingMore || loadingAll) && "加载中…"}
             {!pending && !loadingMore && !loadingAll && "向左滑动可编辑、删除"}

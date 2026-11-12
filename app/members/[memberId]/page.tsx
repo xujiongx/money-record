@@ -6,7 +6,6 @@ import {
   fetchMembers,
   fetchMemberTransactionsPage,
 } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 const PAGE_SIZE = 10;
 
@@ -16,7 +15,6 @@ export default async function MemberLedgerPage({
   params: Promise<{ memberId: string }>;
 }) {
   const { memberId } = await params;
-  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
 
   let members;
   let categories;
@@ -48,7 +46,6 @@ export default async function MemberLedgerPage({
   return (
     <MemberLedgerClient
       key={memberId}
-      householdCode={householdCode}
       memberId={memberId}
       member={member}
       initialMembers={members}

@@ -1,10 +1,8 @@
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { StatsChartsGate } from "@/components/features/stats/StatsChartsGate";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 export default async function StatsPage() {
-  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   let members;
   let transactions;
   try {
@@ -19,10 +17,6 @@ export default async function StatsPage() {
   }
 
   return (
-    <StatsChartsGate
-      householdCode={householdCode}
-      transactions={transactions}
-      members={members}
-    />
+    <StatsChartsGate transactions={transactions} members={members} />
   );
 }

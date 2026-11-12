@@ -16,7 +16,6 @@ const StatsChartsLazy = dynamic(
 );
 
 export function StatsChartsGate(props: {
-  householdCode: string;
   transactions: TransactionRow[];
   members: MemberRow[];
 }) {

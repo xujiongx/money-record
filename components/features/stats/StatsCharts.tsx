@@ -46,11 +46,9 @@ const PERIOD_TABS: { id: StatsPeriod; label: string }[] = [
 ];
 
 export function StatsCharts({
-  householdCode,
   transactions,
   members,
 }: {
-  householdCode: string;
   transactions: TransactionRow[];
   members: MemberRow[];
 }) {
@@ -117,9 +115,6 @@ export function StatsCharts({
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="page-title text-2xl">这个月花在哪</h1>
-          <p className="mt-1 font-mono text-xs text-stone-500">
-            编码 {householdCode}
-          </p>
         </div>
         <Link
           href="/stats/analysis"

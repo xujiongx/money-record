@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { ChevronRight, Settings, Wrench } from "lucide-react";
 import { SetupPrompt } from "@/components/features/household/SetupPrompt";
-import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
 import { fetchMembers, fetchTransactions } from "@/app/actions/ledger";
 import { memberStats, summarizeLedger } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
-import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 export default async function MembersPage() {
-  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   let members;
   let transactions;
   try {
@@ -31,9 +28,6 @@ export default async function MembersPage() {
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="page-title text-2xl">成员</h1>
-          <p className="mt-1 font-mono text-xs text-stone-500">
-            编码 {householdCode}
-          </p>
         </div>
         <Link
           href="/members/settings"
@@ -126,7 +120,6 @@ export default async function MembersPage() {
             aria-hidden
           />
         </Link>
-        <SwitchHouseholdButton />
       </section>
     </div>
   );

@@ -107,13 +107,11 @@ function CategoryGroupedList({
 }
 
 export function StatsMemberPeriodLists({
-  householdCode,
   memberName,
   rangeBounds,
   expenses,
   incomes,
 }: {
-  householdCode: string;
   memberName: string;
   rangeBounds: string;
   expenses: TransactionRow[];
@@ -140,9 +138,6 @@ export function StatsMemberPeriodLists({
         <p className="text-sm font-semibold text-stone-800">{memberName}</p>
         <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
           {rangeBounds}
-        </p>
-        <p className="mt-0.5 font-mono text-[11px] text-stone-400">
-          家庭编码 {householdCode}
         </p>
       </div>
 

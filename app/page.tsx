@@ -5,10 +5,8 @@ import {
   fetchMembers,
   fetchTransactions,
 } from "@/app/actions/ledger";
-import { getHouseholdCodeFromCookies } from "@/lib/household/server";
 
 export default async function HomePage() {
-  const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   let members;
   let transactions;
   let categories;
@@ -26,7 +24,6 @@ export default async function HomePage() {
 
   return (
     <DashboardClient
-      householdCode={householdCode}
       initialMembers={members}
       initialTransactions={transactions}
       categories={categories}
