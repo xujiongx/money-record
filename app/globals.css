@@ -18,8 +18,8 @@
   --gradient-from: #f47732;
   --gradient-mid: #ff9147;
   --gradient-to: #ffb347;
-  --shadow-soft: 0 4px 14px rgba(74, 55, 40, 0.06);
-  --radius-card: 1.5rem;
+  --shadow-soft: 0 2px 10px rgba(74, 55, 40, 0.05);
+  --radius-card: 1.25rem;
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   color-scheme: light;
 }
@@ -184,7 +184,7 @@ body {
   );
 }
 
-/* 各页 AI 水彩氛围底：固定顶区 + 向下蒙版渐隐，露出 --background */
+/* 各页水彩氛围底：固定顶区 + 向下蒙版渐隐 */
 .shell-page-bg {
   pointer-events: none;
   position: fixed;
@@ -223,8 +223,8 @@ body {
 }
 
 .paper-panel {
-  border-radius: var(--radius-card, 1.5rem);
-  /* 高保真：纯白卡 + 单层轻阴影，无描边；不做 inset/双层/奶油混色 */
+  border-radius: var(--radius-card, 1.25rem);
+  /* 高保真：纯白卡 + 极轻单层阴影；角色插画承担个性，壳层保持克制 */
   background: var(--paper);
   box-shadow: var(--shadow-soft);
 }
@@ -236,19 +236,19 @@ body {
   justify-content: center;
   border-radius: 9999px;
   background: var(--accent);
-  padding: 1rem 1.25rem;
+  padding: 0.95rem 1.25rem;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   color: #ffffff;
-  box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 68%, #8a3a10);
-  transition: transform 180ms var(--ease-soft), opacity 180ms var(--ease-soft),
-    box-shadow 180ms var(--ease-soft);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 72%, #8a3a10);
+  transition: transform 160ms var(--ease-soft), opacity 160ms var(--ease-soft),
+    box-shadow 160ms var(--ease-soft);
 }
 
 .btn-primary:active {
-  transform: translateY(3px) scale(0.99);
-  box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 68%, #8a3a10);
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 72%, #8a3a10);
 }
 
 .btn-primary:disabled {
@@ -357,10 +357,10 @@ body {
 }
 
 .tab-bar {
-  border: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
-  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+  border-radius: 1.25rem;
   background: var(--paper);
-  box-shadow: 0 6px 18px rgba(74, 55, 40, 0.08);
+  box-shadow: 0 4px 14px rgba(74, 55, 40, 0.06);
 }
 
 .tab-bar-scrim {

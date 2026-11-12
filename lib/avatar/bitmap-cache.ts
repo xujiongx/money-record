@@ -4,9 +4,10 @@ const bitmapCache = new Map<string, ImageBitmap>();
 const inflight = new Map<string, Promise<ImageBitmap>>();
 
 /** 与 MemberAvatar 默认成员图一致 */
+/** 路径带版本后缀，便于头像 PNG 更新后绕过 force-cache */
 export const DEFAULT_NAME_AVATAR: Record<string, string> = {
-  布布: "/bubu.png",
-  一二: "/12.png",
+  布布: "/bubu.png?v=9",
+  一二: "/12.png?v=9",
 };
 
 export function resolveAvatarSrc(

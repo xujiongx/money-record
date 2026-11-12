@@ -138,8 +138,14 @@ export function RecordForm({
   return (
     <>
       <div className="min-w-0 space-y-4">
-        <header className="px-0.5">
+        <header className="relative flex items-start justify-between gap-3 px-0.5 pr-[4.5rem]">
           <h1 className="page-title text-[1.65rem]">记一笔</h1>
+          <MascotIllustration
+            name="recordHeader"
+            size="header"
+            className="absolute -right-1 -top-1"
+            alt=""
+          />
         </header>
 
         <div className="paper-panel min-w-0 max-w-full p-4">

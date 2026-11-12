@@ -15,6 +15,8 @@ const SIZE_CLASS = {
   banner: "h-[7.5rem] w-auto max-w-[17rem]",
   /** 首页本月已花右下角 */
   peek: "h-[7rem] w-auto max-w-[9.5rem]",
+  /** 记账页标题右侧点缀 */
+  header: "h-[4.75rem] w-auto max-w-[5.25rem]",
 } as const;
 
 /** 场景插画 PNG（透明底） */

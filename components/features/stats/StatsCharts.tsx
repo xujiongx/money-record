@@ -30,7 +30,10 @@ import {
 } from "@/lib/ledger/stats-period";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
-import { MascotEmpty } from "@/components/common/MascotIllustration";
+import {
+  MascotEmpty,
+  MascotIllustration,
+} from "@/components/common/MascotIllustration";
 import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
 import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
@@ -113,16 +116,24 @@ export function StatsCharts({
 
   return (
     <div className="space-y-4">
-      <header className="flex items-start justify-between gap-3 px-0.5">
-        <div>
+      <header className="relative flex items-start justify-between gap-3 px-0.5 pr-[5.5rem]">
+        <div className="min-w-0">
           <h1 className="page-title text-[1.65rem]">月度统计</h1>
         </div>
-        <Link
-          href="/stats/analysis"
-          className="pressable mt-1 shrink-0 rounded-full bg-accent-soft/80 px-3.5 py-2 text-sm font-extrabold text-accent hover:bg-accent-soft"
-        >
-          分析
-        </Link>
+        <div className="relative z-[1] flex items-center gap-2">
+          <Link
+            href="/stats/analysis"
+            className="pressable shrink-0 rounded-full bg-accent-soft/80 px-3.5 py-2 text-sm font-extrabold text-accent hover:bg-accent-soft"
+          >
+            分析
+          </Link>
+        </div>
+        <MascotIllustration
+          name="statsHeader"
+          size="header"
+          className="absolute -right-1 -top-2"
+          alt=""
+        />
       </header>
 
       <div className="paper-panel p-3.5">

@@ -27,13 +27,15 @@ function paintBitmap(
   bmp: ImageBitmap,
   px: number,
 ) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
   canvas.width = Math.round(px * dpr);
   canvas.height = Math.round(px * dpr);
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, px, px);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bmp, 0, 0, px, px);
 }
 
