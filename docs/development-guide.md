@@ -89,7 +89,7 @@ flowchart LR
 │   └── features/           # 按业务域划分的功能组件
 │       ├── household/      # 登录、切换家庭、ThemePicker、LedgerCategoriesClient、无数据提示
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
-│       ├── record/         # 记账、仪表盘流水、编辑弹窗、左滑行
+│       ├── record/         # 极简记账、仪表盘（结余+账单）、编辑弹窗、左滑行
 │       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
 │       ├── stats/          # StatsCharts + Gate；每日趋势折线（随 StatsCharts 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
@@ -179,6 +179,7 @@ cp .env.example .env.local
 | 问题 | 处理 |
 |------|------|
 | 一直跳登录 | 检查 Cookie 是否写入；中间件是否校验 6 位数字。 |
+| 手机打开局域网 `http://192.168.x.x:3000` 卡住 / 白屏 | Next 16 会拦跨源 `/_next`（含 HMR）。把本机当前局域网 IP 写入 **`next.config.ts` → `allowedDevOrigins`**，**重启** `next dev`。终端若出现 `Blocked cross-origin request ... webpack-hmr` 即为此原因。 |
 | 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`。 |
 | 无法连库 | `.env.local`、Supabase 项目状态、Service Role 是否正确。 |
 | 另一台设备更新不自动出现 | 在首页点 **「刷新数据」**（`refreshLedgerReadCache` + `router.refresh()`），或刷新整页 / 切换路由；若需近实时可后续接 Realtime。 |

@@ -10,7 +10,7 @@ export function ChatFabTrigger({ onOpen }: { onOpen: () => void }) {
     <DraggableFab
       storageKey={OFFSET_STORAGE_KEY}
       aria-label="打开记账助手，可拖动位置"
-      className="size-16 rounded-full border border-[var(--line)] bg-accent text-paper shadow-[0_8px_24px_-8px_rgba(196,92,38,0.45)] transition-shadow hover:shadow-[0_10px_28px_-8px_rgba(196,92,38,0.55)]"
+      className="size-16 bg-transparent shadow-none"
       onPress={onOpen}
     >
       <ChatBotMascot

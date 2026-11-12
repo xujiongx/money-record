@@ -95,7 +95,7 @@
 | category | string | 是 |
 | amount | number | 是，> 0 |
 | note | string | 否 |
-| occurredAt | ISO 字符串 | 否；省略则服务端用当前时间。**`/record`** 的 **`RecordForm`** / 编辑弹窗经 **`OccurredAtPicker`**（今天/昨天/前天 + **react-mobile-picker** 年/月/日/时/分滚轮）指定业务发生时间 |
+| occurredAt | ISO 字符串 | 否；省略则服务端用当前时间。**`RecordForm`** 默认折叠时间（未改则提交当前时刻）；展开后可用 **`datetime-local`**；编辑弹窗亦用 **`datetime-local`** |
 
 - 成功：**`revalidateTag("ledger", "max")`** + `revalidatePath`（`/`, `/record`, `/stats`, `/members` 及 `/members` **layout**）。
 

@@ -109,8 +109,8 @@ flowchart TB
 | 路径 | 服务端 | 客户端侧重 |
 |------|--------|------------|
 | `/login` | 登录/创建家、写 Cookie | `EnterHouseholdCode` |
-| `/` | 并行拉成员+流水 | `DashboardClient`（左滑编辑/删除、编辑弹窗、**「刷新数据」**） |
-| `/record` | 拉成员 | `RecordForm`（`OccurredAtPicker`：快捷日 + 滚轮年/月/日/时/分，传 `occurredAt`） |
+| `/` | 并行拉成员+流水+分类 | `DashboardClient`（结余主 KPI、最近账单、左滑改删、**刷新**） |
+| `/record` | 拉成员+分类 | `RecordForm`（极简默认路径；时间/备注折叠；默认 `occurredAt`=此刻；Toast 成功反馈） |
 | `/stats` | 拉成员+流水 | `StatsChartsGate` → 动态 `StatsCharts`（本区间汇总、成员明细、每日趋势折线等） |
 | `/stats/analysis` | 拉流水 | `AnalysisClient`（月度/年度；迷你柱、结余月历、分类对比） |
 | `/members` | 拉成员+流水 | 成员列表与简短明细；`/members/[memberId]` 为该成员全部账单（分页 + 触底加载，`MemberLedgerClient`）；底部「更多功能」→ `/tools` |

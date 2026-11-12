@@ -10,7 +10,7 @@ import {
   deleteTransaction,
   refreshLedgerReadCache,
 } from "@/app/actions/ledger";
-import { summarizeLedger, memberStats } from "@/lib/ledger/aggregates";
+import { summarizeLedger } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
 import type { LedgerCategoryRow } from "@/lib/ledger/categories";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
@@ -55,10 +55,6 @@ export function DashboardClient({
   const { income, expense, balance } = useMemo(
     () => summarizeLedger(transactions),
     [transactions],
-  );
-  const stats = useMemo(
-    () => memberStats(transactions, initialMembers),
-    [transactions, initialMembers],
   );
   const recent = useMemo(() => transactions.slice(0, 20), [transactions]);
   const coupleNames = initialMembers
@@ -106,28 +102,36 @@ export function DashboardClient({
           }}
           className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-[var(--line)] bg-paper text-ink transition hover:bg-accent-soft active:scale-[0.98] disabled:opacity-55"
         >
-          <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} strokeWidth={2} aria-hidden />
+          <RefreshCw
+            className={`size-4 ${syncing ? "animate-spin" : ""}`}
+            strokeWidth={2}
+            aria-hidden
+          />
         </button>
       </header>
 
-      <section className="paper-panel grid grid-cols-3 divide-x divide-[var(--line)] overflow-hidden p-0">
-        <SummaryCell label="总收入" value={income} tone="income" />
-        <SummaryCell label="总支出" value={expense} tone="expense" />
-        <SummaryCell label="结余" value={balance} tone="balance" />
-      </section>
-
       <section className="paper-panel p-4">
-        <h2 className="text-sm font-semibold text-ink">家里人</h2>
-        <div className="mt-3 flex justify-around gap-3">
-          {stats.map(({ member, count, income: inc, expense: exp }) => (
-            <div key={member.id} className="flex flex-col items-center text-center">
-              <MemberAvatar name={member.name} avatarUrl={member.avatar_url} size="lg" />
-              <p className="mt-2 font-medium text-ink">{member.name}</p>
-              <p className="text-xs text-stone-500">{count} 笔记账</p>
-              <p className="mt-1 text-[11px] text-income">+{formatMoney(inc)}</p>
-              <p className="text-[11px] text-expense">-{formatMoney(exp)}</p>
-            </div>
-          ))}
+        <p className="text-[11px] font-medium text-stone-500">结余</p>
+        <p
+          className={`page-title mt-1 text-3xl tabular-nums tracking-tight ${
+            balance >= 0 ? "text-accent" : "text-expense"
+          }`}
+        >
+          {formatMoney(balance)}
+        </p>
+        <div className="mt-3 flex gap-4 text-sm">
+          <p className="text-income">
+            <span className="text-[11px] text-stone-500">收入 </span>
+            <span className="font-semibold tabular-nums">
+              {formatMoney(income)}
+            </span>
+          </p>
+          <p className="text-expense">
+            <span className="text-[11px] text-stone-500">支出 </span>
+            <span className="font-semibold tabular-nums">
+              {formatMoney(expense)}
+            </span>
+          </p>
         </div>
       </section>
 
@@ -135,16 +139,20 @@ export function DashboardClient({
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-ink">最近账单</h2>
-            <p className="mt-0.5 text-[10px] text-stone-400">向左滑动可编辑、删除</p>
+            <p className="mt-0.5 text-[10px] text-stone-400">
+              向左滑动可编辑、删除
+            </p>
           </div>
-          {pending && (
+          {pending ? (
             <span className="shrink-0 text-xs text-stone-400">处理中…</span>
-          )}
+          ) : null}
         </div>
         <ul className="mt-2 divide-y divide-[var(--line)]">
-          {recent.length === 0 && (
-            <li className="py-8 text-center text-sm text-stone-500">暂无记录，去记一笔吧</li>
-          )}
+          {recent.length === 0 ? (
+            <li className="py-8 text-center text-sm text-stone-500">
+              暂无记录，去记一笔吧
+            </li>
+          ) : null}
           {recent.map((t) => {
             const isIn = t.type === "income";
             return (
@@ -203,7 +211,7 @@ export function DashboardClient({
         </ul>
       </section>
 
-      {editing && (
+      {editing ? (
         <EditTransactionModal
           key={editing.id}
           transaction={editing}
@@ -215,33 +223,7 @@ export function DashboardClient({
           }}
           onSaved={refresh}
         />
-      )}
-    </div>
-  );
-}
-
-function SummaryCell({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "income" | "expense" | "balance";
-}) {
-  const color =
-    tone === "income"
-      ? "text-income"
-      : tone === "expense"
-        ? "text-expense"
-        : value >= 0
-          ? "text-accent"
-          : "text-expense";
-
-  return (
-    <div className="px-2 py-3.5 text-center">
-      <p className="text-[11px] font-medium text-stone-500">{label}</p>
-      <p className={`mt-1 truncate text-sm font-bold ${color}`}>{formatMoney(value)}</p>
+      ) : null}
     </div>
   );
 }
