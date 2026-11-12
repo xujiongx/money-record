@@ -15,8 +15,8 @@ import type { LedgerType, MemberRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
 import { pushNoteHistory } from "@/lib/ledger/note-history";
+import { LAST_RECORD_MEMBER_KEY } from "@/lib/ledger/preferences";
 
-const LAST_RECORD_MEMBER_KEY = "money-record:last-record-member-id";
 /** 默认露出的分类数；其余收进「更多」 */
 const VISIBLE_CATEGORY_COUNT = 8;
 

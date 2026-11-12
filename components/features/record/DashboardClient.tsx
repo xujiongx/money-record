@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, getDate, getDaysInMonth, subMonths } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { RefreshCw } from "lucide-react";
 import {
@@ -12,11 +12,30 @@ import {
 } from "@/app/actions/ledger";
 import { summarizeLedger } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
+import { LAST_RECORD_MEMBER_KEY } from "@/lib/ledger/preferences";
+import {
+  filterTransactionsInRange,
+  getStatsDateRange,
+} from "@/lib/ledger/stats-period";
 import type { LedgerCategoryRow } from "@/lib/ledger/categories";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
+
+function monthExpenseLine(thisExpense: number, lastExpense: number): string {
+  if (thisExpense <= 0) return "本月暂无支出";
+  if (lastExpense <= 0) return `本月已花 ${formatMoney(thisExpense)}`;
+  const diffPct = ((thisExpense - lastExpense) / lastExpense) * 100;
+  const abs = Math.round(Math.abs(diffPct));
+  if (abs < 1) {
+    return `本月已花 ${formatMoney(thisExpense)} · 与上月差不多`;
+  }
+  if (diffPct > 0) {
+    return `本月已花 ${formatMoney(thisExpense)} · 比上月多 ${abs}%`;
+  }
+  return `本月已花 ${formatMoney(thisExpense)} · 比上月少 ${abs}%`;
+}
 
 export function DashboardClient({
   initialMembers,
@@ -32,6 +51,7 @@ export function DashboardClient({
   const [editing, setEditing] = useState<TransactionRow | null>(null);
   /** 最近账单：左滑展开时仅一条保持打开 */
   const [swipeOpenId, setSwipeOpenId] = useState<string | null>(null);
+  const [selfMemberId, setSelfMemberId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [syncing, startSyncTransition] = useTransition();
 
@@ -50,10 +70,69 @@ export function DashboardClient({
     setTransactions(initialTransactions);
   }, [initialTransactions]);
 
-  const { income, expense, balance } = useMemo(
-    () => summarizeLedger(transactions),
-    [transactions],
-  );
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LAST_RECORD_MEMBER_KEY);
+      if (stored && initialMembers.some((m) => m.id === stored)) {
+        setSelfMemberId(stored);
+      }
+    } catch {
+      /* private mode */
+    }
+  }, [initialMembers]);
+
+  const insights = useMemo(() => {
+    const now = new Date();
+    const thisRange = getStatsDateRange("month", now);
+    const lastRange = getStatsDateRange("month", subMonths(now, 1));
+    const todayRange = getStatsDateRange("day", now);
+
+    const thisMonthTx = filterTransactionsInRange(
+      transactions,
+      thisRange.start,
+      thisRange.end,
+    );
+    const lastMonthTx = filterTransactionsInRange(
+      transactions,
+      lastRange.start,
+      lastRange.end,
+    );
+    const todayTx = filterTransactionsInRange(
+      transactions,
+      todayRange.start,
+      todayRange.end,
+    );
+
+    const thisSum = summarizeLedger(thisMonthTx);
+    const lastSum = summarizeLedger(lastMonthTx);
+    const todaySum = summarizeLedger(todayTx);
+    const day = getDate(now);
+    const daysInMonth = getDaysInMonth(now);
+    const vsLastRatio =
+      lastSum.expense > 0
+        ? Math.min(thisSum.expense / lastSum.expense, 1.5)
+        : thisSum.expense > 0
+          ? 1
+          : 0;
+
+    return {
+      thisSum,
+      lastSum,
+      todaySum,
+      todayCount: todayTx.length,
+      expenseLine: monthExpenseLine(thisSum.expense, lastSum.expense),
+      paceLine: `已过 ${day}/${daysInMonth} 天 · 日均 ${formatMoney(thisSum.expense / Math.max(day, 1))}`,
+      vsLastRatio,
+    };
+  }, [transactions]);
+
+  const partnerRecent = useMemo(() => {
+    if (!selfMemberId) return [] as TransactionRow[];
+    return transactions
+      .filter((t) => t.member_id !== selfMemberId)
+      .slice(0, 2);
+  }, [transactions, selfMemberId]);
+
   const recent = useMemo(() => transactions.slice(0, 20), [transactions]);
   const coupleNames = initialMembers
     .slice(0, 2)
@@ -106,29 +185,117 @@ export function DashboardClient({
       </header>
 
       <section className="paper-panel p-4">
-        <p className="text-[11px] font-medium text-stone-500">结余</p>
-        <p
-          className={`page-title mt-1 text-3xl tabular-nums tracking-tight ${
-            balance >= 0 ? "text-accent" : "text-expense"
-          }`}
-        >
-          {formatMoney(balance)}
+        <p className="text-[11px] font-medium text-stone-500">本月已花</p>
+        <p className="page-title mt-1 text-3xl tabular-nums tracking-tight text-expense">
+          {formatMoney(insights.thisSum.expense)}
         </p>
-        <div className="mt-3 flex gap-4 text-sm">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <p className="text-income">
             <span className="text-[11px] text-stone-500">收入 </span>
             <span className="font-semibold tabular-nums">
-              {formatMoney(income)}
+              {formatMoney(insights.thisSum.income)}
             </span>
           </p>
-          <p className="text-expense">
-            <span className="text-[11px] text-stone-500">支出 </span>
-            <span className="font-semibold tabular-nums">
-              {formatMoney(expense)}
+          <p>
+            <span className="text-[11px] text-stone-500">结余 </span>
+            <span
+              className={`font-semibold tabular-nums ${
+                insights.thisSum.balance >= 0 ? "text-accent" : "text-expense"
+              }`}
+            >
+              {formatMoney(insights.thisSum.balance)}
             </span>
           </p>
         </div>
+
+        {insights.lastSum.expense > 0 ? (
+          <div
+            className="mt-3 h-1.5 overflow-hidden rounded-full bg-background"
+            aria-hidden
+          >
+            <div
+              className="h-full rounded-full bg-expense/80 transition-[width] duration-300 ease-out"
+              style={{
+                width: `${Math.max(4, Math.min(insights.vsLastRatio * 100, 100))}%`,
+              }}
+            />
+          </div>
+        ) : null}
+
+        <p className="mt-2 text-xs leading-relaxed text-stone-600">
+          {insights.expenseLine}
+        </p>
+        <p className="mt-0.5 text-[11px] text-stone-400">{insights.paceLine}</p>
       </section>
+
+      <section className="paper-panel px-4 py-3">
+        <p className="text-[11px] font-medium text-stone-500">今日小结</p>
+        {insights.todayCount === 0 ? (
+          <p className="mt-1 text-sm text-stone-500">今天还没记账</p>
+        ) : (
+          <p className="mt-1 text-sm text-ink">
+            <span className="font-semibold">{insights.todayCount}</span> 笔
+            <span className="text-stone-300"> · </span>
+            花了{" "}
+            <span className="font-semibold tabular-nums text-expense">
+              {formatMoney(insights.todaySum.expense)}
+            </span>
+            {insights.todaySum.income > 0 ? (
+              <>
+                <span className="text-stone-300"> · </span>
+                收入{" "}
+                <span className="font-semibold tabular-nums text-income">
+                  {formatMoney(insights.todaySum.income)}
+                </span>
+              </>
+            ) : null}
+          </p>
+        )}
+      </section>
+
+      {partnerRecent.length > 0 ? (
+        <section className="paper-panel p-4">
+          <h2 className="text-sm font-semibold text-ink">对方刚记了</h2>
+          <ul className="mt-2 space-y-2.5">
+            {partnerRecent.map((t) => {
+              const isIn = t.type === "income";
+              return (
+                <li key={t.id} className="flex items-center gap-3">
+                  <MemberAvatar
+                    name={t.members?.name ?? "成员"}
+                    avatarUrl={
+                      initialMembers.find((m) => m.id === t.member_id)
+                        ?.avatar_url ?? null
+                    }
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-ink">
+                      {t.members?.name ?? "成员"}
+                      <span className="text-stone-300"> · </span>
+                      {t.category}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-stone-500">
+                      {format(new Date(t.occurred_at), "M月d日 HH:mm", {
+                        locale: zhCN,
+                      })}
+                      {t.note ? ` · ${t.note}` : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 text-sm font-bold tabular-nums ${
+                      isIn ? "text-income" : "text-expense"
+                    }`}
+                  >
+                    {isIn ? "+" : "-"}
+                    {formatMoney(t.amount)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="paper-panel p-4">
         <div className="flex items-center justify-between gap-2">

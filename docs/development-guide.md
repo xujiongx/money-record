@@ -107,7 +107,7 @@ flowchart LR
 │   ├── app-branding.ts     # 应用显示名、短名、描述（layout + manifest 共用）
 │   ├── theme/              # 颜色主题 id / 色板 / 图表色板 / useThemeChartColors
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
-│   ├── ledger/             # 账本领域：类型、分类默认种子 / 行类型、聚合、按日序列、统计周期、金额格式、`monthly-digest`
+│   ├── ledger/             # 账本领域：类型、分类默认种子 / 行类型、聚合、本机偏好键、按日序列、统计周期、金额格式、`monthly-digest`
 │   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
 │   └── supabase/service.ts # Service Role 客户端
