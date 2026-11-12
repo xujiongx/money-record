@@ -51,7 +51,7 @@ flowchart TB
 | 服务端访问 DB | **仅** Service Role（`lib/supabase/service.ts`），不经 anon 业务读 |
 | 图表 | Recharts（统计页经 **`StatsChartsGate` 客户端 `dynamic` + `ssr: false`** 分包） |
 | 动效 | Framer Motion（局部使用）；**[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**（路由页过渡） |
-| 图标 | [lucide-react](https://lucide.dev/)（底栏、返回、刷新、搜索等）；二级页统一 **`BackLink`**（`ChevronLeft`） |
+| 图标 | [lucide-react](https://lucide.dev/)（底栏、返回、刷新、搜索等）；二级页统一 **`SubpageHeader`** |
 | 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
 | 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/llm/xiaobu-llm.ts`） |
 | 日期 | date-fns |
@@ -91,7 +91,7 @@ flowchart TB
 - **文案单一来源**：**`lib/app-branding.ts`**（`APP_DISPLAY_NAME`、`APP_SHORT_NAME`、`APP_DESCRIPTION`）。  
 - **HTML 元数据与视口**：**`app/layout.tsx`** 的 **`export const metadata`**（含 **`appleWebApp`**、**`icons.apple`** → **`/icon.svg`**）与 **`export const viewport`**（**`themeColor`**、**`viewportFit: cover`** 等）。  
 - **PWA**：**`app/manifest.ts`** 返回 **`MetadataRoute.Manifest`**；**`start_url`** 为 **`/record`**（从主屏幕打开先进记账）；**`display: standalone`**；颜色与根布局壳层一致。  
-- **图标**：**`app/icon.svg`** 一处维护；浏览器标签 favicon、清单 **`icons`**、**`AppLogo`** 均指向 **`/icon.svg`**。登录页 **`EnterHouseholdCode`** 使用 **`AppLogo`**。  
+- **图标**：**`app/icon.svg`** 一处维护；浏览器标签 favicon、清单 **`icons`** 均指向 **`/icon.svg`**。登录页头图用场景插画 **`loginHero`**。  
 
 详见 [development-guide.md §2](./development-guide.md) 与 **`lib/app-branding.ts`** 内注释。
 

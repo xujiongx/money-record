@@ -14,8 +14,6 @@ const FILES = [
   "success-saved",
   "family-banner",
   "login-hero",
-  // 背景类通常直接拷贝，不走角色抠图；保留名便于清单对齐
-  // "bg-header-meadow", "bg-page-soft", "bg-tab-soft", "bg-subpage-wash",
 ];
 
 function isCreamOrBorder(r, g, b, x, y, w, h) {

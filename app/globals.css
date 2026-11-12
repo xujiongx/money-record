@@ -202,12 +202,6 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
-.panel-soft {
-  border-radius: var(--radius-card, 1.5rem);
-  background: color-mix(in srgb, var(--accent-soft) 55%, var(--paper));
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
-}
-
 .btn-primary {
   display: inline-flex;
   width: 100%;
@@ -364,12 +358,4 @@ body {
   border-radius: 9999px;
   background: var(--accent);
   transition: width 280ms var(--ease-soft);
-}
-
-/* 列表行：稿面是白卡内分隔，不当成二级卡片 */
-.list-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
 }

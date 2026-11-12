@@ -67,19 +67,19 @@ export default async function MembersPage() {
         <h1 className="page-title text-[1.65rem]">我们的家庭账本</h1>
       </header>
 
-      {/* 设计稿：家庭横幅 + 扁平三列汇总（不嵌套小卡） */}
-      <section className="paper-panel overflow-hidden p-0">
-        <div className="flex justify-center bg-gradient-to-b from-accent-soft/70 to-paper px-4 pt-4">
+      {/* 设计稿：家庭横幅 + 三列汇总；同一连续底，避免色块交界出假线 */}
+      <section className="paper-panel overflow-hidden bg-gradient-to-b from-accent-soft/55 via-paper to-paper px-2 pb-3.5 pt-4">
+        <div className="flex justify-center px-2">
           <MascotIllustration name="familyBanner" size="banner" alt="" />
         </div>
-        <div className="grid grid-cols-3 gap-1 border-t border-[var(--line)] px-2 py-3.5 text-center">
+        <div className="mt-4 grid grid-cols-3 gap-1 text-center">
           <div className="px-1">
             <p className="text-[11px] text-[color:var(--muted)]">总收入</p>
             <p className="mt-1 text-sm font-extrabold tabular-nums text-income">
               {formatMoney(family.income)}
             </p>
           </div>
-          <div className="border-x border-[var(--line)] px-1">
+          <div className="px-1">
             <p className="text-[11px] text-[color:var(--muted)]">总支出</p>
             <p className="mt-1 text-sm font-extrabold tabular-nums text-expense">
               {formatMoney(family.expense)}
