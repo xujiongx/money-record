@@ -131,7 +131,7 @@ flowchart TB
 | **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（一级 Tab **`slide`**，嵌套页 **`drill`**） |
 | **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-background`（奶油底 `#fffbef`）** + **`.paper-header`** 顶带（登录页全屏暖橙洗），避免过渡时新旧页互相透出 |
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
-| **`MobileShell`** | 仅一级 Tab 显示底栏 / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip` |
+| **`MobileShell`** | 仅一级 Tab 显示悬浮圆角 TabBar / 小布；二级详情与登录隐藏；过渡壳 `relative z-0 overflow-x-clip`；氛围为奶油 CSS 洗色（无第三方矢量角色） |
 
 规则摘要：四个一级 Tab 点击互切用 **slide**；`/stats/**`、`/members/**`、`/tools/**` 嵌套用 **drill**。二级页与登录**不显示**底栏与小布入口（`isPrimaryTabPath`）。无左右拖动手势切 Tab。
 

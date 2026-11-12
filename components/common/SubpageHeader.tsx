@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
  * 二级页固定顶栏：返回 + 居中标题 + 可选右侧操作。
  * 使用 viewport `fixed`（非 sticky）：弹层/滚轮手势下也不会被 iOS 橡皮筋带着跑。
  * 下方占位条抵消壳层 top padding，避免正文被顶栏挡住。
+ * 样式对齐设计稿：奶油洗色顶栏。
  */
 export function SubpageHeader({
   backHref,
@@ -22,16 +23,16 @@ export function SubpageHeader({
   return (
     <>
       <header
-        className="fixed left-1/2 top-0 z-30 w-full max-w-md -translate-x-1/2 border-b border-[var(--line)] bg-background"
+        className="paper-header-subpage fixed left-1/2 top-0 z-30 w-full max-w-md -translate-x-1/2 border-b border-[color:var(--line)]"
         style={{
           paddingTop: "max(0.65rem, env(safe-area-inset-top))",
         }}
       >
-        <div className="flex items-center gap-1 px-2 pb-2.5">
+        <div className="relative z-[1] flex items-center gap-1 px-2 pb-2.5">
           <Link
             href={backHref}
             aria-label={backLabel}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-ink transition hover:bg-accent-soft active:scale-[0.97]"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper/70 text-ink shadow-sm shadow-stone-900/5 transition hover:bg-accent-soft active:scale-[0.97]"
           >
             <ChevronLeft className="size-6" strokeWidth={2.25} aria-hidden />
           </Link>
@@ -41,7 +42,7 @@ export function SubpageHeader({
               {title}
             </h1>
             {subtitle ? (
-              <p className="mt-0.5 truncate text-[11px] leading-snug text-stone-500">
+              <p className="mt-0.5 truncate text-[11px] leading-snug text-[color:var(--muted)]">
                 {subtitle}
               </p>
             ) : null}

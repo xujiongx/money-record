@@ -121,7 +121,7 @@ export function SwipeTransactionRow({
 
       {/* 前景必须不透明且铺满行宽，否则会与金额、底层按钮叠色 */}
       <div
-        className={`relative z-10 w-full min-w-0 select-none bg-paper shadow-[4px_0_12px_-8px_rgba(0,0,0,0.08)] touch-pan-y ${
+        className={`relative z-10 w-full min-w-0 select-none bg-paper touch-pan-y ${
           dragging ? '' : 'transition-[transform] duration-200 ease-out'
         }`}
         style={{ transform: `translate3d(${tx}px,0,0)` }}

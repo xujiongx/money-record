@@ -14,7 +14,7 @@ const TOOLS = [
 export function ToolsHub() {
   return (
     <div className="space-y-5">
-      <SubpageHeader backHref="/members" title="更多功能" subtitle="工具箱" />
+      <SubpageHeader backHref="/members" title="更多功能" />
 
       <section className="paper-panel p-4">
         <div className="flex items-center gap-2">

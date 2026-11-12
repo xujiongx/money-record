@@ -28,56 +28,57 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="relative z-0 min-h-dvh overflow-x-clip">
+      <div className="relative z-10 min-h-dvh overflow-x-clip">
         <SsgoiRouteBoundary>{children}</SsgoiRouteBoundary>
       </div>
       {showNav && (
-        <nav className="tab-bar fixed bottom-0 left-1/2 z-20 w-full max-w-md -translate-x-1/2 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))]">
-          <ul className="flex items-center justify-around">
-            {tabs.map(({ href, label, icon: Icon }) => {
-              const active =
-                href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(href);
-              return (
-                <li key={href}>
-                  <Link
-                    prefetch
-                    href={href}
-                    className="relative flex min-w-[4.5rem] flex-col items-center gap-0.5 py-1.5 text-[11px] font-bold [-webkit-tap-highlight-color:transparent]"
-                  >
-                    {active ? (
-                      <span
-                        className="absolute inset-x-2 -inset-y-0.5 rounded-2xl bg-accent-soft/80"
-                        aria-hidden
-                      />
-                    ) : null}
-                    <span className="relative z-10 flex flex-col items-center gap-0.5">
-                      <Icon
-                        className={
-                          active
-                            ? "size-[22px] text-accent"
-                            : "size-[22px] text-[color:var(--muted)]"
-                        }
-                        strokeWidth={active ? 2.4 : 1.9}
-                        aria-hidden
-                      />
-                      <span
-                        className={
-                          active
-                            ? "text-accent"
-                            : "text-[color:var(--muted)]"
-                        }
-                      >
-                        {label}
+        <>
+          {/* 正文到底栏的奶油渐隐，避免卡片硬切进 TabBar */}
+          <div
+            className="tab-bar-scrim fixed bottom-0 left-1/2 z-[15] h-28 w-full max-w-md -translate-x-1/2"
+            aria-hidden
+          />
+          <nav className="tab-bar fixed bottom-[max(0.55rem,env(safe-area-inset-bottom))] left-1/2 z-20 w-[calc(100%-1.5rem)] max-w-[calc(28rem-1.5rem)] -translate-x-1/2 px-1.5 py-1.5">
+            <ul className="flex items-center justify-around">
+              {tabs.map(({ href, label, icon: Icon }) => {
+                const active =
+                  href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(href);
+                return (
+                  <li key={href}>
+                    <Link
+                      prefetch
+                      href={href}
+                      className="relative flex min-w-[4.25rem] flex-col items-center gap-0.5 py-1.5 text-[11px] font-bold [-webkit-tap-highlight-color:transparent]"
+                    >
+                      <span className="relative z-10 flex flex-col items-center gap-0.5">
+                        <Icon
+                          className={
+                            active
+                              ? "size-[22px] text-accent"
+                              : "size-[22px] text-[color:var(--muted)]"
+                          }
+                          strokeWidth={active ? 2.4 : 1.85}
+                          aria-hidden
+                        />
+                        <span
+                          className={
+                            active
+                              ? "text-accent"
+                              : "text-[color:var(--muted)]"
+                          }
+                        >
+                          {label}
+                        </span>
                       </span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </>
       )}
       {showNav && <FloatingChatBot />}
     </>

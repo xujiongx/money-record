@@ -67,31 +67,29 @@ export default async function MembersPage() {
         <h1 className="page-title text-[1.65rem]">我们的家庭账本</h1>
       </header>
 
-      {/* 设计稿：家庭横幅 + 汇总 */}
+      {/* 设计稿：家庭横幅 + 扁平三列汇总（不嵌套小卡） */}
       <section className="paper-panel overflow-hidden p-0">
-        <div className="flex justify-center bg-gradient-to-b from-accent-soft/90 to-paper px-4 pt-4">
+        <div className="flex justify-center bg-gradient-to-b from-accent-soft/70 to-paper px-4 pt-4">
           <MascotIllustration name="familyBanner" size="banner" alt="" />
         </div>
-        <div className="px-4 pb-4 pt-2">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-2xl bg-background px-2 py-2.5">
-              <p className="text-[11px] text-[color:var(--muted)]">总收入</p>
-              <p className="mt-0.5 text-sm font-extrabold tabular-nums text-income">
-                {formatMoney(family.income)}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-background px-2 py-2.5">
-              <p className="text-[11px] text-[color:var(--muted)]">总支出</p>
-              <p className="mt-0.5 text-sm font-extrabold tabular-nums text-expense">
-                {formatMoney(family.expense)}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-background px-2 py-2.5">
-              <p className="text-[11px] text-[color:var(--muted)]">结余</p>
-              <p className="mt-0.5 text-sm font-extrabold tabular-nums text-accent">
-                {formatMoney(family.balance)}
-              </p>
-            </div>
+        <div className="grid grid-cols-3 gap-1 border-t border-[var(--line)] px-2 py-3.5 text-center">
+          <div className="px-1">
+            <p className="text-[11px] text-[color:var(--muted)]">总收入</p>
+            <p className="mt-1 text-sm font-extrabold tabular-nums text-income">
+              {formatMoney(family.income)}
+            </p>
+          </div>
+          <div className="border-x border-[var(--line)] px-1">
+            <p className="text-[11px] text-[color:var(--muted)]">总支出</p>
+            <p className="mt-1 text-sm font-extrabold tabular-nums text-expense">
+              {formatMoney(family.expense)}
+            </p>
+          </div>
+          <div className="px-1">
+            <p className="text-[11px] text-[color:var(--muted)]">结余</p>
+            <p className="mt-1 text-sm font-extrabold tabular-nums text-accent">
+              {formatMoney(family.balance)}
+            </p>
           </div>
         </div>
       </section>

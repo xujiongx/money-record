@@ -51,7 +51,7 @@
 | **`public/` 根路径文件**（如 `/vercel.svg`、成员默认头像 `/bubu.png`） | 由 Next 静态提供，**无哈希**；生产上是否长缓存取决于部署环境与是否自定义 `headers`。若需「改文件不换名仍立刻生效」，不宜配 **`immutable`**。 |
 | **`next/image` 的远程图**（如成员 `avatar_url` 指向 Supabase Storage） | **缓存头由图片所在域名（CDN/存储）返回**，Next 只负责优化/转发，**不在本仓库 `next.config` 里统一控制**。 |
 | **本地 `public/` 头像 + `next/image` 默认** | 会走 **`/_next/image?url=...`**；**`next dev`** 上该接口常为 **no-store**。现 **`MemberAvatar`** 改为 **`ImageBitmap` 模块缓存 + canvas**，不经 `/_next/image`。 |
-| **路由重挂载闪一下（移动 WebKit）** | SSGOI / `key={pathname}` 会重挂载页面；浏览器常丢弃已解码位图。**`lib/avatar/bitmap-cache.ts`** 在内存保留 `ImageBitmap`，命中时 **`useLayoutEffect` 同步绘制**；壳层 **`preloadDefaultAvatars`** 预热布布/一二。 |
+| **路由重挂载闪一下（移动 WebKit）** | SSGOI / `key={pathname}` 会重挂载页面；浏览器常丢弃已解码位图。**`lib/avatar/bitmap-cache.ts`** 在内存保留 `ImageBitmap`，命中时 **`useLayoutEffect` 同步绘制**；壳层 **`preloadDefaultAvatars`** 预热布布/一二。首屏 `status` 不得读该缓存（否则 SSR/CSR 树不一致触发 hydration）。 |
 | **开发者工具** | Chrome「Network」里勾选 **Disable cache** 时，**所有资源**都会绕过缓存，容易误判。 |
 
 ### 4.2 与业务数据缓存的区别

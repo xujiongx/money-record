@@ -17,9 +17,9 @@ const solidFalls = [
 
 type PaintStatus = "pending" | "ready" | "error";
 
-function statusForSrc(src: string | null): PaintStatus {
-  if (!src) return "error";
-  return getAvatarBitmap(src) ? "ready" : "pending";
+/** 首屏状态不得读客户端 bitmap 缓存，否则 SSR pending / CSR ready 会 hydration 不一致 */
+function initialStatus(src: string | null): PaintStatus {
+  return src ? "pending" : "error";
 }
 
 function paintBitmap(
@@ -66,13 +66,13 @@ export function MemberAvatar({
   const px = size === "lg" ? 64 : size === "sm" ? 40 : 48;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [status, setStatus] = useState<PaintStatus>(() => statusForSrc(src));
+  const [status, setStatus] = useState<PaintStatus>(() => initialStatus(src));
   const [trackedSrc, setTrackedSrc] = useState(src);
 
   // props 变化时在 render 阶段对齐状态，避免在 effect 里同步 setState
   if (src !== trackedSrc) {
     setTrackedSrc(src);
-    setStatus(statusForSrc(src));
+    setStatus(initialStatus(src));
   }
 
   useLayoutEffect(() => {
@@ -85,6 +85,7 @@ export function MemberAvatar({
     const cached = getAvatarBitmap(src);
     if (cached) {
       paintBitmap(canvas, cached, px);
+      setStatus("ready");
       return;
     }
 

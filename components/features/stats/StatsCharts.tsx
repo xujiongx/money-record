@@ -119,7 +119,7 @@ export function StatsCharts({
         </div>
         <Link
           href="/stats/analysis"
-          className="pressable mt-1 shrink-0 rounded-2xl border border-[var(--line)] bg-paper px-3.5 py-2 text-sm font-extrabold text-accent shadow-[var(--shadow-soft)] hover:bg-accent-soft"
+          className="pressable mt-1 shrink-0 rounded-full bg-accent-soft/80 px-3.5 py-2 text-sm font-extrabold text-accent hover:bg-accent-soft"
         >
           分析
         </Link>
@@ -147,29 +147,27 @@ export function StatsCharts({
           ))}
         </div>
 
-        <div className="mt-3 flex items-stretch gap-2">
+        <div className="mt-3 flex items-center gap-1">
           <button
             type="button"
             aria-label="上一时间段"
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, -1))
             }
-            className="pressable flex w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-background text-ink"
+            className="pressable flex size-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-accent-soft/50"
           >
             <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
-          <div className="min-w-0 flex-1 rounded-2xl bg-background px-2 py-2.5">
-            <p className="text-center text-sm font-extrabold leading-snug text-ink">
-              {periodLabel}
-            </p>
-          </div>
+          <p className="min-w-0 flex-1 text-center text-sm font-extrabold leading-snug text-ink">
+            {periodLabel}
+          </p>
           <button
             type="button"
             aria-label="下一时间段"
             onClick={() =>
               setAnchorDate((a) => shiftStatsAnchor(period, a, 1))
             }
-            className="pressable flex w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-background text-ink"
+            className="pressable flex size-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-accent-soft/50"
           >
             <ChevronRight className="size-5" strokeWidth={2.25} aria-hidden />
           </button>
@@ -193,7 +191,7 @@ export function StatsCharts({
           <SummaryTile label="总收入" value={periodSummary.income} tone="income" />
           <SummaryTile label="总支出" value={periodSummary.expense} tone="expense" />
           <SummaryTile label="结余" value={periodSummary.balance} tone="balance" />
-          <div className="rounded-2xl bg-background px-3 py-2.5">
+          <div className="rounded-2xl px-3 py-2.5 ring-1 ring-[var(--line)]">
             <p className="text-[11px] font-bold text-[color:var(--muted)]">
               记账笔数
             </p>
@@ -469,7 +467,7 @@ function SummaryTile({
           ? "text-accent"
           : "text-expense";
   return (
-    <div className="rounded-2xl bg-background px-3 py-2.5">
+    <div className="rounded-2xl px-3 py-2.5 ring-1 ring-[var(--line)]">
       <p className="text-[11px] font-bold text-[color:var(--muted)]">{label}</p>
       <p className={`mt-0.5 text-base font-extrabold tabular-nums ${toneClass}`}>
         {formatMoney(value)}

@@ -179,7 +179,7 @@ export function DashboardClient({
               }
             });
           }}
-          className="pressable inline-flex size-10 shrink-0 items-center justify-center rounded-2xl border border-[var(--line)] bg-paper text-ink shadow-[var(--shadow-soft)] hover:bg-accent-soft disabled:opacity-55"
+          className="pressable inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-paper text-ink ring-1 ring-[var(--line)] hover:bg-accent-soft disabled:opacity-55"
         >
           <RefreshCw
             className={`size-4 ${syncing ? "animate-spin" : ""}`}
