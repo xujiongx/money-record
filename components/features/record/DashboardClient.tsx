@@ -183,16 +183,21 @@ export function DashboardClient({
         </button>
       </header>
 
-      {/* 本月总览：模块下移，角色站在卡片顶上 */}
-      <div className="relative mt-12">
-        <MascotIllustration
-          name="homeKpi"
-          size="perch"
-          className="absolute bottom-full right-0 z-10 translate-y-[58%]"
-          alt=""
-        />
+      {/*
+        本月总览：插画走文档流（先占位再 -mb 踩进卡片），
+        不用 absolute/translate，避免各机型挡标题深浅不一。
+      */}
+      <div className="-mt-5">
+        <div className="relative z-10 flex justify-end pr-0.5">
+          <MascotIllustration
+            name="homeKpi"
+            size="perch"
+            className="-mb-10 drop-shadow-sm"
+            alt=""
+          />
+        </div>
         <section className="paper-panel relative z-0 space-y-5 px-5 py-5">
-          <div>
+          <div className="max-w-[calc(100%-6.5rem)]">
             <p className="text-[11px] font-bold text-[color:var(--muted)]">
               本月已花
             </p>

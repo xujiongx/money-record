@@ -17,8 +17,11 @@ const SIZE_CLASS = {
   peek: "h-[7rem] w-auto max-w-[9.5rem]",
   /** 页标题右上角点缀（记账 / 统计） */
   header: "h-[4.75rem] w-auto max-w-[5.25rem]",
-  /** 首页：站在本月模块顶上 */
-  perch: "h-[9rem] w-auto max-w-[12rem]",
+  /**
+   * 首页：站在本月模块顶上（随屏宽缩放；与 Dashboard 负边距成对使用）
+   * 高度约 7～9rem，踩进卡片用固定 rem，避免 absolute/% 在各机错位
+   */
+  perch: "h-[clamp(7rem,26vw,9rem)] w-auto max-w-[min(12rem,46vw)]",
 } as const;
 
 /** 场景插画 PNG（透明底） */
