@@ -2,12 +2,24 @@ import Link from "next/link";
 import { ChevronRight, Shield } from "lucide-react";
 import { SubpageHeader } from "@/components/common/SubpageHeader";
 import { SwitchHouseholdButton } from "@/components/features/household/SwitchHouseholdButton";
+import { WhoAmISettings } from "@/components/features/household/WhoAmISettings";
+import { SetupPrompt } from "@/components/features/household/SetupPrompt";
 import { ADMIN_ENTRY_HOUSEHOLD_CODE } from "@/lib/admin/constants";
 import { getHouseholdCodeFromCookies } from "@/lib/household/server";
+import { fetchMembers } from "@/app/actions/ledger";
 
 export default async function SettingsPage() {
   const householdCode = (await getHouseholdCodeFromCookies()) ?? "";
   const showAdminEntry = householdCode === ADMIN_ENTRY_HOUSEHOLD_CODE;
+
+  let members;
+  try {
+    members = await fetchMembers();
+  } catch (e) {
+    const message =
+      e instanceof Error ? e.message : "无法加载设置，请检查环境变量与迁移脚本。";
+    return <SetupPrompt message={message} />;
+  }
 
   return (
     <div className="space-y-5">
@@ -24,6 +36,8 @@ export default async function SettingsPage() {
           </p>
         </section>
       ) : null}
+
+      <WhoAmISettings members={members} />
 
       {showAdminEntry ? (
         <Link

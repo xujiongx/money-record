@@ -17,7 +17,11 @@ import { MemberAvatar } from "@/components/common/MemberAvatar";
 import { MascotIllustration } from "@/components/common/MascotIllustration";
 import { NoteHistoryTags } from "@/components/features/record/NoteHistoryTags";
 import { pushNoteHistory } from "@/lib/ledger/note-history";
-import { LAST_RECORD_MEMBER_KEY } from "@/lib/ledger/preferences";
+import {
+  LAST_RECORD_MEMBER_KEY,
+  SELF_MEMBER_KEY,
+  readPreferredMemberId,
+} from "@/lib/ledger/preferences";
 
 export function RecordForm({
   members,
@@ -64,14 +68,11 @@ export function RecordForm({
 
   useEffect(() => {
     if (members.length === 0) return;
-    try {
-      const stored = localStorage.getItem(LAST_RECORD_MEMBER_KEY);
-      if (stored && members.some((m) => m.id === stored)) {
-        setMemberId(stored);
-      }
-    } catch {
-      // private mode or storage blocked
-    }
+    const ids = members.map((m) => m.id);
+    const preferred =
+      readPreferredMemberId(SELF_MEMBER_KEY, ids) ??
+      readPreferredMemberId(LAST_RECORD_MEMBER_KEY, ids);
+    if (preferred) setMemberId(preferred);
   }, [members]);
 
   useEffect(() => {

@@ -24,11 +24,11 @@ export function BudgetProgressCard({
     if (!showSetupLink) return null;
     return (
       <p
-        className={`text-xs text-[color:var(--muted)] ${
+        className={`text-xs leading-relaxed text-[color:var(--muted)] ${
           embedded ? "border-t border-[var(--line)] pt-4" : "mt-3"
         }`}
       >
-        还没设本月预算 ·{" "}
+        还没设本月全家预算。定个上限，首页就能看到还剩多少 ·{" "}
         <Link
           href="/tools/budget"
           className="font-bold text-accent underline-offset-2 hover:underline"

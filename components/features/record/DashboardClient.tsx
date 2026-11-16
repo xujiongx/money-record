@@ -12,7 +12,8 @@ import {
 } from "@/app/actions/ledger";
 import { summarizeLedger } from "@/lib/ledger/aggregates";
 import { formatMoney } from "@/lib/ledger/format";
-import { LAST_RECORD_MEMBER_KEY } from "@/lib/ledger/preferences";
+import Link from "next/link";
+import { resolveSelfMemberId } from "@/lib/ledger/preferences";
 import {
   filterTransactionsInRange,
   getStatsDateRange,
@@ -78,14 +79,8 @@ export function DashboardClient({
   }, [initialTransactions]);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LAST_RECORD_MEMBER_KEY);
-      if (stored && initialMembers.some((m) => m.id === stored)) {
-        setSelfMemberId(stored);
-      }
-    } catch {
-      /* private mode */
-    }
+    const ids = initialMembers.map((m) => m.id);
+    setSelfMemberId(resolveSelfMemberId(ids));
   }, [initialMembers]);
 
   const insights = useMemo(() => {
@@ -314,6 +309,18 @@ export function DashboardClient({
               );
             })}
           </ul>
+        </section>
+      ) : !selfMemberId ? (
+        <section className="paper-panel px-4 py-3">
+          <p className="text-xs leading-relaxed text-[color:var(--muted)]">
+            在设置里选一下「我是谁」，这里就能看到对方刚记的账 ·{" "}
+            <Link
+              href="/members/settings"
+              className="font-bold text-accent underline-offset-2 hover:underline"
+            >
+              去设置
+            </Link>
+          </p>
         </section>
       ) : null}
 

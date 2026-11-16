@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Noto_Sans_SC, Nunito } from "next/font/google";
 import { MobileShell } from "@/components/common/MobileShell";
 import { ThemeBootstrap } from "@/components/common/ThemeBootstrap";
 import { SsgoiProvider } from "@/app/ssgoi-provider";
@@ -9,23 +8,6 @@ import {
   APP_SHORT_NAME,
 } from "@/lib/app-branding";
 import "./globals.css";
-
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-});
-
-const notoSansSc = Noto_Sans_SC({
-  variable: "--font-noto-sans-sc",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: APP_DISPLAY_NAME,
@@ -59,12 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="zh-CN"
-      data-theme="warm"
-      className={`${nunito.variable} ${notoSansSc.variable} ${geistMono.variable} h-full`}
-      suppressHydrationWarning
-    >
+    <html lang="zh-CN" data-theme="warm" className="h-full" suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <ThemeBootstrap />
         <div className="paper-texture relative z-0 mx-auto min-h-dvh w-full min-w-0 max-w-md overflow-x-clip shadow-sm shadow-stone-900/5">

@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* 自托管拉丁字体，避免 next/font/google 拉 fonts.gstatic（国内/局域网手机易超时） */
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/nunito/800.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+@import "@fontsource/geist-mono/700.css";
+
+:root {
+  --font-nunito: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  /* 中文走系统字体，不下载 Noto SC（体积大且依赖 Google） */
+  --font-noto-sans-sc: "PingFang SC", "Hiragino Sans GB", "Heiti SC",
+    "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif;
+  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+}
+
 :root,
 [data-theme="warm"] {
   /* docs/assets 高保真：奶油页底 + 纯白卡片，避免多层阴影/奶油混色卡 */

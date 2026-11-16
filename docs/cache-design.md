@@ -17,7 +17,7 @@
 | 根布局 | **不**再使用 `export const dynamic = "force-dynamic"` | 需动态的片段仍因 `cookies()` 等为动态；利于部分静态优化 |
 | Next 路由缓存 | `revalidatePath`（与上配合） | 相关路由下次请求刷新 |
 | 会话 | httpOnly Cookie `ledger_household_code` | 服务端识别当前家庭 |
-| 前端持久化 | `localStorage` | **家庭编码**（`ledger_household_code`）；**备注历史**（`money-record:note-history`，按分类关联、最多 150 条，仅本机）；不存流水明细 |
+| 前端持久化 | `localStorage` | **家庭编码**（`ledger_household_code`）；**我是谁**（`money-record:self-member-id`）；**上次记账人**（`money-record:last-record-member-id`）；**备注历史**（`money-record:note-history`，按分类、最多 150 条）；不存流水明细 |
 | 客户端列表状态 | React `useState` + 首屏 props（仪表盘删账后主动拉取） | 仪表盘列表与汇总 |
 | 统计页 | RSC 拉数 → **`StatsChartsGate`** 客户端动态加载图表 | 与其它 Tab 分包隔离 Recharts |
 

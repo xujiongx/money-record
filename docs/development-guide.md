@@ -90,7 +90,7 @@ flowchart LR
 │   │   ├── MarkdownText.tsx # react-markdown：小布助手气泡内 Markdown
 │   │   └── StatsChartsSkeleton.tsx
 │   └── features/           # 按业务域划分的功能组件
-│       ├── household/      # 登录、切换家庭、ThemePicker、LedgerCategoriesClient、无数据提示
+│       ├── household/      # 登录、切换家庭、WhoAmISettings、ThemePicker、LedgerCategoriesClient、无数据提示
 │       ├── admin/          # AdminLoginForm、AdminModerationClient
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 极简记账、仪表盘（结余+账单）、编辑弹窗、左滑行
@@ -113,7 +113,7 @@ flowchart LR
 │   ├── theme/              # 颜色主题 id / 色板 / 图表色板 / useThemeChartColors
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
 │   ├── admin/              # 超管常量、密码哈希、HMAC 会话
-│   ├── ledger/             # 账本领域：类型、分类默认种子 / 行类型、聚合、本机偏好键、按日序列、统计周期、金额格式、`monthly-digest`
+│   ├── ledger/             # 账本领域：类型、分类、聚合、本机偏好（`SELF_MEMBER_KEY` / 上次记账人）、统计周期、金额格式、`monthly-digest`
 │   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
 │   └── supabase/service.ts # Service Role 客户端
@@ -187,6 +187,7 @@ cp .env.example .env.local
 |------|------|
 | 一直跳登录 | 检查 Cookie 是否写入；中间件是否校验 6 位数字。 |
 | 手机打开局域网 `http://192.168.x.x:3000` 卡住 / 白屏 | Next 16 会拦跨源 `/_next`（含 HMR）。把本机当前局域网 IP 写入 **`next.config.ts` → `allowedDevOrigins`**，**重启** `next dev`。终端若出现 `Blocked cross-origin request ... webpack-hmr` 即为此原因。 |
+| 手机 / 本地报 `next/font/google` / `fonts.gstatic.com` 超时 | 已改为 `@fontsource` 自托管 + 系统中文字体；拉最新代码后**重启** `next dev`，清一下浏览器缓存再开。 |
 | 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`（含 pending）。 |
 | 创建后进不了账本 | 预期：须 `/admin` 审核通过后再用编码加入；未执行 `008` 时会报库表升级提示。 |
 | 管理后台登不上 | 确认已执行 `008`；账号 `xujiong` / `258099`（首次登录种子）；可选设 `ADMIN_SESSION_SECRET`。 |

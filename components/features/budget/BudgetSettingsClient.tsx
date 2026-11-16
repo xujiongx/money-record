@@ -74,7 +74,7 @@ export function BudgetSettingsClient({
           {label} · 全家支出上限
         </p>
         <p className="text-sm leading-relaxed text-ink/70">
-          只约束日常记账支出，大事记账不计入。超预算也能继续记账。
+          只约束日常记账支出，大事记账不计入。超预算也能继续记账，只会轻提示。
         </p>
         {initialBudget ? (
           <p className="text-sm text-ink">
@@ -84,7 +84,13 @@ export function BudgetSettingsClient({
             </span>
           </p>
         ) : (
-          <p className="text-sm text-ink/60">本月还没设预算</p>
+          <div className="rounded-2xl bg-accent-soft/50 px-3.5 py-3 text-sm leading-relaxed text-ink/80">
+            <p className="font-bold text-ink">本月还没设预算</p>
+            <p className="mt-1 text-xs text-ink/65">
+              比如先填 <span className="font-semibold text-accent">3000</span>
+              ，全家一起看着花；设好后首页和统计「月」会显示进度。
+            </p>
+          </div>
         )}
 
         <label className="block text-xs font-bold text-[color:var(--muted)]">

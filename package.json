@@ -12,6 +12,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
     "@ssgoi/react": "^7.0.4",
     "@supabase/supabase-js": "^2.101.1",
     "date-fns": "^4.1.0",
