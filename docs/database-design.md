@@ -133,12 +133,12 @@ erDiagram
 | household_id | uuid | FK → households，CASCADE | 所属家庭 |
 | period_type | text | `'month'` | 当前仅自然月 |
 | period_key | text | `YYYY-MM` | 月键，与首页/统计自然月一致 |
-| scope | text | `household` / `category` | v1 使用 `household`；`category` 预留 |
-| category | text | 可空 | `household` 时必须为 NULL；`category` 时非空 |
+| scope | text | 当前仅用 `household` | 全家总预算 |
+| category | text | 可空 | 总预算时为 NULL |
 | amount | numeric(14,2) | > 0 | 预算金额 |
 | created_at / updated_at | timestamptz | | |
 
-**唯一**：`scope=household` 时 `(household_id, period_type, period_key)`；`scope=category` 时再含 `category`。业务读写经 Server Actions；**大事支出不计入**日常预算进度。
+**唯一**：`scope=household` 时 `(household_id, period_type, period_key)`。业务读写经 Server Actions；**大事支出不计入**日常预算进度。产品不做分类预算。
 
 ## 4. 行级安全（RLS）
 
