@@ -6,7 +6,7 @@
 
 | 文档 | 说明 |
 |------|------|
-| [PRD.md](./PRD.md) | 产品需求与验收要点（含登录/多家庭） |
+| [PRD.md](./PRD.md) | 产品需求与验收要点（含登录/多家庭；**预算产品规划**） |
 | [architecture.md](./architecture.md) | **系统架构**（渲染模型、数据流、安全边界、与其它文档索引） |
 | [development-guide.md](./development-guide.md) | **开发指南**（目录、环境、命令、FAQ） |
 | [database-design.md](./database-design.md) | 表结构、`households.code`、RLS 策略 |
