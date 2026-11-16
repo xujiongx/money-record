@@ -30,18 +30,15 @@ import { EditTransactionModal } from "@/components/features/record/EditTransacti
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
 import { computeBudgetProgress } from "@/lib/budget/progress";
 
-function monthExpenseLine(thisExpense: number, lastExpense: number): string {
+/** 相对上月一句；大数字已展示金额，这里不再重复「本月已花 ¥」 */
+function monthCompareLine(thisExpense: number, lastExpense: number): string {
   if (thisExpense <= 0) return "本月暂无支出";
-  if (lastExpense <= 0) return `本月已花 ${formatMoney(thisExpense)}`;
+  if (lastExpense <= 0) return "尚无上月对照";
   const diffPct = ((thisExpense - lastExpense) / lastExpense) * 100;
   const abs = Math.round(Math.abs(diffPct));
-  if (abs < 1) {
-    return `本月已花 ${formatMoney(thisExpense)} · 与上月差不多`;
-  }
-  if (diffPct > 0) {
-    return `本月已花 ${formatMoney(thisExpense)} · 比上月多 ${abs}%`;
-  }
-  return `本月已花 ${formatMoney(thisExpense)} · 比上月少 ${abs}%`;
+  if (abs < 1) return "与上月差不多";
+  if (diffPct > 0) return `比上月多 ${abs}%`;
+  return `比上月少 ${abs}%`;
 }
 
 export function DashboardClient({
@@ -118,21 +115,13 @@ export function DashboardClient({
     const todaySum = summarizeLedger(todayTx);
     const day = getDate(now);
     const daysInMonth = getDaysInMonth(now);
-    const vsLastRatio =
-      lastSum.expense > 0
-        ? Math.min(thisSum.expense / lastSum.expense, 1.5)
-        : thisSum.expense > 0
-          ? 1
-          : 0;
 
     return {
       thisSum,
-      lastSum,
       todaySum,
       todayCount: todayTx.length,
-      expenseLine: monthExpenseLine(thisSum.expense, lastSum.expense),
+      compareLine: monthCompareLine(thisSum.expense, lastSum.expense),
       paceLine: `已过 ${day}/${daysInMonth} 天 · 日均 ${formatMoney(thisSum.expense / Math.max(day, 1))}`,
-      vsLastRatio,
     };
   }, [transactions]);
 
@@ -194,51 +183,49 @@ export function DashboardClient({
         </button>
       </header>
 
-      {/* 设计稿首页：本月已花 KPI + 右侧角色点缀 */}
-      <section className="paper-panel relative overflow-hidden p-5">
-        <div className="relative z-10 min-h-[8.25rem] pr-[9.25rem]">
-          <p className="text-[11px] font-bold text-[color:var(--muted)]">
-            本月已花
-          </p>
-          <p className="kpi-number mt-1.5 text-[2.35rem] text-expense">
-            {formatMoney(insights.thisSum.expense)}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-            <p>
-              <span className="text-[11px] text-[color:var(--muted)]">收入 </span>
-              <span className="font-bold tabular-nums text-income">
-                {formatMoney(insights.thisSum.income)}
-              </span>
+      {/* 本月总览：模块下移，角色站在卡片顶上 */}
+      <div className="relative mt-12">
+        <MascotIllustration
+          name="homeKpi"
+          size="perch"
+          className="absolute bottom-full right-0 z-10 translate-y-[58%]"
+          alt=""
+        />
+        <section className="paper-panel relative z-0 space-y-5 px-5 py-5">
+          <div>
+            <p className="text-[11px] font-bold text-[color:var(--muted)]">
+              本月已花
             </p>
-            <p>
-              <span className="text-[11px] text-[color:var(--muted)]">结余 </span>
-              <span
-                className={`font-bold tabular-nums ${
+            <p className="kpi-number mt-2 text-[2.5rem] text-expense">
+              {formatMoney(insights.thisSum.expense)}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <div>
+              <p className="text-[11px] text-[color:var(--muted)]">收入</p>
+              <p className="mt-1 text-[0.95rem] font-bold tabular-nums text-income">
+                {formatMoney(insights.thisSum.income)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] text-[color:var(--muted)]">结余</p>
+              <p
+                className={`mt-1 text-[0.95rem] font-bold tabular-nums ${
                   insights.thisSum.balance >= 0 ? "text-accent" : "text-expense"
                 }`}
               >
                 {formatMoney(insights.thisSum.balance)}
-              </span>
-            </p>
+              </p>
+            </div>
           </div>
 
-          {insights.lastSum.expense > 0 ? (
-            <div className="progress-track mt-4" aria-hidden>
-              <div
-                className="progress-fill"
-                style={{
-                  width: `${Math.max(4, Math.min(insights.vsLastRatio * 100, 100))}%`,
-                }}
-              />
-            </div>
-          ) : null}
-
-          <p className="mt-2 text-xs leading-relaxed text-ink/70">
-            {insights.expenseLine}
-          </p>
-          <p className="mt-0.5 text-[11px] text-[color:var(--muted)]">
+          <p className="text-xs leading-relaxed text-ink/65">
+            {insights.compareLine}
+            <span className="text-ink/25"> · </span>
             {insights.paceLine}
           </p>
+
           <BudgetProgressCard
             progress={
               monthBudgetAmount != null && monthBudgetAmount > 0
@@ -249,50 +236,36 @@ export function DashboardClient({
                 : null
             }
             showSetupLink={monthBudgetAmount == null}
+            embedded
           />
-        </div>
-        <MascotIllustration
-          name="homeKpi"
-          size="peek"
-          className="absolute bottom-1 right-1 z-0"
-          alt=""
-        />
-      </section>
+        </section>
+      </div>
 
-      {/* 设计稿：今日小结白底 + 一二右侧 */}
-      <section className="paper-panel relative flex min-h-[6.25rem] items-center overflow-hidden py-3.5 pl-4 pr-2">
-        <div className="relative z-10 min-w-0 flex-1 pr-[5.75rem]">
-          <p className="text-[11px] font-bold text-[color:var(--muted)]">
-            今日小结
+      <section className="paper-panel px-4 py-3.5">
+        <p className="text-[11px] font-bold text-[color:var(--muted)]">
+          今日小结
+        </p>
+        {insights.todayCount === 0 ? (
+          <p className="mt-1 text-sm text-ink/70">今天还没记账，去记一笔吧</p>
+        ) : (
+          <p className="mt-1 text-sm text-ink">
+            <span className="font-extrabold">{insights.todayCount}</span> 笔
+            <span className="text-ink/25"> · </span>
+            花了{" "}
+            <span className="font-extrabold tabular-nums text-expense">
+              {formatMoney(insights.todaySum.expense)}
+            </span>
+            {insights.todaySum.income > 0 ? (
+              <>
+                <span className="text-ink/25"> · </span>
+                收入{" "}
+                <span className="font-extrabold tabular-nums text-income">
+                  {formatMoney(insights.todaySum.income)}
+                </span>
+              </>
+            ) : null}
           </p>
-          {insights.todayCount === 0 ? (
-            <p className="mt-1 text-sm text-ink/70">今天还没记账，去记一笔吧</p>
-          ) : (
-            <p className="mt-1 text-sm text-ink">
-              <span className="font-extrabold">{insights.todayCount}</span> 笔
-              <span className="text-ink/25"> · </span>
-              花了{" "}
-              <span className="font-extrabold tabular-nums text-expense">
-                {formatMoney(insights.todaySum.expense)}
-              </span>
-              {insights.todaySum.income > 0 ? (
-                <>
-                  <span className="text-ink/25"> · </span>
-                  收入{" "}
-                  <span className="font-extrabold tabular-nums text-income">
-                    {formatMoney(insights.todaySum.income)}
-                  </span>
-                </>
-              ) : null}
-            </p>
-          )}
-        </div>
-        <MascotIllustration
-          name="dailyTip"
-          size="sm"
-          className="absolute bottom-0 right-1 z-0"
-          alt=""
-        />
+        )}
       </section>
 
       {partnerRecent.length > 0 ? (

@@ -13,10 +13,12 @@ const SIZE_CLASS = {
   lg: "h-48 w-auto max-w-[16rem]",
   /** 成员页横幅 */
   banner: "h-[7.5rem] w-auto max-w-[17rem]",
-  /** 首页本月已花右下角 */
+  /** 卡片角标（保留尺寸档） */
   peek: "h-[7rem] w-auto max-w-[9.5rem]",
-  /** 记账页标题右侧点缀 */
+  /** 页标题右上角点缀（记账 / 统计） */
   header: "h-[4.75rem] w-auto max-w-[5.25rem]",
+  /** 首页：站在本月模块顶上 */
+  perch: "h-[9rem] w-auto max-w-[12rem]",
 } as const;
 
 /** 场景插画 PNG（透明底） */

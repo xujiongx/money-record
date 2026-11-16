@@ -11,18 +11,28 @@ export function BudgetProgressCard({
   progress,
   compact = false,
   showSetupLink = false,
+  /** 嵌在首页 KPI 内：顶部分隔 + 更疏的行距，避免与主数字抢视线 */
+  embedded = false,
 }: {
   progress: BudgetProgress | null;
   compact?: boolean;
   /** 未设预算时是否显示轻入口 */
   showSetupLink?: boolean;
+  embedded?: boolean;
 }) {
   if (!progress) {
     if (!showSetupLink) return null;
     return (
-      <p className="mt-3 text-xs text-[color:var(--muted)]">
+      <p
+        className={`text-xs text-[color:var(--muted)] ${
+          embedded ? "border-t border-[var(--line)] pt-4" : "mt-3"
+        }`}
+      >
         还没设本月预算 ·{" "}
-        <Link href="/tools/budget" className="font-bold text-accent underline-offset-2 hover:underline">
+        <Link
+          href="/tools/budget"
+          className="font-bold text-accent underline-offset-2 hover:underline"
+        >
           去设置
         </Link>
       </p>
@@ -37,11 +47,19 @@ export function BudgetProgressCard({
         ? "bg-accent"
         : "bg-accent";
 
+  const shellClass = embedded
+    ? "border-t border-[var(--line)] pt-4"
+    : compact
+      ? "mt-3"
+      : "mt-4";
+
   return (
-    <div className={compact ? "mt-3" : "mt-4"}>
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <p className="font-bold text-[color:var(--muted)]">本月预算</p>
-        <p className="tabular-nums text-ink">
+    <div className={shellClass}>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-[11px] font-bold text-[color:var(--muted)]">
+          本月预算
+        </p>
+        <p className="min-w-0 text-right text-xs tabular-nums text-ink">
           <span
             className={`font-extrabold ${
               progress.alert === "over" ? "text-expense" : "text-ink"
@@ -55,7 +73,7 @@ export function BudgetProgressCard({
           </span>
         </p>
       </div>
-      <div className="progress-track mt-2" aria-hidden>
+      <div className={`progress-track ${embedded ? "mt-2.5" : "mt-2"}`} aria-hidden>
         <div
           className={`progress-fill ${fillClass}`}
           style={{
@@ -63,7 +81,11 @@ export function BudgetProgressCard({
           }}
         />
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
+      <div
+        className={`flex items-center justify-between gap-3 ${
+          embedded ? "mt-2.5" : "mt-1.5"
+        } text-[11px]`}
+      >
         <p
           className={
             progress.alert === "over"
@@ -74,6 +96,16 @@ export function BudgetProgressCard({
           {progress.remaining >= 0
             ? `还剩 ${formatMoney(progress.remaining)}`
             : `超支 ${formatMoney(-progress.remaining)}`}
+          {alertText ? (
+            <span
+              className={
+                progress.alert === "over" ? "text-expense" : "text-accent"
+              }
+            >
+              {" "}
+              · {alertText}
+            </span>
+          ) : null}
         </p>
         <Link
           href="/tools/budget"
@@ -82,15 +114,6 @@ export function BudgetProgressCard({
           改预算
         </Link>
       </div>
-      {alertText ? (
-        <p
-          className={`mt-1 text-[11px] font-semibold ${
-            progress.alert === "over" ? "text-expense" : "text-accent"
-          }`}
-        >
-          {alertText}
-        </p>
-      ) : null}
     </div>
   );
 }

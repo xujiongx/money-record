@@ -2,14 +2,14 @@
  * 场景插画路径（PNG 透明底）
  *
  * 角色原型：布布=`public/bubu.png`，一二=`public/12.png`
- * 首页 KPI / 今日小结、成员横幅保留既有成品图，不随意替换。
+ * 首页标题右上角用双角色图；成员横幅保留既有成品图，不随意替换。
  * 页级氛围底见 `lib/branding/page-backgrounds.ts`。
  */
 
 export const ILLUSTRATIONS = {
-  /** 首页「本月已花」卡片右侧 */
+  /** 首页本月模块顶上（布布 & 一二站立） */
   homeKpi: "/illustrations/home-kpi.png",
-  /** 首页「今日小结」右侧（一二） */
+  /** 今日小结点缀（一二）；当前首页不再内嵌，保留资源供他处复用 */
   dailyTip: "/illustrations/daily-tip.png",
   /** 最近账单空态 */
   emptyNoRecords: "/illustrations/empty-no-records.png",
