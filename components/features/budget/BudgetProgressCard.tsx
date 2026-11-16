@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import {
+  computeBudgetPaceInsight,
+} from "@/lib/budget/pace";
+import {
   budgetAlertLabel,
   type BudgetProgress,
 } from "@/lib/budget/progress";
@@ -13,12 +16,15 @@ export function BudgetProgressCard({
   showSetupLink = false,
   /** 嵌在首页 KPI 内：顶部分隔 + 更疏的行距，避免与主数字抢视线 */
   embedded = false,
+  /** 首页展示预算节奏洞察（一句 + 链到预算页） */
+  showPaceInsight = false,
 }: {
   progress: BudgetProgress | null;
   compact?: boolean;
   /** 未设预算时是否显示轻入口 */
   showSetupLink?: boolean;
   embedded?: boolean;
+  showPaceInsight?: boolean;
 }) {
   if (!progress) {
     if (!showSetupLink) return null;
@@ -40,6 +46,9 @@ export function BudgetProgressCard({
   }
 
   const alertText = budgetAlertLabel(progress.alert);
+  const pace = showPaceInsight
+    ? computeBudgetPaceInsight(progress.spent, progress.amount)
+    : null;
   const fillClass =
     progress.alert === "over"
       ? "bg-expense"
@@ -52,6 +61,13 @@ export function BudgetProgressCard({
     : compact
       ? "mt-3"
       : "mt-4";
+
+  const paceClass =
+    pace?.tone === "over"
+      ? "text-expense"
+      : pace?.tone === "warn"
+        ? "text-accent"
+        : "text-[color:var(--muted)]";
 
   return (
     <div className={shellClass}>
@@ -96,7 +112,7 @@ export function BudgetProgressCard({
           {progress.remaining >= 0
             ? `还剩 ${formatMoney(progress.remaining)}`
             : `超支 ${formatMoney(-progress.remaining)}`}
-          {alertText ? (
+          {alertText && !pace ? (
             <span
               className={
                 progress.alert === "over" ? "text-expense" : "text-accent"
@@ -114,6 +130,14 @@ export function BudgetProgressCard({
           改预算
         </Link>
       </div>
+      {pace ? (
+        <Link
+          href="/tools/budget"
+          className={`mt-2 block text-xs leading-relaxed underline-offset-2 hover:underline ${paceClass}`}
+        >
+          {pace.text}
+        </Link>
+      ) : null}
     </div>
   );
 }

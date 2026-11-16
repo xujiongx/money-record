@@ -235,9 +235,10 @@ export function DashboardClient({
                   )
                 : null
             }
-            showSetupLink={monthBudgetAmount == null}
-            embedded
-          />
+          showSetupLink={monthBudgetAmount == null}
+          embedded
+          showPaceInsight
+        />
         </section>
       </div>
 
