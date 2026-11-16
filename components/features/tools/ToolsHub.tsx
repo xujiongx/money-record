@@ -1,8 +1,14 @@
 import Link from "next/link";
-import { ChevronRight, Landmark, Wrench } from "lucide-react";
+import { ChevronRight, Landmark, PiggyBank, Wrench } from "lucide-react";
 import { SubpageHeader } from "@/components/common/SubpageHeader";
 
 const TOOLS = [
+  {
+    href: "/tools/budget",
+    title: "预算",
+    description: "设定本月全家支出上限，首页与统计可看进度",
+    icon: PiggyBank,
+  },
   {
     href: "/tools/events",
     title: "大事记账",
@@ -22,7 +28,7 @@ export function ToolsHub() {
           <h2 className="text-sm font-semibold text-ink">可用工具</h2>
         </div>
         <p className="mt-1 text-xs text-stone-500">
-          与日常记账数据隔离，互不影响家庭总账与统计。
+          预算对照日常支出；大事记账与日常总账隔离。
         </p>
       </section>
 

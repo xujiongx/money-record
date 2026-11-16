@@ -18,6 +18,7 @@ const StatsChartsLazy = dynamic(
 export function StatsChartsGate(props: {
   transactions: TransactionRow[];
   members: MemberRow[];
+  monthBudgetAmount?: number | null;
 }) {
   return <StatsChartsLazy {...props} />;
 }

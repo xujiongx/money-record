@@ -53,6 +53,7 @@ flowchart LR
 │   │   ├── household.ts    # 会话、创建新家
 │   │   ├── ledger.ts       # 账本读写（读 Cookie）；导出 requireHouseholdId
 │   │   ├── major-events.ts # 大事记账（与 ledger 隔离）
+│   │   ├── budget.ts       # 月度全家预算（标签 budgets）
 │   │   ├── chat-history.ts # 小布：chat_messages 拉取与落库
 │   │   └── mistral-chat.ts # 小布：多轮对话、本月与本年小结（经 xiaobu-llm）
 │   ├── login/page.tsx      # 登录 / 创建新家（EnterHouseholdCode）
@@ -69,6 +70,7 @@ flowchart LR
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
 │   ├── tools/
 │   │   ├── page.tsx         # 工具箱
+│   │   ├── budget/          # 本月全家预算设置
 │   │   └── events/          # 大事记账列表 / 详情 / 分析
 │   ├── manifest.ts         # PWA Web App Manifest（名称等来自 lib/app-branding）
 │   ├── icon.svg            # 应用图标：favicon / manifest / apple-touch 均引用 /icon.svg
@@ -124,7 +126,7 @@ cp .env.example .env.local
 # 使用小布助手时配置 MISTRAL_API_KEY 和/或 OPEN_ROUTER_API_KEY（及可选代理，见 .env.example）
 ```
 
-1. Supabase **SQL Editor** 按序执行 `supabase/migrations/` 下脚本（含 `004_major_events.sql`）。  
+1. Supabase **SQL Editor** 按序执行 `supabase/migrations/` 下脚本（含 `004_major_events.sql`、`007_budgets.sql`）。
 2. `npm run dev`，打开 http://localhost:3000 → 应进入 `/login`，可用 **`000001`** 加入示例家庭，或 **创建新家**。
 
 ## 5. 常用命令

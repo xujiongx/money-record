@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -35,6 +35,10 @@ import {
   MascotIllustration,
 } from "@/components/common/MascotIllustration";
 import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
+import { BudgetProgressCard } from "@/components/features/budget/BudgetProgressCard";
+import { fetchHouseholdMonthBudget } from "@/app/actions/budget";
+import { monthPeriodKey } from "@/lib/budget/period";
+import { computeBudgetProgress } from "@/lib/budget/progress";
 import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 function formatPercent(part: number, total: number) {
@@ -52,14 +56,22 @@ const PERIOD_TABS: { id: StatsPeriod; label: string }[] = [
 export function StatsCharts({
   transactions,
   members,
+  monthBudgetAmount = null,
 }: {
   transactions: TransactionRow[];
   members: MemberRow[];
+  /** 自然「本月」全家总预算；切换到其他月时会再拉取 */
+  monthBudgetAmount?: number | null;
 }) {
   const [period, setPeriod] = useState<StatsPeriod>("month");
   /** 当前统计区间锚点（切换日/周/月/年时用「今天」重置） */
   const [anchorDate, setAnchorDate] = useState(() => new Date());
+  const [budgetAmount, setBudgetAmount] = useState<number | null>(
+    monthBudgetAmount,
+  );
   const { series: COLORS } = useThemeChartColors();
+  const viewMonthKey = monthPeriodKey(anchorDate);
+  const currentMonthKey = monthPeriodKey();
 
   const { start: rangeStart, end: rangeEnd } = useMemo(
     () => getStatsDateRange(period, anchorDate),
@@ -76,9 +88,31 @@ export function StatsCharts({
     [period, anchorDate],
   );
 
+  useEffect(() => {
+    setBudgetAmount(monthBudgetAmount);
+  }, [monthBudgetAmount]);
+
+  useEffect(() => {
+    if (period !== "month") return;
+    if (viewMonthKey === currentMonthKey) {
+      setBudgetAmount(monthBudgetAmount);
+      return;
+    }
+    let cancelled = false;
+    void fetchHouseholdMonthBudget(viewMonthKey)
+      .then((row) => {
+        if (!cancelled) setBudgetAmount(row?.amount ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setBudgetAmount(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [period, viewMonthKey, currentMonthKey, monthBudgetAmount]);
+
   const periodSummary = useMemo(
-    () => summarizeLedger(scopedTransactions),
-    [scopedTransactions],
+    () => summarizeLedger(scopedTransactions),    [scopedTransactions],
   );
   const txCount = scopedTransactions.length;
 
@@ -214,6 +248,23 @@ export function StatsCharts({
             </p>
           </div>
         </div>
+        {period === "month" ? (
+          <BudgetProgressCard
+            compact
+            progress={
+              budgetAmount != null && budgetAmount > 0
+                ? computeBudgetProgress(periodSummary.expense, budgetAmount)
+                : null
+            }
+            showSetupLink={
+              viewMonthKey === currentMonthKey && budgetAmount == null
+            }
+          />
+        ) : (
+          <p className="mt-3 text-[11px] text-[color:var(--muted)]">
+            预算按自然月计算，切换到「月」可查看进度
+          </p>
+        )}
       </section>
 
       <section className="paper-panel p-4">

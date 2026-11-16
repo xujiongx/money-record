@@ -15,6 +15,7 @@
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
 | 小布对话 / 小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`mistralChatAction`（纯文本，保留）、`generateMonthlySummaryAction`、`generateYearlySummaryAction` | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
+| 预算 | `fetchHouseholdMonthBudget`、`upsertHouseholdMonthBudget`、`clearHouseholdMonthBudget` | Client / RSC（`/tools/budget`、首页、统计）；标签 **`budgets`** |
 
 **当前家庭**由 **httpOnly Cookie** `ledger_household_code`（6 位数字）标识；`ledger.ts` 内根据 Cookie 查询 `households.code` 得到 `household_id`，**不接受**客户端传入的 `household_id`，避免跨家庭伪造。
 
@@ -229,3 +230,4 @@ type MistralTextResult =
 | 2026-09-03 | **`OccurredAtPicker`**：今天/昨天/前天 + **react-mobile-picker**（年/月/日/时/分滚轮底部面板） |
 | 2026-04-18 | **`refreshLedgerReadCache`**：与写流水同级的 **`revalidateTag` + `revalidatePath`**；**`fetchMembers` / `fetchTransactions`** 的 **`unstable_cache` `revalidate`** 记为 **3600s** |
 | 2026-09-06 | **大事记账**：`major-events.ts`；表 `major_events` / `major_event_expenses`；路由 `/tools`、`/tools/events/**`；缓存标签 `major-events` |
+| 2026-11-16 | **预算 v1**：`budget.ts`（`fetch` / `upsert` / `clear` 全家月预算）；表 `budgets`；路由 `/tools/budget`；缓存标签 `budgets`；首页/统计进度 |

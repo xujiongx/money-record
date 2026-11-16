@@ -28,6 +28,7 @@ const config = {
     },
     {
       on: "/tools/**",
+      except: "/tools",
       transition: drill(),
     },
   ],

@@ -25,8 +25,10 @@ import {
   MascotEmpty,
   MascotIllustration,
 } from "@/components/common/MascotIllustration";
+import { BudgetProgressCard } from "@/components/features/budget/BudgetProgressCard";
 import { EditTransactionModal } from "@/components/features/record/EditTransactionModal";
 import { SwipeTransactionRow } from "@/components/features/record/SwipeTransactionRow";
+import { computeBudgetProgress } from "@/lib/budget/progress";
 
 function monthExpenseLine(thisExpense: number, lastExpense: number): string {
   if (thisExpense <= 0) return "本月暂无支出";
@@ -46,10 +48,13 @@ export function DashboardClient({
   initialMembers,
   initialTransactions,
   categories,
+  monthBudgetAmount = null,
 }: {
   initialMembers: MemberRow[];
   initialTransactions: TransactionRow[];
   categories: LedgerCategoryRow[];
+  /** 本月全家总预算；null 表示未设置 */
+  monthBudgetAmount?: number | null;
 }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions);
@@ -234,6 +239,17 @@ export function DashboardClient({
           <p className="mt-0.5 text-[11px] text-[color:var(--muted)]">
             {insights.paceLine}
           </p>
+          <BudgetProgressCard
+            progress={
+              monthBudgetAmount != null && monthBudgetAmount > 0
+                ? computeBudgetProgress(
+                    insights.thisSum.expense,
+                    monthBudgetAmount,
+                  )
+                : null
+            }
+            showSetupLink={monthBudgetAmount == null}
+          />
         </div>
         <MascotIllustration
           name="homeKpi"
