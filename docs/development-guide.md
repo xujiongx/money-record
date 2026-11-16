@@ -6,7 +6,7 @@
 
 | 工具 | 建议版本 | 说明 |
 |------|----------|------|
-| Node.js | 20.x / 22.x（与 Next 16 兼容） | |
+| Node.js | **20.x**（`package.json` `engines` 固定，避免 Vercel 自动升到更新 major） | |
 | 包管理器 | npm（默认） | 亦可用 pnpm / yarn |
 | Supabase | 云端项目 | 执行仓库内 SQL 迁移 |
 
