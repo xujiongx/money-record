@@ -63,6 +63,7 @@
 | `clearAdminSession` | 清管理 Cookie |
 | `getAdminSession` / `requireAdminSession` | 解析管理会话 |
 | `fetchPendingHouseholds` | 列出 `status=pending` |
+| `fetchActiveHouseholds` | 列出 `status=active`（管理页「已有家庭」） |
 | `approveHousehold` | pending → active |
 | `rejectHousehold` | **删除** pending 家庭（级联成员等），释放编码 |
 

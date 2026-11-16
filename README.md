@@ -65,7 +65,7 @@ npm run dev
 | `/members/settings` | 设置：家庭编码、分类、主题、切换家庭；编码 `258099` 可见管理后台入口 |
 | `/members/settings/categories` | 日常收支分类增删改查（按家庭；「其他」不可删） |
 | `/members/settings/theme` | 颜色主题（本机偏好） |
-| `/admin` · `/admin/login` | 超管：审核待创建家庭（通过 / 拒绝删除） |
+| `/admin` · `/admin/login` | 超管：审核待创建家庭（通过 / 拒绝删除）；浏览已有家庭 |
 
 ## 部署
 

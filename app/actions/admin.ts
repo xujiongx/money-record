@@ -16,7 +16,7 @@ import {
   encodeAdminSession,
 } from "@/lib/admin/session";
 
-export type PendingHouseholdRow = {
+export type AdminHouseholdListRow = {
   id: string;
   name: string;
   code: string;
@@ -130,7 +130,7 @@ export async function adminLogin(input: {
   }
 }
 
-export async function fetchPendingHouseholds(): Promise<PendingHouseholdRow[]> {
+export async function fetchPendingHouseholds(): Promise<AdminHouseholdListRow[]> {
   try {
     await requireAdminSession();
     const supabase = createServiceClient();
@@ -140,7 +140,23 @@ export async function fetchPendingHouseholds(): Promise<PendingHouseholdRow[]> {
       .eq("status", "pending")
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as PendingHouseholdRow[];
+    return (data ?? []) as AdminHouseholdListRow[];
+  } catch (e) {
+    throw toAdminError(e);
+  }
+}
+
+export async function fetchActiveHouseholds(): Promise<AdminHouseholdListRow[]> {
+  try {
+    await requireAdminSession();
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from("households")
+      .select("id, name, code, created_at")
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AdminHouseholdListRow[];
   } catch (e) {
     throw toAdminError(e);
   }
