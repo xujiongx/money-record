@@ -6,7 +6,7 @@
 
 | 工具 | 建议版本 | 说明 |
 |------|----------|------|
-| Node.js | **20.x**（`package.json` `engines` 固定，避免 Vercel 自动升到更新 major） | |
+| Node.js | **26.x**（与 Vercel 当前要求一致；`package.json` `engines` 固定） | |
 | 包管理器 | npm（默认） | 亦可用 pnpm / yarn |
 | Supabase | 云端项目 | 执行仓库内 SQL 迁移 |
 
