@@ -35,8 +35,8 @@
 
 ### 2.1 `setHouseholdSession(raw: string)`
 
-- 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，存在则写入 Cookie 并 `revalidatePath`，且 **`revalidateTag("ledger", "max")`** 清空账本读缓存。
-- 不存在则抛错（文案供 UI 展示）。
+- 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，**仅 `status=active`** 时写入 Cookie 并 `revalidatePath`，且 **`revalidateTag("ledger", "max")`** 清空账本读缓存。
+- 不存在、`pending` 或其他状态则抛错（文案供 UI 展示）。
 
 ### 2.2 `createHouseholdAndLogin(input)`
 
@@ -45,13 +45,26 @@
 | `name` | 家庭名称，trim 后 1～60 字 |
 | `codeRaw` | 原始输入，规范后为 6 位数字 `code` |
 
-- 若 `code` 已存在则抛错。  
-- `insert households` 后 `insert members`：**布布**（`sort_order` 1）、**一二**（2）。成员插入失败则删除刚插入的家庭行。  
-- 成功后写入与 `setHouseholdSession` 相同的 Cookie。
+- 若 `code` 已存在（含 pending）则抛错。  
+- `insert households`（**`status=pending`**）后 `insert members`：**布布**（`sort_order` 1）、**一二**（2）。成员/分类种子失败则删除刚插入的家庭行。  
+- **不**写入家庭 Cookie；返回 `{ pending: true, code }`，待 `/admin` 审核通过后方可 `setHouseholdSession`。
 
 ### 2.3 `clearHouseholdSession()`
 
 - 删除 Cookie；`revalidatePath`；**`revalidateTag("ledger", "max")`**。客户端需同步 `localStorage.removeItem`。
+
+## 2a. Server Actions — 管理后台（`app/actions/admin.ts`）
+
+会话 Cookie：`ledger_admin_session`（HMAC，密钥优先 `ADMIN_SESSION_SECRET`，否则回退 `SUPABASE_SERVICE_ROLE_KEY`），与家庭编码 Cookie 分离。中间件：未带 Cookie 访问 `/admin`（除 `/admin/login`）→ 登录页。
+
+| Action | 说明 |
+|--------|------|
+| `adminLogin` | 校验 `admin_users`；首次可种子 `xujiong`；写管理 Cookie |
+| `clearAdminSession` | 清管理 Cookie |
+| `getAdminSession` / `requireAdminSession` | 解析管理会话 |
+| `fetchPendingHouseholds` | 列出 `status=pending` |
+| `approveHousehold` | pending → active |
+| `rejectHousehold` | **删除** pending 家庭（级联成员等），释放编码 |
 
 ## 3. Server Actions — 账本（`app/actions/ledger.ts`）
 
@@ -231,3 +244,4 @@ type MistralTextResult =
 | 2026-04-18 | **`refreshLedgerReadCache`**：与写流水同级的 **`revalidateTag` + `revalidatePath`**；**`fetchMembers` / `fetchTransactions`** 的 **`unstable_cache` `revalidate`** 记为 **3600s** |
 | 2026-09-06 | **大事记账**：`major-events.ts`；表 `major_events` / `major_event_expenses`；路由 `/tools`、`/tools/events/**`；缓存标签 `major-events` |
 | 2026-11-16 | **预算 v1**：`budget.ts`（`fetch` / `upsert` / `clear` 全家月预算）；表 `budgets`；路由 `/tools/budget`；缓存标签 `budgets`；首页/统计进度 |
+| 2026-11-16 | **家庭创建审核**：`households.status`；`admin.ts` + `/admin`；创建不再自动登录；拒绝=删除；设置入口仅编码 `258099` |

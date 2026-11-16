@@ -80,7 +80,8 @@ flowchart TB
 
 ### 4.1 多家庭隔离与会话
 
-- **家庭口令**：6 位数字编码，存 **httpOnly Cookie**（`ledger_household_code`）。  
+- **家庭口令**：6 位数字编码，存 **httpOnly Cookie**（`ledger_household_code`）；仅 **`status=active`** 可加入与解析。  
+- **创建审核**：新家为 **`pending`**；超管经 **`/admin`**（独立 Cookie `ledger_admin_session`）通过或拒绝（删除）。  
 - **服务端解析**：根据编码查 `households` 得 `household_id`；所有账本读写均带 **`household_id` 条件**，且 **不接受** 客户端传入的 `household_id` 作为信任来源。  
 - **localStorage**：仅存编码，用于 Cookie 丢失时由客户端引导再次 `setHouseholdSession`，**不存流水明细**。
 

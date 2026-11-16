@@ -47,16 +47,18 @@ flowchart LR
 
 ```
 /
-├── middleware.ts           # 无合法家庭 Cookie 时重定向 /login
+├── middleware.ts           # 家庭 Cookie → /login；管理 Cookie → /admin/login
 ├── app/
 │   ├── actions/
-│   │   ├── household.ts    # 会话、创建新家
+│   │   ├── household.ts    # 会话、创建新家（pending）
+│   │   ├── admin.ts        # 超管登录与家庭审核
 │   │   ├── ledger.ts       # 账本读写（读 Cookie）；导出 requireHouseholdId
 │   │   ├── major-events.ts # 大事记账（与 ledger 隔离）
 │   │   ├── budget.ts       # 月度全家预算（标签 budgets）
 │   │   ├── chat-history.ts # 小布：chat_messages 拉取与落库
 │   │   └── mistral-chat.ts # 小布：多轮对话、本月与本年小结（经 xiaobu-llm）
-│   ├── login/page.tsx      # 登录 / 创建新家（EnterHouseholdCode）
+│   ├── login/page.tsx      # 登录 / 提交创建申请（EnterHouseholdCode）
+│   ├── admin/              # 超管登录与待审列表
 │   ├── page.tsx            # 仪表盘
 │   ├── loading.tsx         # 通用路由切换骨架
 │   ├── record/page.tsx
@@ -65,7 +67,7 @@ flowchart LR
 │   │   └── page.tsx
 │   ├── members/
 │   │   ├── page.tsx         # 成员列表（家庭横幅 + 更多功能四宫格）
-│   │   ├── settings/        # 设置入口 / 分类 / 主题
+│   │   ├── settings/        # 设置入口 / 分类 / 主题（258099 管理入口）
 │   │   ├── theme/page.tsx   # 兼容重定向 → /members/settings/theme
 │   │   └── [memberId]/page.tsx  # 单成员全部账单（分页 + 触底加载）
 │   ├── tools/
@@ -89,6 +91,7 @@ flowchart LR
 │   │   └── StatsChartsSkeleton.tsx
 │   └── features/           # 按业务域划分的功能组件
 │       ├── household/      # 登录、切换家庭、ThemePicker、LedgerCategoriesClient、无数据提示
+│       ├── admin/          # AdminLoginForm、AdminModerationClient
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 极简记账、仪表盘（结余+账单）、编辑弹窗、左滑行
 │       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
@@ -109,6 +112,7 @@ flowchart LR
 │   ├── branding/           # 场景插画路径常量（illustrations.ts）
 │   ├── theme/              # 颜色主题 id / 色板 / 图表色板 / useThemeChartColors
 │   ├── household/          # 家庭编码：Cookie/Storage 键名与规范化（`index` 客户端可引）；`server.ts` 仅 RSC/Server
+│   ├── admin/              # 超管常量、密码哈希、HMAC 会话
 │   ├── ledger/             # 账本领域：类型、分类默认种子 / 行类型、聚合、本机偏好键、按日序列、统计周期、金额格式、`monthly-digest`
 │   ├── events/             # 大事记账：类型、分类、聚合（与 ledger 隔离）
 │   ├── llm/                # 小布：`mistral-fetch`、`xiaobu-llm`（委托 foundation）、`chat-ledger`（领域契约）
@@ -124,10 +128,11 @@ npm install
 cp .env.example .env.local
 # 至少配置 NEXT_PUBLIC_SUPABASE_URL、SUPABASE_SERVICE_ROLE_KEY
 # 使用小布助手时配置 MISTRAL_API_KEY 和/或 OPEN_ROUTER_API_KEY（及可选代理，见 .env.example）
+# 可选 ADMIN_SESSION_SECRET（管理会话 HMAC；未设则回退 SERVICE_ROLE_KEY）
 ```
 
-1. Supabase **SQL Editor** 按序执行 `supabase/migrations/` 下脚本（含 `004_major_events.sql`、`007_budgets.sql`）。
-2. `npm run dev`，打开 http://localhost:3000 → 应进入 `/login`，可用 **`000001`** 加入示例家庭，或 **创建新家**。
+1. Supabase **SQL Editor** 按序执行 `supabase/migrations/` 下脚本（含 `007_budgets.sql`、`008_admin_and_household_status.sql`）。
+2. `npm run dev`，打开 http://localhost:3000 → 应进入 `/login`，可用 **`000001`** 加入示例家庭；**创建新家**会进入待审，需 `/admin` 通过后再加入。
 
 ## 5. 常用命令
 
@@ -182,7 +187,9 @@ cp .env.example .env.local
 |------|------|
 | 一直跳登录 | 检查 Cookie 是否写入；中间件是否校验 6 位数字。 |
 | 手机打开局域网 `http://192.168.x.x:3000` 卡住 / 白屏 | Next 16 会拦跨源 `/_next`（含 HMR）。把本机当前局域网 IP 写入 **`next.config.ts` → `allowedDevOrigins`**，**重启** `next dev`。终端若出现 `Blocked cross-origin request ... webpack-hmr` 即为此原因。 |
-| 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`。 |
+| 创建家提示编码已存在 | 换 6 位数字；查表 `households.code`（含 pending）。 |
+| 创建后进不了账本 | 预期：须 `/admin` 审核通过后再用编码加入；未执行 `008` 时会报库表升级提示。 |
+| 管理后台登不上 | 确认已执行 `008`；账号 `xujiong` / `258099`（首次登录种子）；可选设 `ADMIN_SESSION_SECRET`。 |
 | 无法连库 | `.env.local`、Supabase 项目状态、Service Role 是否正确。 |
 | 另一台设备更新不自动出现 | 在首页点 **「刷新数据」**（`refreshLedgerReadCache` + `router.refresh()`），或刷新整页 / 切换路由；若需近实时可后续接 Realtime。 |
 | Tab 切换仍慢 | 生产环境看 Supabase 区域延迟；已做 `unstable_cache` + 统计页 Recharts 分包；可开 Network 看 RSC 与 JS chunk。 |

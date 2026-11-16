@@ -31,6 +31,11 @@ const config = {
       except: "/tools",
       transition: drill(),
     },
+    {
+      on: "/admin/**",
+      except: "/admin",
+      transition: drill(),
+    },
   ],
 };
 

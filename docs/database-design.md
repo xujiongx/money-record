@@ -6,9 +6,9 @@
 
 - **数据库类型**：PostgreSQL（由 Supabase 托管）。
 - **多租户**：以 `households` 为租户边界；应用通过 **6 位数字 `code`（唯一）** 解析 `household_id`，会话见 [api.md](./api.md) 与根目录 `README.md`。
-- **设计原则**：流水不设软删（删除为物理删除）；日常收支分类存于 **`ledger_categories`**（按家庭）；新建家庭默认成员「布布」「一二」与默认分类由应用 / 迁移种子写入；**月度预算**存于 **`budgets`**（仅日常支出口径）。
+- **设计原则**：流水不设软删（删除为物理删除）；日常收支分类存于 **`ledger_categories`**（按家庭）；新建家庭默认成员「布布」「一二」与默认分类由应用 / 迁移种子写入；**月度预算**存于 **`budgets`**（仅日常支出口径）；新家默认 **`pending`**，审核通过后为 **`active`**。
 
-权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002`](../supabase/migrations/002_household_code_multitenant.sql)–[`007_budgets.sql`](../supabase/migrations/007_budgets.sql)。
+权威 DDL 以仓库 [`supabase/migrations/001_init.sql`](../supabase/migrations/001_init.sql) 为准。依序还可执行 [`002`](../supabase/migrations/002_household_code_multitenant.sql)–[`008_admin_and_household_status.sql`](../supabase/migrations/008_admin_and_household_status.sql)。
 
 ## 2. ER 关系
 
@@ -35,7 +35,21 @@ erDiagram
 | id | uuid | PK | 应用创建新家时由服务端生成；种子数据可为固定 UUID |
 | name | text | NOT NULL | 家庭名称 |
 | code | text | NOT NULL，UNIQUE，`^[0-9]{6}$` | 登录用 6 位数字家庭编码 |
+| status | text | NOT NULL，`pending` \| `active`，默认 `active` | `008`：新申请为 pending；仅 active 可加入 |
 | created_at | timestamptz | NOT NULL, default now() | 创建时间 |
+
+**索引**：`idx_households_status_created (status, created_at DESC)` — 管理后台拉待审列表。
+
+### 3.1a `admin_users`（`008_admin_and_household_status.sql`）
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | uuid | PK | |
+| username | text | NOT NULL，UNIQUE | 超管登录名 |
+| password_hash | text | NOT NULL | scrypt 哈希（应用侧） |
+| created_at | timestamptz | NOT NULL, default now() | |
+
+**RLS**：开启且无 anon 策略；读写仅 Service Role。首次登录可种子账号 `xujiong`（见 `lib/admin/constants`）。
 
 ### 3.2 `members`
 
@@ -142,7 +156,7 @@ erDiagram
 
 ## 4. 行级安全（RLS）
 
-业务表（含 **`chat_messages`**、**`major_events`**、**`major_event_expenses`**、**`major_event_categories`**、**`budgets`**）均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
+业务表（含 **`chat_messages`**、**`major_events`**、**`major_event_expenses`**、**`major_event_categories`**、**`budgets`**、**`admin_users`**）均 **ENABLE ROW LEVEL SECURITY**，且 **不配置面向 `anon` 的 SELECT/写入策略**。
 
 - 业务读写一律经 Next.js **Server Actions**，使用 **Service Role**（绕过 RLS）。  
 - 浏览器 **不** 使用 Supabase 匿名客户端访问业务表；多家庭下无法安全做「按编码动态」的 anon Realtime，故已弃用 Realtime 推送。
@@ -173,9 +187,11 @@ erDiagram
 
 ## 6. 迁移与版本
 
-- **新库**：执行 `001_init.sql`（含示例家庭 `000001`、`000002`），再依次 `002`–`006`。  
+- **新库**：执行 `001_init.sql`（含示例家庭 `000001`、`000002`），再依次 `002`–`008`。  
 - **旧库（无 code / 仍有 anon 策略）**：执行 `002_household_code_multitenant.sql`，并确保无重复 `code` 后再 `NOT NULL`。  
 - **已有库缺日常分类表**：执行 `006_ledger_categories.sql`（会为已有家庭写入默认收支分类）。  
+- **月预算**：执行 `007_budgets.sql`。  
+- **家庭审核 + 超管表**：执行 `008_admin_and_household_status.sql`（既有家庭 `status` 置为 `active`）。  
 - 结构性变更建议在 [change/](./change/) 登记。
 
 ## 7. 备份与恢复

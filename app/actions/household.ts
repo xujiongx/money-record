@@ -37,22 +37,29 @@ export async function setHouseholdSession(raw: string) {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("households")
-    .select("id")
+    .select("id, status")
     .eq("code", code)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("家庭编码不存在，请核对后重试");
+  if (data.status === "pending") {
+    throw new Error("该家庭正在等待审核，通过后再用编码加入");
+  }
+  if (data.status !== "active") {
+    throw new Error("家庭编码不可用，请核对后重试");
+  }
 
   await writeHouseholdCookie(code);
 }
 
 /**
- * 创建新家庭（名称 + 6 位数字编码），并自动添加成员「布布」「一二」，随后登录该家庭。
+ * 提交创建新家庭（名称 + 6 位数字编码），写入待审核状态，不自动登录。
+ * 通过管理后台审核后，方可使用编码加入。
  */
 export async function createHouseholdAndLogin(input: {
   name: string;
   codeRaw: string;
-}) {
+}): Promise<{ pending: true; code: string }> {
   const code = normalizeHouseholdCode(input.codeRaw);
   if (!code) {
     throw new Error("请输入 6 位数字家庭编码");
@@ -69,10 +76,13 @@ export async function createHouseholdAndLogin(input: {
 
   const { data: taken } = await supabase
     .from("households")
-    .select("id")
+    .select("id, status")
     .eq("code", code)
     .maybeSingle();
   if (taken) {
+    if (taken.status === "pending") {
+      throw new Error("该编码已有待审核申请，请换一个或等待审核");
+    }
     throw new Error("该家庭编码已被使用，请换一个");
   }
 
@@ -81,6 +91,7 @@ export async function createHouseholdAndLogin(input: {
     id: householdId,
     name,
     code,
+    status: "pending",
   });
   if (hErr) {
     if (hErr.code === "23505") {
@@ -109,7 +120,7 @@ export async function createHouseholdAndLogin(input: {
     throw new Error("创建家庭失败，请稍后重试");
   }
 
-  await writeHouseholdCookie(code);
+  return { pending: true, code };
 }
 
 export async function clearHouseholdSession() {

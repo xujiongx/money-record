@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_SESSION_COOKIE } from "@/lib/admin/constants";
 import { HOUSEHOLD_CODE_COOKIE } from "@/lib/household";
 
 function isValidCode(value: string | undefined): boolean {
@@ -7,6 +8,20 @@ function isValidCode(value: string | undefined): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/admin")) {
+    if (pathname.startsWith("/admin/login")) {
+      return NextResponse.next();
+    }
+    const adminToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+    if (!adminToken) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/login")) {
     return NextResponse.next();
   }
@@ -43,5 +58,7 @@ export const config = {
     "/tools",
     "/tools/:path*",
     "/login",
+    "/admin",
+    "/admin/:path*",
   ],
 };

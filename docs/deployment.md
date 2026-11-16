@@ -31,6 +31,7 @@ flowchart TB
 |------|------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | 是 | Supabase 项目 URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | 是 | **仅服务端**；**禁止** `NEXT_PUBLIC_` 前缀 |
+| `ADMIN_SESSION_SECRET` | 否 | 管理后台会话 HMAC；未设则回退 `SUPABASE_SERVICE_ROLE_KEY` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 否 | 当前版本业务链路径未使用；预留扩展 |
 | `MISTRAL_API_KEY` | 使用小布时与 `OPEN_ROUTER_API_KEY` **至少其一** | **仅服务端**；与 OpenRouter 同配时 **优先 Mistral**，失败则自动切备用 |
 | `MISTRAL_MODEL` | 否 | 默认 `mistral-small-latest` |

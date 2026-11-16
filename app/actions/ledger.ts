@@ -48,11 +48,17 @@ async function loadHouseholdIdByNormalizedCode(code: string): Promise<string> {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("households")
-    .select("id")
+    .select("id, status")
     .eq("code", code)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("家庭编码已失效，请重新输入");
+  if (data.status === "pending") {
+    throw new Error("该家庭正在等待审核，通过后再进入");
+  }
+  if (data.status !== "active") {
+    throw new Error("家庭编码已失效，请重新输入");
+  }
   return data.id;
 }
 

@@ -20,6 +20,7 @@ export function EnterHouseholdCode() {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [householdName, setHouseholdName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const codeString = digits.join("");
@@ -44,6 +45,7 @@ export function EnterHouseholdCode() {
   const onModeChange = (next: Mode) => {
     setMode(next);
     setError(null);
+    setCreateSuccess(null);
     resetDigits();
     setHouseholdName("");
   };
@@ -99,13 +101,14 @@ export function EnterHouseholdCode() {
     }
     startTransition(async () => {
       try {
-        await createHouseholdAndLogin({
+        const result = await createHouseholdAndLogin({
           name: householdName,
           codeRaw: codeString,
         });
-        localStorage.setItem(HOUSEHOLD_CODE_STORAGE_KEY, code);
-        router.replace("/");
-        router.refresh();
+        setCreateSuccess(result.code);
+        setError(null);
+        resetDigits();
+        setHouseholdName("");
       } catch (e) {
         setError(e instanceof Error ? e.message : "创建失败");
       }
@@ -214,6 +217,25 @@ export function EnterHouseholdCode() {
             {error}
           </p>
         )}
+        {createSuccess && mode === "create" ? (
+          <div className="mt-4 rounded-2xl bg-accent-soft/60 px-4 py-3 text-center text-sm text-ink">
+            <p className="font-bold text-accent">已提交，等待审核</p>
+            <p className="mt-1 text-xs text-ink/70">
+              编码{" "}
+              <span className="font-mono font-semibold tracking-wider">
+                {createSuccess}
+              </span>{" "}
+              通过后即可「加入家庭」进入账本
+            </p>
+            <button
+              type="button"
+              className="mt-3 text-xs font-bold text-accent underline-offset-2 hover:underline"
+              onClick={() => onModeChange("login")}
+            >
+              去加入家庭
+            </button>
+          </div>
+        ) : null}
 
         {mode === "login" ? (
           <button
@@ -233,7 +255,7 @@ export function EnterHouseholdCode() {
             onClick={submitCreate}
             className="btn-primary mt-6"
           >
-            {pending ? "创建中…" : "创建并进入"}
+            {pending ? "提交中…" : "提交创建申请"}
           </button>
         )}
 
