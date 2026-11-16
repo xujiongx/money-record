@@ -36,7 +36,7 @@
 ### 2.1 `setHouseholdSession(raw: string)`
 
 - 将输入规范为 6 位数字；在 `households` 中按 `code` 查询，**仅 `status=active`** 时写入 Cookie 并 `revalidatePath`，且 **`revalidateTag("ledger", "max")`** 清空账本读缓存。
-- 不存在、`pending` 或其他状态则抛错（文案供 UI 展示）。
+- 返回结果（不抛业务错）：`{ ok: true }`，或 `{ ok: false, reason, message, code? }`；`reason` 含 `pending`（审核中，登录页展示等待提示）、`not_found`、`invalid` 等。
 
 ### 2.2 `createHouseholdAndLogin(input)`
 
@@ -45,9 +45,9 @@
 | `name` | 家庭名称，trim 后 1～60 字 |
 | `codeRaw` | 原始输入，规范后为 6 位数字 `code` |
 
-- 若 `code` 已存在（含 pending）则抛错。  
+- 返回 `{ ok: true, pending: true, code }` 或 `{ ok: false, reason, message, code? }`（`pending_code` / `taken` / `invalid` / `error`）。  
 - `insert households`（**`status=pending`**）后 `insert members`：**布布**（`sort_order` 1）、**一二**（2）。成员/分类种子失败则删除刚插入的家庭行。  
-- **不**写入家庭 Cookie；返回 `{ pending: true, code }`，待 `/admin` 审核通过后方可 `setHouseholdSession`。
+- **不**写入家庭 Cookie；待 `/admin` 审核通过后方可 `setHouseholdSession`。
 
 ### 2.3 `clearHouseholdSession()`
 
