@@ -4,19 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
-import {
-  categoryBreakdown,
   memberPeriodBreakdown,
   summarizeLedger,
 } from "@/lib/ledger/aggregates";
@@ -30,21 +17,14 @@ import {
 } from "@/lib/ledger/stats-period";
 import { formatMoney } from "@/lib/ledger/format";
 import type { MemberRow, TransactionRow } from "@/lib/ledger/types";
-import {
-  MascotEmpty,
-  MascotIllustration,
-} from "@/components/common/MascotIllustration";
+import { MascotIllustration } from "@/components/common/MascotIllustration";
 import { AnalysisDailyTrendChart } from "@/components/features/stats/AnalysisDailyTrendChart";
+import { PeriodInsights } from "@/components/features/stats/PeriodInsights";
 import { BudgetProgressCard } from "@/components/features/budget/BudgetProgressCard";
 import { fetchHouseholdMonthBudget } from "@/app/actions/budget";
 import { monthPeriodKey } from "@/lib/budget/period";
 import { computeBudgetProgress } from "@/lib/budget/progress";
 import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
-
-function formatPercent(part: number, total: number) {
-  if (total <= 0) return "0%";
-  return `${((part / total) * 100).toFixed(1)}%`;
-}
 
 const PERIOD_TABS: { id: StatsPeriod; label: string }[] = [
   { id: "day", label: "日" },
@@ -69,7 +49,7 @@ export function StatsCharts({
   const [budgetAmount, setBudgetAmount] = useState<number | null>(
     monthBudgetAmount,
   );
-  const { series: COLORS } = useThemeChartColors();
+  const { series: insightColors } = useThemeChartColors();
   const viewMonthKey = monthPeriodKey(anchorDate);
   const currentMonthKey = monthPeriodKey();
 
@@ -112,40 +92,14 @@ export function StatsCharts({
   }, [period, viewMonthKey, currentMonthKey, monthBudgetAmount]);
 
   const periodSummary = useMemo(
-    () => summarizeLedger(scopedTransactions),    [scopedTransactions],
+    () => summarizeLedger(scopedTransactions),
+    [scopedTransactions],
   );
   const txCount = scopedTransactions.length;
-
-  const expenseBreakdown = useMemo(() => {
-    const rows = categoryBreakdown(scopedTransactions, "expense");
-    rows.sort((a, b) => b.value - a.value);
-    return rows;
-  }, [scopedTransactions]);
-  const incomeBreakdown = useMemo(() => {
-    const rows = categoryBreakdown(scopedTransactions, "income");
-    rows.sort((a, b) => b.value - a.value);
-    return rows;
-  }, [scopedTransactions]);
-
-  const expenseByCat = useMemo(
-    () => expenseBreakdown.map(({ name, value }) => ({ name, value })),
-    [expenseBreakdown],
-  );
-  const incomeByCat = useMemo(
-    () => incomeBreakdown.map(({ name, value }) => ({ name, value })),
-    [incomeBreakdown],
-  );
-
-  const totalExpenseInScope = periodSummary.expense;
-  const totalIncomeInScope = periodSummary.income;
 
   const memberDetail = useMemo(
     () => memberPeriodBreakdown(scopedTransactions, members),
     [scopedTransactions, members],
-  );
-  const memberBars = useMemo(
-    () => memberDetail.map((m) => ({ name: m.name, total: m.expense })),
-    [memberDetail],
   );
 
   return (
@@ -365,164 +319,16 @@ export function StatsCharts({
         period={period}
       />
 
-      {/* 不要用含时间戳的 key，否则每次切期都会卸载整块 Recharts，ResponsiveContainer 重测 DOM 很慢 */}
-      <div className="space-y-5">
-        <ChartCard
-          title="成员支出对比"
-          subtitle={
-            memberBars.some((b) => b.total > 0)
-              ? `支出合计 ${formatMoney(totalExpenseInScope)}（与上方汇总一致）`
-              : "本区间暂无成员支出"
-          }
-        >
-          {memberBars.every((b) => b.total === 0) ? (
-            <Empty />
-          ) : (
-            <div className="w-full min-w-0 pt-2">
-              <div className="h-56 w-full min-h-[224px] min-w-0">
-                <ResponsiveContainer width="100%" height={224} minWidth={0}>
-                  <BarChart data={memberBars} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f4" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#a8a29e" }} axisLine={false} tickLine={false} tickFormatter={(v) => `¥${v}`} />
-                  <Tooltip
-                    formatter={(v) =>
-                      formatMoney(typeof v === "number" ? v : Number(v) || 0)
-                    }
-                    contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-                  />
-                  <Bar isAnimationActive={false} dataKey="total" radius={[8, 8, 0, 0]}>
-                    {memberBars.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="支出分类"
-          subtitle={
-            totalExpenseInScope > 0
-              ? `支出合计 ${formatMoney(totalExpenseInScope)}，${expenseBreakdown.reduce((s, r) => s + r.count, 0)} 笔，${expenseBreakdown.length} 个分类`
-              : "本区间暂无支出"
-          }
-        >
-          {expenseByCat.length === 0 ? (
-            <Empty />
-          ) : (
-            <>
-              <div className="h-56 w-full min-h-[224px] min-w-0">
-                <ResponsiveContainer width="100%" height={224} minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      isAnimationActive={false}
-                      data={expenseByCat}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={48}
-                      outerRadius={72}
-                      paddingAngle={2}
-                    >
-                      {expenseByCat.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) =>
-                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
-                      }
-                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <CategoryDetailList
-                rows={expenseBreakdown}
-                total={totalExpenseInScope}
-                colorAtIndex={(i) => COLORS[i % COLORS.length]}
-              />
-            </>
-          )}
-        </ChartCard>
-
-        <ChartCard
-          title="收入来源占比"
-          subtitle={
-            totalIncomeInScope > 0
-              ? `收入合计 ${formatMoney(totalIncomeInScope)}，${incomeBreakdown.reduce((s, r) => s + r.count, 0)} 笔，${incomeBreakdown.length} 个来源`
-              : "本区间暂无收入"
-          }
-        >
-          {incomeByCat.length === 0 ? (
-            <Empty />
-          ) : (
-            <>
-              <div className="h-56 w-full min-h-[224px] min-w-0">
-                <ResponsiveContainer width="100%" height={224} minWidth={0}>
-                  <PieChart>
-                    <Pie
-                      isAnimationActive={false}
-                      data={incomeByCat}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={72}
-                      paddingAngle={2}
-                    >
-                      {incomeByCat.map((_, i) => (
-                        <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) =>
-                        formatMoney(typeof v === "number" ? v : Number(v) || 0)
-                      }
-                      contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <CategoryDetailList
-                rows={incomeBreakdown}
-                total={totalIncomeInScope}
-                colorAtIndex={(i) => COLORS[(i + 2) % COLORS.length]}
-              />
-            </>
-          )}
-        </ChartCard>
-
-      </div>
+      {/* 区间洞察：随日/周/月/年换模块；勿用时间戳 key 以免 Recharts 重挂载 */}
+      <PeriodInsights
+        period={period}
+        transactions={scopedTransactions}
+        members={members}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        colors={insightColors}
+      />
     </div>
-  );
-}
-
-function ChartCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="paper-panel p-4">
-      <h2 className="text-sm font-extrabold text-ink">{title}</h2>
-      {subtitle ? (
-        <p className="mt-1 text-[11px] leading-relaxed text-[color:var(--muted)]">
-          {subtitle}
-        </p>
-      ) : null}
-      <div className="mt-2">{children}</div>
-    </section>
   );
 }
 
@@ -550,64 +356,5 @@ function SummaryTile({
         {formatMoney(value)}
       </p>
     </div>
-  );
-}
-
-function CategoryDetailList({
-  rows,
-  total,
-  colorAtIndex,
-}: {
-  rows: { name: string; value: number; count: number }[];
-  total: number;
-  colorAtIndex: (i: number) => string;
-}) {
-  return (
-    <div className="mt-3 border-t border-stone-100 pt-3">
-      <p className="text-xs font-semibold text-stone-700">明细列表</p>
-      <ul className="mt-2 space-y-2">
-        {rows.map((row, i) => (
-          <li
-            key={row.name}
-            className="flex items-start gap-2 rounded-lg bg-stone-50/90 px-2.5 py-2 text-[12px]"
-          >
-            <span
-              className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: colorAtIndex(i) }}
-              aria-hidden
-            />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium text-stone-800">{row.name}</span>
-                <span className="shrink-0 font-semibold tabular-nums text-stone-900">
-                  {formatMoney(row.value)}
-                </span>
-              </div>
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-stone-500">
-                <span>占{total > 0 ? formatPercent(row.value, total) : "0%"}</span>
-                <span className="text-stone-300">·</span>
-                <span>{row.count} 笔</span>
-                <span className="text-stone-300">·</span>
-                <span>
-                  单笔均额{" "}
-                  {row.count > 0 ? formatMoney(row.value / row.count) : formatMoney(0)}
-                </span>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Empty() {
-  return (
-    <MascotEmpty
-      name="emptyNoData"
-      title="暂无数据"
-      description="换个时间段，或先去记一笔吧"
-      className="py-4"
-    />
   );
 }

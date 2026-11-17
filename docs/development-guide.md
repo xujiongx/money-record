@@ -95,7 +95,7 @@ flowchart LR
 │       ├── members/        # MemberLedgerClient（与首页「最近账单」同款左滑行）
 │       ├── record/         # 极简记账、仪表盘（结余+账单）、编辑弹窗、左滑行
 │       ├── tools/          # 工具箱、大事记账（与日常账本隔离）
-│       ├── stats/          # StatsCharts + Gate；趋势折线（日按小时 / 年按月；随 StatsCharts 分包）
+│       ├── stats/          # StatsCharts + Gate；趋势 + PeriodInsights 区间洞察（随 StatsCharts 分包）
 │       └── chat/           # 小布：按职责分子目录（panel / message / trigger / mascot）
 │           ├── index.ts              # 导出 FloatingChatBot
 │           ├── types.ts              # ChatUiMessage、newChatMessageId

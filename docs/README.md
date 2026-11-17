@@ -8,6 +8,7 @@
 |------|------|
 | [PRD.md](./PRD.md) | 产品需求与验收要点（登录审核/账本/统计分析/小布/大事/预算等已实现对齐） |
 | [architecture.md](./architecture.md) | **系统架构**（渲染模型、数据流、安全边界、与其它文档索引） |
+| [adr/](./adr/) | **架构决策**（如统计页 [区间洞察](./adr/0001-stats-period-insights.md)）；术语见根 [GLOSSARY.md](../GLOSSARY.md) |
 | [development-guide.md](./development-guide.md) | **开发指南**（目录、环境、命令、FAQ） |
 | [database-design.md](./database-design.md) | 表结构、`households.code` / `status`、`admin_users`、RLS |
 | [api.md](./api.md) | `household` / `admin` / `ledger` / **mistral-chat** Server Actions、Cookie、中间件 |
