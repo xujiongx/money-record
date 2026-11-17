@@ -12,8 +12,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: APP_DESCRIPTION,
     start_url: "/record",
     display: "standalone",
-    background_color: "#edd9c0",
-    theme_color: "#e85d04",
+    background_color: "#f5e6d3",
+    theme_color: "#f36d14",
     orientation: "portrait",
     icons: [
       {
