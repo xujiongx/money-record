@@ -23,11 +23,11 @@ export type ThemeMeta = {
 };
 
 export const THEME_LIST: ThemeMeta[] = [
-  { id: "warm", label: "布布暖橙", swatch: ["#f47732", "#ffb347"] },
+  { id: "warm", label: "布布暖橙", swatch: ["#e85d04", "#f0a35a"] },
   { id: "clay", label: "黏土手账", swatch: ["#c45c26", "#8b6b4a"] },
   { id: "moss", label: "苔绿清新", swatch: ["#5f8f6b", "#3f6b4f"] },
   { id: "ocean", label: "海盐蓝", swatch: ["#3b82f6", "#0ea5e9"] },
-  { id: "grape", label: "葡萄紫", swatch: ["#a855f7", "#ec4899"] },
+  { id: "grape", label: "葡萄紫", swatch: ["#7c3aed", "#5b21b6"] },
   { id: "ink", label: "墨青简约", swatch: ["#334155", "#64748b"] },
 ];
 
@@ -41,11 +41,11 @@ export function normalizeThemeId(value: string | null | undefined): ThemeId {
 
 /** 供切换时同步浏览器 / PWA 状态栏 */
 export const THEME_COLOR_META: Record<ThemeId, string> = {
-  warm: "#f47732",
+  warm: "#e85d04",
   clay: "#c45c26",
-  moss: "#5f8f6b",
-  ocean: "#3b82f6",
-  grape: "#a855f7",
+  moss: "#4f7f5b",
+  ocean: "#2563eb",
+  grape: "#7c3aed",
   ink: "#334155",
 };
 
@@ -61,16 +61,16 @@ export type ThemeChartPalette = {
 export const THEME_CHART_PALETTES: Record<ThemeId, ThemeChartPalette> = {
   warm: {
     series: [
-      "#f47732",
-      "#ffb347",
-      "#52c41a",
-      "#67b7ff",
-      "#ff4d4f",
-      "#ffcc66",
-      "#c084fc",
+      "#e85d04",
+      "#f0a35a",
+      "#2f7a4a",
+      "#4f8fbf",
+      "#c93c3c",
+      "#d4a017",
+      "#8b6bb0",
     ],
-    trendExpense: "#ff4d4f",
-    trendIncome: "#52c41a",
+    trendExpense: "#c93c3c",
+    trendIncome: "#2f7a4a",
   },
   clay: {
     series: [
@@ -113,16 +113,16 @@ export const THEME_CHART_PALETTES: Record<ThemeId, ThemeChartPalette> = {
   },
   grape: {
     series: [
-      "#a855f7",
-      "#ec4899",
-      "#c084fc",
-      "#f472b6",
+      "#7c3aed",
+      "#6d28d9",
       "#8b5cf6",
+      "#a78bfa",
+      "#5b21b6",
       "#34d399",
       "#fbbf24",
     ],
-    trendExpense: "#ec4899",
-    trendIncome: "#7c3aed",
+    trendExpense: "#be123c",
+    trendIncome: "#059669",
   },
   ink: {
     series: [

@@ -154,7 +154,7 @@ export function RecordForm({
           <label className="block text-xs font-bold text-[color:var(--muted)]">
             金额
           </label>
-          <div className="mt-1.5 flex items-baseline gap-1 rounded-[1.25rem] border border-[var(--line)] bg-background px-4 py-4 focus-within:border-accent focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_22%,transparent)]">
+          <div className="mt-1.5 flex items-baseline gap-1 rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-4 py-4 focus-within:border-accent focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_22%,transparent)]">
             <span className="text-3xl font-extrabold text-[color:var(--muted)]">
               ¥
             </span>
@@ -201,7 +201,7 @@ export function RecordForm({
                       key={c}
                       type="button"
                       onClick={() => setCategory(c)}
-                      className={`flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 rounded-2xl border px-1.5 py-2.5 transition active:scale-[0.97] ${
+                      className={`flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 rounded-[var(--radius-card)] border px-1.5 py-2.5 transition active:scale-[0.97] ${
                         active
                           ? "border-accent bg-accent-soft shadow-[var(--shadow-soft)]"
                           : "border-transparent bg-background"
@@ -243,7 +243,7 @@ export function RecordForm({
           <button
             type="button"
             onClick={() => setMemberOpen((o) => !o)}
-            className="pressable mt-4 flex w-full items-center justify-between rounded-2xl border border-[var(--line)] bg-background px-3.5 py-3 text-left text-sm text-ink hover:bg-accent-soft/40"
+            className="pressable mt-4 flex w-full items-center justify-between rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-3.5 py-3 text-left text-sm text-ink hover:bg-accent-soft/40"
             aria-expanded={memberOpen}
           >
             <span className="flex min-w-0 items-center gap-2">
@@ -284,7 +284,7 @@ export function RecordForm({
                       setMemberId(m.id);
                       setMemberOpen(false);
                     }}
-                    className={`pressable flex flex-1 items-center justify-center gap-2 rounded-2xl border px-3 py-3 ${
+                    className={`pressable flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-card)] border px-3 py-3 ${
                       active
                         ? "border-accent bg-accent-soft shadow-[var(--shadow-soft)]"
                         : "border-[var(--line)] bg-background"
@@ -306,7 +306,7 @@ export function RecordForm({
           <button
             type="button"
             onClick={() => setTimeOpen((o) => !o)}
-            className="pressable mt-2 flex w-full items-center justify-between rounded-2xl border border-[var(--line)] bg-background px-3.5 py-3 text-left text-sm text-ink hover:bg-accent-soft/40"
+            className="pressable mt-2 flex w-full items-center justify-between rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-3.5 py-3 text-left text-sm text-ink hover:bg-accent-soft/40"
             aria-expanded={timeOpen}
           >
             <span>
@@ -383,7 +383,7 @@ function RecordToast({ message }: { message: string | null }) {
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] z-[100] flex justify-center px-4"
     >
-      <div className="flex items-center gap-2.5 rounded-[1.25rem] border border-[var(--line)] bg-paper px-3 py-2 pr-4 text-sm font-bold text-ink shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-2.5 rounded-[var(--radius-card)] border border-[var(--line)] bg-paper px-3 py-2 pr-4 text-sm font-bold text-ink shadow-[var(--shadow-soft)]">
         <MascotIllustration
           name="successSaved"
           size="sm"

@@ -29,7 +29,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#f47732",
+  themeColor: "#e85d04",
   colorScheme: "light",
   /** 与刘海屏安全区配合，避免独立 WebView 里背景露白 */
   viewportFit: "cover",

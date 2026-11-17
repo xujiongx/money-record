@@ -221,7 +221,7 @@ export function LedgerCategoriesClient({
                         aria-label={`删除 ${row.name}`}
                         disabled={pending}
                         onClick={() => onDelete(row)}
-                        className="flex size-8 items-center justify-center rounded-lg text-stone-400 transition hover:bg-[#ffe4e6] hover:text-expense disabled:opacity-50"
+                        className="flex size-8 items-center justify-center rounded-lg text-[color:var(--muted)] transition hover:bg-[color:var(--expense-soft)] hover:text-expense disabled:opacity-50"
                       >
                         <Trash2 className="size-3.5" aria-hidden />
                       </button>

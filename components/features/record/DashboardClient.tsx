@@ -116,7 +116,7 @@ export function DashboardClient({
       todaySum,
       todayCount: todayTx.length,
       compareLine: monthCompareLine(thisSum.expense, lastSum.expense),
-      paceLine: `已过 ${day}/${daysInMonth} 天 · 日均 ${formatMoney(thisSum.expense / Math.max(day, 1))}`,
+      paceLine: `已过 ${day}/${daysInMonth} 天，日均 ${formatMoney(thisSum.expense / Math.max(day, 1))}`,
     };
   }, [transactions]);
 
@@ -193,10 +193,10 @@ export function DashboardClient({
         </div>
         <section className="paper-panel relative z-0 space-y-5 px-5 py-5">
           <div className="max-w-[calc(100%-6.5rem)]">
-            <p className="text-[11px] font-bold text-[color:var(--muted)]">
+            <p className="text-xs font-semibold text-[color:var(--muted)]">
               本月已花
             </p>
-            <p className="kpi-number mt-2 text-[2.5rem] text-expense">
+            <p className="kpi-number mt-2.5 text-[2.75rem] text-expense">
               {formatMoney(insights.thisSum.expense)}
             </p>
           </div>
@@ -222,7 +222,7 @@ export function DashboardClient({
 
           <p className="text-xs leading-relaxed text-ink/65">
             {insights.compareLine}
-            <span className="text-ink/25"> · </span>
+            <span className="text-ink/25">，</span>
             {insights.paceLine}
           </p>
 
@@ -250,16 +250,13 @@ export function DashboardClient({
           <p className="mt-1 text-sm text-ink/70">今天还没记账，去记一笔吧</p>
         ) : (
           <p className="mt-1 text-sm text-ink">
-            <span className="font-extrabold">{insights.todayCount}</span> 笔
-            <span className="text-ink/25"> · </span>
-            花了{" "}
+            <span className="font-extrabold">{insights.todayCount}</span> 笔，花了{" "}
             <span className="font-extrabold tabular-nums text-expense">
               {formatMoney(insights.todaySum.expense)}
             </span>
             {insights.todaySum.income > 0 ? (
               <>
-                <span className="text-ink/25"> · </span>
-                收入{" "}
+                ，收入{" "}
                 <span className="font-extrabold tabular-nums text-income">
                   {formatMoney(insights.todaySum.income)}
                 </span>
@@ -288,14 +285,14 @@ export function DashboardClient({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-ink">
                       {t.members?.name ?? "成员"}
-                      <span className="text-stone-300"> · </span>
+                      <span className="text-[color:var(--muted)]"> </span>
                       {t.category}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-stone-500">
+                    <p className="mt-0.5 text-xs text-[color:var(--muted)]">
                       {format(new Date(t.occurred_at), "M月d日 HH:mm", {
                         locale: zhCN,
                       })}
-                      {t.note ? ` · ${t.note}` : ""}
+                      {t.note ? `，${t.note}` : ""}
                     </p>
                   </div>
                   <span
@@ -314,7 +311,7 @@ export function DashboardClient({
       ) : !selfMemberId ? (
         <section className="paper-panel px-4 py-3">
           <p className="text-xs leading-relaxed text-[color:var(--muted)]">
-            在设置里选一下「我是谁」，这里就能看到对方刚记的账 ·{" "}
+            在设置里选一下「我是谁」，这里就能看到对方刚记的账。{" "}
             <Link
               href="/members/settings"
               className="font-bold text-accent underline-offset-2 hover:underline"
@@ -329,12 +326,14 @@ export function DashboardClient({
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-extrabold text-ink">最近账单</h2>
-            <p className="mt-0.5 text-[10px] text-[color:var(--muted)]">
+            <p className="mt-0.5 text-xs text-[color:var(--muted)]">
               向左滑动可编辑、删除
             </p>
           </div>
           {pending ? (
-            <span className="shrink-0 text-xs text-stone-400">处理中…</span>
+            <span className="shrink-0 text-xs text-[color:var(--muted)]">
+              处理中…
+            </span>
           ) : null}
         </div>
         <ul className="mt-2 divide-y divide-[var(--line)]">
@@ -373,21 +372,19 @@ export function DashboardClient({
                           {t.category}
                         </span>
                         <span
-                          className={
-                            isIn
-                              ? "shrink-0 rounded-full bg-[#e8f8e8] px-1.5 py-0.5 text-[10px] font-semibold text-income"
-                              : "shrink-0 rounded-full bg-[#ffe8e8] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
-                          }
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                            isIn ? "badge-income" : "badge-expense"
+                          }`}
                         >
                           {isIn ? "收入" : "支出"}
                         </span>
                       </div>
-                      <p className="mt-1 truncate text-[11px] leading-snug text-stone-500">
-                        {t.members?.name ?? "成员"} ·{" "}
+                      <p className="mt-1 truncate text-xs leading-snug text-[color:var(--muted)]">
+                        {t.members?.name ?? "成员"}{" "}
                         {format(new Date(t.occurred_at), "M月d日 HH:mm", {
                           locale: zhCN,
                         })}
-                        {t.note ? ` · ${t.note}` : ""}
+                        {t.note ? `，${t.note}` : ""}
                       </p>
                     </div>
                     <span

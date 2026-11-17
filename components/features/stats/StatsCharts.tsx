@@ -236,7 +236,7 @@ export function StatsCharts({
           <SummaryTile label="总收入" value={periodSummary.income} tone="income" />
           <SummaryTile label="总支出" value={periodSummary.expense} tone="expense" />
           <SummaryTile label="结余" value={periodSummary.balance} tone="balance" />
-          <div className="rounded-2xl px-3 py-2.5 ring-1 ring-[var(--line)]">
+          <div className="rounded-[var(--radius-card)] px-3 py-2.5 ring-1 ring-[var(--line)]">
             <p className="text-[11px] font-bold text-[color:var(--muted)]">
               记账笔数
             </p>
@@ -300,14 +300,20 @@ export function StatsCharts({
                     <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
                       <span>
                         支出 {formatMoney(m.expense)}
-                        <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                        <span className="text-[color:var(--muted)]">
+                          {" "}
+                          {m.expenseCount} 笔
+                        </span>
                       </span>
                       <span>
                         收入 {formatMoney(m.income)}
-                        <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                        <span className="text-[color:var(--muted)]">
+                          {" "}
+                          {m.incomeCount} 笔
+                        </span>
                       </span>
                     </div>
-                    <p className="mt-1.5 flex items-center justify-center gap-0.5 text-[10px] font-medium text-accent">
+                    <p className="mt-1.5 flex items-center justify-center gap-0.5 text-xs font-medium text-accent">
                       查看收支明细
                       <ChevronRight className="size-3" strokeWidth={2.5} aria-hidden />
                     </p>
@@ -327,14 +333,22 @@ export function StatsCharts({
                     <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-stone-600">
                       <span>
                         支出 {formatMoney(m.expense)}
-                        <span className="text-stone-400"> · {m.expenseCount} 笔</span>
+                        <span className="text-[color:var(--muted)]">
+                          {" "}
+                          {m.expenseCount} 笔
+                        </span>
                       </span>
                       <span>
                         收入 {formatMoney(m.income)}
-                        <span className="text-stone-400"> · {m.incomeCount} 笔</span>
+                        <span className="text-[color:var(--muted)]">
+                          {" "}
+                          {m.incomeCount} 笔
+                        </span>
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-stone-400">本区间无记账</p>
+                    <p className="mt-1 text-xs text-[color:var(--muted)]">
+                      本区间无记账
+                    </p>
                   </div>
                 )}
               </li>
@@ -392,7 +406,7 @@ export function StatsCharts({
           title="支出分类"
           subtitle={
             totalExpenseInScope > 0
-              ? `支出合计 ${formatMoney(totalExpenseInScope)} · ${expenseBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${expenseBreakdown.length} 个分类`
+              ? `支出合计 ${formatMoney(totalExpenseInScope)}，${expenseBreakdown.reduce((s, r) => s + r.count, 0)} 笔，${expenseBreakdown.length} 个分类`
               : "本区间暂无支出"
           }
         >
@@ -440,7 +454,7 @@ export function StatsCharts({
           title="收入来源占比"
           subtitle={
             totalIncomeInScope > 0
-              ? `收入合计 ${formatMoney(totalIncomeInScope)} · ${incomeBreakdown.reduce((s, r) => s + r.count, 0)} 笔 · ${incomeBreakdown.length} 个来源`
+              ? `收入合计 ${formatMoney(totalIncomeInScope)}，${incomeBreakdown.reduce((s, r) => s + r.count, 0)} 笔，${incomeBreakdown.length} 个来源`
               : "本区间暂无收入"
           }
         >
@@ -529,7 +543,7 @@ function SummaryTile({
           ? "text-accent"
           : "text-expense";
   return (
-    <div className="rounded-2xl px-3 py-2.5 ring-1 ring-[var(--line)]">
+    <div className="rounded-[var(--radius-card)] px-3 py-2.5 ring-1 ring-[var(--line)]">
       <p className="text-[11px] font-bold text-[color:var(--muted)]">{label}</p>
       <p className={`mt-0.5 text-base font-extrabold tabular-nums ${toneClass}`}>
         {formatMoney(value)}

@@ -118,12 +118,14 @@ export default async function MembersPage() {
                       <div
                         className="progress-fill !bg-expense"
                         style={{
-                          width: `${Math.min(
-                            100,
-                            family.expense > 0
-                              ? (expense / family.expense) * 100
-                              : 0,
-                          )}%`,
+                          ["--progress" as string]: String(
+                            Math.min(
+                              1,
+                              family.expense > 0
+                                ? expense / family.expense
+                                : 0,
+                            ),
+                          ),
                         }}
                       />
                     </div>
@@ -155,7 +157,7 @@ export default async function MembersPage() {
               className="paper-panel pressable flex items-center gap-3 p-3.5 hover:bg-accent-soft/30"
             >
               <span
-                className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${tone}`}
+                className={`flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-card)] ${tone}`}
               >
                 <Icon className="size-5" strokeWidth={2.2} aria-hidden />
               </span>

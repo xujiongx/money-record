@@ -9,7 +9,7 @@ import {
 
 /** 暖橙实色 fallback（与默认 warm 主题一致） */
 const solidFalls = [
-  "bg-[#f47732]",
+  "bg-[#e85d04]",
   "bg-[#ffb347]",
   "bg-[#ff4d4f]",
   "bg-[#52c41a]",

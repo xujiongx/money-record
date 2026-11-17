@@ -113,10 +113,10 @@ export function AdminModerationClient({
             {pendingRows.map((row) => (
               <li
                 key={row.id}
-                className="rounded-2xl border border-[var(--line)] bg-background px-3 py-3"
+                className="rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-3 py-3"
               >
                 <p className="font-extrabold text-ink">{row.name}</p>
-                <p className="mt-0.5 font-mono text-sm tracking-wider text-ink/80">
+                <p className="mt-0.5 font-mono text-sm text-ink/80">
                   {row.code}
                 </p>
                 <p className="mt-1 text-[11px] text-[color:var(--muted)]">
@@ -165,7 +165,7 @@ export function AdminModerationClient({
               <li key={row.id} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
                   <p className="truncate font-extrabold text-ink">{row.name}</p>
-                  <p className="mt-0.5 font-mono text-sm tracking-wider text-ink/80">
+                  <p className="mt-0.5 font-mono text-sm text-ink/80">
                     {row.code}
                   </p>
                 </div>

@@ -71,7 +71,7 @@ export function BudgetSettingsClient({
 
       <section className="paper-panel space-y-3 p-4">
         <p className="text-xs font-bold text-[color:var(--muted)]">
-          {label} · 全家支出上限
+          {label}，全家支出上限
         </p>
         <p className="text-sm leading-relaxed text-ink/70">
           只约束日常记账支出，大事记账不计入。超预算也能继续记账，只会轻提示。
@@ -84,7 +84,7 @@ export function BudgetSettingsClient({
             </span>
           </p>
         ) : (
-          <div className="rounded-2xl bg-accent-soft/50 px-3.5 py-3 text-sm leading-relaxed text-ink/80">
+          <div className="rounded-[var(--radius-card)] bg-accent-soft/50 px-3.5 py-3 text-sm leading-relaxed text-ink/80">
             <p className="font-bold text-ink">本月还没设预算</p>
             <p className="mt-1 text-xs text-ink/65">
               比如先填 <span className="font-semibold text-accent">3000</span>
@@ -96,7 +96,7 @@ export function BudgetSettingsClient({
         <label className="block text-xs font-bold text-[color:var(--muted)]">
           金额
         </label>
-        <div className="flex items-baseline gap-1 rounded-[1.25rem] border border-[var(--line)] bg-background px-4 py-3 focus-within:border-accent">
+        <div className="flex items-baseline gap-1 rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-4 py-3 focus-within:border-accent">
           <span className="text-xl font-extrabold text-[color:var(--muted)]">
             ¥
           </span>
@@ -142,7 +142,7 @@ export function BudgetSettingsClient({
       </section>
 
       <p className="px-1 text-[11px] text-[color:var(--muted)]">
-        月键 {periodKey || monthPeriodKey()} · 仅当前家庭可见
+        月键 {periodKey || monthPeriodKey()}，仅当前家庭可见
       </p>
     </div>
   );

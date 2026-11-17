@@ -144,7 +144,7 @@ export function ChatVoiceMicButton() {
       aria-label={listening ? "结束语音输入" : "语音输入"}
       title={listening ? "结束语音输入" : "语音输入（普通话）"}
       onClick={toggle}
-      className={`flex size-[42px] shrink-0 items-center justify-center rounded-2xl border transition ${
+      className={`flex size-[42px] shrink-0 items-center justify-center rounded-[var(--radius-card)] border transition ${
         listening
           ? "border-accent bg-accent-soft text-accent shadow-inner ring-2 ring-accent/40"
           : "border-stone-200/90 bg-white text-stone-500 hover:border-accent/40 hover:text-accent"

@@ -482,11 +482,11 @@ export function AnalysisClient({
                       </span>
                     </div>
                   </div>
-                  <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-stone-100">
+                  <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-[color:var(--line)]">
                     <div
-                      className="h-full rounded-full transition-all"
+                      className="h-full w-full origin-left rounded-full transition-transform duration-200"
                       style={{
-                        width: `${pct}%`,
+                        transform: `scaleX(${Math.max(0, Math.min(1, pct / 100))})`,
                         backgroundColor: COLORS[i % COLORS.length],
                       }}
                     />
@@ -536,8 +536,8 @@ export function AnalysisClient({
                     <p className="truncate text-sm font-medium text-stone-800">
                       {t.category}
                       {t.note ? (
-                        <span className="ml-1 font-normal text-stone-500">
-                          · {t.note}
+                        <span className="ml-1 font-normal text-[color:var(--muted)]">
+                          {t.note}
                         </span>
                       ) : null}
                     </p>

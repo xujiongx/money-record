@@ -20,7 +20,7 @@ export function CategoryIcon({
   const dim = SIZE[size];
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-2xl ${dim.box} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[var(--radius-card)] ${dim.box} ${className}`}
       style={{ background: visual.bg, color: visual.fg }}
       aria-hidden
     >

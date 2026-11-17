@@ -75,7 +75,7 @@ export function AnalysisDailyTrendChart({
         <div>
           <h2 className="text-sm font-semibold text-stone-800">每日趋势</h2>
           <p className="mt-0.5 text-[11px] text-stone-500">
-            按日金额 · 总额与各成员
+            按日金额，总额与各成员
           </p>
         </div>
         <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">

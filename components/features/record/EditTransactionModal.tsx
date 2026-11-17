@@ -146,7 +146,7 @@ export function EditTransactionModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-tx-title"
-        className="max-h-[min(92vh,640px)] w-full max-w-md min-w-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-t-3xl bg-white shadow-2xl ring-1 ring-stone-200 sm:rounded-3xl"
+        className="max-h-[min(92vh,640px)] w-full max-w-md min-w-0 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-t-xl bg-white shadow-2xl ring-1 ring-stone-200 sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-100 bg-white px-4 py-3">

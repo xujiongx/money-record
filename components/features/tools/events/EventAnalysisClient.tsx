@@ -69,15 +69,15 @@ export function EventAnalysisClient({
                   <span className="font-semibold text-stone-700">
                     {formatMoney(m.total)}
                     <span className="ml-1 text-xs font-normal text-stone-400">
-                      {pct}% · {m.count}笔
+                      {pct}%，{m.count}笔
                     </span>
                   </span>
                 </div>
-                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-stone-100">
+                <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-[color:var(--line)]">
                   <div
-                    className="h-full rounded-full transition-all"
+                    className="h-full w-full origin-left rounded-full transition-transform duration-200"
                     style={{
-                      width: `${(m.total / maxMember) * 100}%`,
+                      transform: `scaleX(${Math.max(0, Math.min(1, m.total / maxMember))})`,
                       backgroundColor: COLORS[i % COLORS.length],
                     }}
                   />
@@ -113,15 +113,15 @@ export function EventAnalysisClient({
                     <span className="font-semibold text-stone-700">
                       {formatMoney(c.value)}
                       <span className="ml-1 text-xs font-normal text-stone-400">
-                        {pct}% · {c.count}笔
+                        {pct}%，{c.count}笔
                       </span>
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-stone-100">
+                  <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-[color:var(--line)]">
                     <div
-                      className="h-full rounded-full transition-all"
+                      className="h-full w-full origin-left rounded-full transition-transform duration-200"
                       style={{
-                        width: `${(c.value / maxCategory) * 100}%`,
+                        transform: `scaleX(${Math.max(0, Math.min(1, c.value / maxCategory))})`,
                         backgroundColor: COLORS[i % COLORS.length],
                       }}
                     />

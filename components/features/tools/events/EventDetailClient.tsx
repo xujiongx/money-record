@@ -196,7 +196,7 @@ export function EventDetailClient({
               key={m.id}
               type="button"
               onClick={() => setMemberId(m.id)}
-              className={`flex flex-1 flex-col items-center rounded-2xl border-2 py-3 transition active:scale-[0.98] ${
+              className={`flex flex-1 flex-col items-center rounded-[var(--radius-card)] border-2 py-3 transition active:scale-[0.98] ${
                 memberId === m.id
                   ? "border-accent bg-accent-soft/80"
                   : "border-transparent bg-stone-50"
@@ -317,15 +317,15 @@ export function EventDetailClient({
                     <span className="text-sm font-semibold text-stone-800">
                       {e.category}
                     </span>
-                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                    <span className="rounded-full bg-[color:var(--line)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--muted)]">
                       {e.members?.name ?? "未知"}
                     </span>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-stone-500">
+                  <p className="mt-0.5 truncate text-xs text-[color:var(--muted)]">
                     {format(new Date(e.occurred_at), "M月d日 HH:mm", {
                       locale: zhCN,
                     })}
-                    {e.note ? ` · ${e.note}` : ""}
+                    {e.note ? `，${e.note}` : ""}
                   </p>
                 </div>
                 <p className="shrink-0 text-sm font-bold text-expense">
@@ -336,7 +336,7 @@ export function EventDetailClient({
                   aria-label="删除"
                   disabled={pending && deletingId === e.id}
                   onClick={() => onDeleteExpense(e.id)}
-                  className="flex size-9 shrink-0 items-center justify-center rounded-xl text-stone-400 transition hover:bg-[#ffe4e6] hover:text-expense"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl text-[color:var(--muted)] transition hover:bg-[color:var(--expense-soft)] hover:text-expense"
                 >
                   <Trash2 className="size-4" aria-hidden />
                 </button>
@@ -350,7 +350,7 @@ export function EventDetailClient({
         type="button"
         disabled={pending}
         onClick={onDeleteEvent}
-        className="w-full rounded-2xl border border-expense/30 bg-white py-3 text-sm font-medium text-expense transition hover:bg-[#ffe4e6] disabled:opacity-50"
+        className="w-full rounded-[var(--radius-card)] border border-expense/30 bg-paper py-3 text-sm font-medium text-expense transition hover:bg-[color:var(--expense-soft)] disabled:opacity-50"
       >
         删除此大事
       </button>

@@ -277,11 +277,11 @@ export function MemberLedgerClient({
                   className={`rounded-lg px-3 py-1 text-xs font-medium transition ${
                     typeFilter === t
                       ? t === "income"
-                        ? "bg-[#d1fae5] text-income"
+                        ? "badge-income"
                         : t === "expense"
-                          ? "bg-[#ffe4e6] text-expense"
+                          ? "badge-expense"
                           : "bg-accent-soft text-accent"
-                      : "bg-stone-100 text-stone-500 hover:bg-stone-200"
+                      : "bg-[color:var(--line)] text-[color:var(--muted)] hover:bg-accent-soft/40"
                   }`}
                 >
                   {t === "all" ? "全部" : t === "income" ? "收入" : "支出"}
@@ -379,24 +379,22 @@ export function MemberLedgerClient({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={
-                            isIn
-                              ? "shrink-0 rounded-md bg-[#d1fae5] px-1.5 py-0.5 text-[10px] font-semibold text-income"
-                              : "shrink-0 rounded-md bg-[#ffe4e6] px-1.5 py-0.5 text-[10px] font-semibold text-expense"
-                          }
+                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${
+                            isIn ? "badge-income" : "badge-expense"
+                          }`}
                         >
                           {isIn ? "收入" : "支出"}
                         </span>
-                        <span className="truncate text-sm font-semibold text-stone-800">
+                        <span className="truncate text-sm font-semibold text-ink">
                           {t.category}
                         </span>
                       </div>
-                      <p className="mt-1 truncate text-[11px] leading-snug text-stone-500">
-                        {t.members?.name ?? "成员"} ·{" "}
+                      <p className="mt-1 truncate text-xs leading-snug text-[color:var(--muted)]">
+                        {t.members?.name ?? "成员"}{" "}
                         {format(new Date(t.occurred_at), "M月d日 HH:mm", {
                           locale: zhCN,
                         })}
-                        {t.note ? ` · ${t.note}` : ""}
+                        {t.note ? `，${t.note}` : ""}
                       </p>
                     </div>
                     <span

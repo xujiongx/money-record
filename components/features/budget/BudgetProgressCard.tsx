@@ -34,7 +34,7 @@ export function BudgetProgressCard({
           embedded ? "border-t border-[var(--line)] pt-4" : "mt-3"
         }`}
       >
-        还没设本月全家预算。定个上限，首页就能看到还剩多少 ·{" "}
+        还没设本月全家预算。定个上限，首页就能看到还剩多少。{" "}
         <Link
           href="/tools/budget"
           className="font-bold text-accent underline-offset-2 hover:underline"
@@ -93,7 +93,9 @@ export function BudgetProgressCard({
         <div
           className={`progress-fill ${fillClass}`}
           style={{
-            width: `${Math.max(4, Math.min(progress.ratio * 100, 100))}%`,
+            ["--progress" as string]: String(
+              Math.max(0.04, Math.min(progress.ratio, 1)),
+            ),
           }}
         />
       </div>
@@ -119,7 +121,7 @@ export function BudgetProgressCard({
               }
             >
               {" "}
-              · {alertText}
+              {alertText}
             </span>
           ) : null}
         </p>

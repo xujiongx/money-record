@@ -150,14 +150,13 @@ export function EventsListClient({ events }: { events: MajorEventListItem[] }) {
                       {ev.title}
                     </p>
                     {ev.status === "archived" ? (
-                      <span className="shrink-0 rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-500">
+                      <span className="shrink-0 rounded-full bg-[color:var(--line)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--muted)]">
                         已归档
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-0.5 text-xs text-stone-500">
-                    {ev.expense_count} 笔支出
-                    <span className="text-stone-300"> · </span>
+                  <p className="mt-0.5 text-xs text-[color:var(--muted)]">
+                    {ev.expense_count} 笔支出，
                     {format(new Date(ev.created_at), "yyyy年M月d日", {
                       locale: zhCN,
                     })}

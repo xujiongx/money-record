@@ -63,7 +63,7 @@ export function ChatPanelHeader({
               )}
             </div>
             <p className="text-xs text-stone-500">
-              记账问答 · 本月与本年小结
+              记账问答，本月与本年小结
             </p>
             {ttsSupported && ttsEnabled && showTransport && (
               <div className="mt-1.5 flex flex-wrap items-center gap-2">

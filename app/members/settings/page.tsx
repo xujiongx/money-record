@@ -28,7 +28,7 @@ export default async function SettingsPage() {
       {householdCode ? (
         <section className="paper-panel px-4 py-3">
           <p className="text-xs font-medium text-stone-500">家庭编码</p>
-          <p className="mt-1 font-mono text-lg font-semibold tracking-wider text-ink">
+          <p className="mt-1 font-mono text-lg font-semibold text-ink">
             {householdCode}
           </p>
           <p className="mt-1 text-[11px] text-stone-400">

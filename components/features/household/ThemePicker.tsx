@@ -71,7 +71,7 @@ export function ThemePicker() {
                 <span className="block text-sm font-semibold text-ink">
                   {label}
                 </span>
-                <span className="mt-0.5 block font-mono text-[11px] text-stone-400">
+                <span className="mt-0.5 block text-xs text-[color:var(--muted)]">
                   {id}
                 </span>
               </span>

@@ -1,0 +1,21 @@
+{
+  "skill": "hallmark",
+  "version": "2.0.0",
+  "depth": "restyle",
+  "scope": "app",
+  "genre": "playful",
+  "preserved": [
+    "routes and Server Action wiring",
+    "layout structure of app screens",
+    "warm-family brand + Nunito + mascots",
+    "pill language for controls"
+  ],
+  "introduced": [
+    "parchment ground #edd9c0 + ivory paper with hairline",
+    "cooked mandarin accent #e85d04 single-hue login wash",
+    "tighter --radius-card 0.875rem + stamp shadow",
+    "stronger paper grain; quieter income/expense"
+  ],
+  "waived": ["65", "80"],
+  "answered": ["F7"]
+}

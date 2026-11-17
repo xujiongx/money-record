@@ -67,13 +67,11 @@ function CategoryGroupedList({
                     {formatMoney(row.value)}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11px] text-stone-500">
+                <p className="mt-0.5 text-xs text-[color:var(--muted)]">
                   占{tone === "expense" ? "本区间个人总支出" : "本区间个人总收入"}的{" "}
                   {totalAmount > 0 ? formatPercent(row.value, totalAmount) : "0%"}
-                  <span className="text-stone-300"> · </span>
-                  {row.count} 笔
-                  <span className="text-stone-300"> · </span>
-                  笔均 {formatMoney(row.count > 0 ? row.value / row.count : 0)}
+                  ，{row.count} 笔，笔均{" "}
+                  {formatMoney(row.count > 0 ? row.value / row.count : 0)}
                 </p>
               </div>
               <span
@@ -87,9 +85,9 @@ function CategoryGroupedList({
               {catRows.map((t) => (
                 <li key={t.id} className="flex gap-3 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] text-stone-500">
+                    <p className="text-xs text-[color:var(--muted)]">
                       {format(new Date(t.occurred_at), "M月d日 HH:mm", { locale: zhCN })}
-                      {t.note ? ` · ${t.note}` : ""}
+                      {t.note ? `，${t.note}` : ""}
                     </p>
                   </div>
                   <span className={`shrink-0 text-sm font-semibold tabular-nums ${amountClass}`}>
@@ -143,14 +141,11 @@ export function StatsMemberPeriodLists({
 
       <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">支出</h2>
-        <p className="mt-1 text-[11px] text-stone-500">
-          {expenses.length} 笔 · 合计 {formatMoney(expenseTotal)}
-          {expenseBreakdown.length > 0 && (
-            <>
-              <span className="text-stone-300"> · </span>
-              {expenseBreakdown.length} 个分类
-            </>
-          )}
+        <p className="mt-1 text-xs text-[color:var(--muted)]">
+          {expenses.length} 笔，合计 {formatMoney(expenseTotal)}
+          {expenseBreakdown.length > 0
+            ? `，${expenseBreakdown.length} 个分类`
+            : null}
         </p>
         <p className="mt-2 text-[11px] font-medium text-stone-600">
           按分类占比；点击分类栏展开每笔明细（默认折叠，以记账时间为准）
@@ -166,14 +161,11 @@ export function StatsMemberPeriodLists({
 
       <section className="paper-panel p-4">
         <h2 className="text-sm font-semibold text-stone-800">收入</h2>
-        <p className="mt-1 text-[11px] text-stone-500">
-          {incomes.length} 笔 · 合计 {formatMoney(incomeTotal)}
-          {incomeBreakdown.length > 0 && (
-            <>
-              <span className="text-stone-300"> · </span>
-              {incomeBreakdown.length} 个来源
-            </>
-          )}
+        <p className="mt-1 text-xs text-[color:var(--muted)]">
+          {incomes.length} 笔，合计 {formatMoney(incomeTotal)}
+          {incomeBreakdown.length > 0
+            ? `，${incomeBreakdown.length} 个来源`
+            : null}
         </p>
         <p className="mt-2 text-[11px] font-medium text-stone-600">
           按来源占比；点击来源栏展开每笔明细（默认折叠，以记账时间为准）

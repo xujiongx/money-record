@@ -27,7 +27,7 @@ type Notice =
 
 function CodeMono({ code }: { code: string }) {
   return (
-    <span className="font-mono font-semibold tracking-wider text-ink">
+    <span className="font-mono font-semibold text-ink">
       {code}
     </span>
   );
@@ -44,7 +44,7 @@ function WaitNotice({
 }) {
   return (
     <div
-      className="mt-4 rounded-2xl border border-accent/20 bg-accent-soft/70 px-4 py-3.5 text-center"
+      className="mt-4 rounded-[var(--radius-card)] border border-accent/20 bg-accent-soft/70 px-4 py-3.5 text-center"
       role="status"
     >
       <p className="text-sm font-extrabold text-accent">{title}</p>
@@ -183,7 +183,7 @@ export function EnterHouseholdCode() {
           value={d}
           onChange={(e) => onDigitChange(i, e.target.value)}
           onKeyDown={(e) => onKeyDown(i, e)}
-          className="h-12 w-10 rounded-2xl border border-[var(--line)] bg-paper text-center text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+          className="h-12 w-10 rounded-[var(--radius-card)] border border-[var(--line)] bg-paper text-center text-xl font-bold text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
           aria-label={`第 ${i + 1} 位`}
         />
       ))}
@@ -249,7 +249,7 @@ export function EnterHouseholdCode() {
                 setHouseholdName(e.target.value);
                 setNotice(null);
               }}
-              className="mt-2 w-full rounded-2xl border border-[var(--line)] bg-paper px-4 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+              className="mt-2 w-full rounded-[var(--radius-card)] border border-[var(--line)] bg-paper px-4 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
               maxLength={60}
             />
           </>
