@@ -362,6 +362,7 @@ export function StatsCharts({
         members={members}
         rangeStart={rangeStart}
         rangeEnd={rangeEnd}
+        period={period}
       />
 
       {/* 不要用含时间戳的 key，否则每次切期都会卸载整块 Recharts，ResponsiveContainer 重测 DOM 很慢 */}

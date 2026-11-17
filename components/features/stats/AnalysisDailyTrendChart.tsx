@@ -11,23 +11,41 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { dailyMemberTypeSeries } from "@/lib/ledger/daily-breakdown";
+import {
+  dailyMemberTypeSeries,
+  hourlyMemberTypeSeries,
+  monthlyMemberTypeSeries,
+} from "@/lib/ledger/daily-breakdown";
 import { formatMoney } from "@/lib/ledger/format";
+import type { StatsPeriod } from "@/lib/ledger/stats-period";
 import type { LedgerType, MemberRow, TransactionRow } from "@/lib/ledger/types";
 import { useThemeChartColors } from "@/lib/theme/useThemeChartColors";
 
 type ChartTab = LedgerType;
+
+function trendCopy(period: StatsPeriod): { title: string; subtitle: string } {
+  if (period === "year") {
+    return { title: "每月趋势", subtitle: "按月金额，总额与各成员" };
+  }
+  if (period === "day") {
+    return { title: "时段趋势", subtitle: "按小时金额，总额与各成员" };
+  }
+  return { title: "每日趋势", subtitle: "按日金额，总额与各成员" };
+}
 
 export function AnalysisDailyTrendChart({
   transactions,
   members,
   rangeStart,
   rangeEnd,
+  period = "month",
 }: {
   transactions: TransactionRow[];
   members: MemberRow[];
   rangeStart: Date;
   rangeEnd: Date;
+  /** 日按小时、年按月；周/月仍按日 */
+  period?: StatsPeriod;
 }) {
   const [tab, setTab] = useState<ChartTab>("expense");
   const {
@@ -36,18 +54,17 @@ export function AnalysisDailyTrendChart({
     trendIncome,
   } = useThemeChartColors();
   const totalColor = tab === "expense" ? trendExpense : trendIncome;
+  const { title, subtitle } = trendCopy(period);
 
-  const series = useMemo(
-    () =>
-      dailyMemberTypeSeries(
-        transactions,
-        members,
-        rangeStart,
-        rangeEnd,
-        tab,
-      ),
-    [transactions, members, rangeStart, rangeEnd, tab],
-  );
+  const series = useMemo(() => {
+    const build =
+      period === "year"
+        ? monthlyMemberTypeSeries
+        : period === "day"
+          ? hourlyMemberTypeSeries
+          : dailyMemberTypeSeries;
+    return build(transactions, members, rangeStart, rangeEnd, tab);
+  }, [transactions, members, rangeStart, rangeEnd, tab, period]);
 
   const chartData = useMemo(
     () =>
@@ -73,10 +90,8 @@ export function AnalysisDailyTrendChart({
     <div className="paper-panel p-4">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-stone-800">每日趋势</h2>
-          <p className="mt-0.5 text-[11px] text-stone-500">
-            按日金额，总额与各成员
-          </p>
+          <h2 className="text-sm font-semibold text-stone-800">{title}</h2>
+          <p className="mt-0.5 text-[11px] text-stone-500">{subtitle}</p>
         </div>
         <div className="flex gap-1 rounded-xl bg-stone-100 p-0.5">
           {(["expense", "income"] as ChartTab[]).map((t) => (
@@ -98,7 +113,7 @@ export function AnalysisDailyTrendChart({
 
       {!hasAny ? (
         <p className="mt-6 py-8 text-center text-sm text-stone-400">
-          本月暂无{tab === "expense" ? "支出" : "收入"}记录
+          本区间暂无{tab === "expense" ? "支出" : "收入"}记录
         </p>
       ) : (
         <div className="mt-3 h-56 w-full min-w-0">
