@@ -164,7 +164,7 @@ export function RecordForm({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="kpi-number min-w-0 flex-1 bg-transparent text-[2.35rem] text-ink outline-none placeholder:text-ink/20"
+              className="kpi-number min-w-0 flex-1 bg-transparent text-[2.35rem] text-ink outline-none! placeholder:text-ink/20 focus-visible:outline-none!"
               autoFocus
             />
           </div>
