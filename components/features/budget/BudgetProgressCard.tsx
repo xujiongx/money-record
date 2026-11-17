@@ -49,6 +49,10 @@ export function BudgetProgressCard({
   const pace = showPaceInsight
     ? computeBudgetPaceInsight(progress.spent, progress.amount)
     : null;
+  const percent =
+    progress.amount > 0
+      ? Math.round((progress.spent / progress.amount) * 100)
+      : 0;
   const fillClass =
     progress.alert === "over"
       ? "bg-expense"
@@ -89,15 +93,27 @@ export function BudgetProgressCard({
           </span>
         </p>
       </div>
-      <div className={`progress-track ${embedded ? "mt-2.5" : "mt-2"}`} aria-hidden>
-        <div
-          className={`progress-fill ${fillClass}`}
-          style={{
-            ["--progress" as string]: String(
-              Math.max(0.04, Math.min(progress.ratio, 1)),
-            ),
-          }}
-        />
+      <div
+        className={`flex items-center gap-2.5 ${embedded ? "mt-2.5" : "mt-2"}`}
+      >
+        <div className="progress-track min-w-0 flex-1" aria-hidden>
+          <div
+            className={`progress-fill ${fillClass}`}
+            style={{
+              ["--progress" as string]: String(
+                Math.max(0.04, Math.min(progress.ratio, 1)),
+              ),
+            }}
+          />
+        </div>
+        <p
+          className={`shrink-0 text-[11px] font-extrabold tabular-nums ${
+            progress.alert === "over" ? "text-expense" : "text-ink"
+          }`}
+          aria-label={`已用 ${percent}%`}
+        >
+          {percent}%
+        </p>
       </div>
       <div
         className={`flex items-center justify-between gap-3 ${
