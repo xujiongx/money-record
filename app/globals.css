@@ -1,9 +1,5 @@
-/* Hallmark · v2.0.0 · built: the project · redesign: restyle · scope: app · genre: playful · stamp: checked
-   Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: S, kept cream family but shifted to ledger parchment
-   Hallmark · waive 65 · brand pins warm cream ledger + orange accent + Nunito · docs/assets
-   Hallmark · waive 80 · mascot PNGs are product characters (布布/一二), not stock illustration
-   Hallmark · answered F7 · pill radius reserved for controls (btn/chip/segmented); panels use --radius-card
-*/
+/* Hallmark polish Floor kept; warm palette restored to pre-parchment cream (docs/assets) */
+
 @import "tailwindcss";
 
 /* 自托管拉丁字体，避免 next/font/google 拉 fonts.gstatic（国内/局域网手机易超时） */
@@ -31,23 +27,23 @@
 
 :root,
 [data-theme="warm"] {
-  /* 账本羊皮纸：比 restyle 初版提亮一档，仍保留描边卡，不做糖果白底 */
-  --background: #f5e6d3;
-  --foreground: #3a2a1f;
-  --paper: #fffaf3;
-  --ink: #3a2a1f;
-  --accent: #f36d14;
-  --accent-soft: #fbe0c4;
-  --accent-pink: #f5b56e;
-  --income: #2f7a4a;
-  --expense: #c93c3c;
-  --muted: #8a7a6c;
-  --line: rgba(58, 42, 31, 0.12);
-  --header-wash: #f6d7b4;
-  --gradient-from: #f36d14;
-  --gradient-mid: #e85d04;
-  --gradient-to: #d45200;
-  --shadow-soft: 0 1px 0 rgba(58, 42, 31, 0.05), 0 10px 18px -14px rgba(58, 42, 31, 0.22);
+  /* docs/assets 高保真：亮奶油页底 + 纯白卡片（非羊皮纸） */
+  --background: #fbf2e8;
+  --foreground: #4a3728;
+  --paper: #ffffff;
+  --ink: #4a3728;
+  --accent: #f47732;
+  --accent-soft: #ffdbb5;
+  --accent-pink: #ffb347;
+  --income: #52c41a;
+  --expense: #ff4d4f;
+  --muted: #a69d94;
+  --line: rgba(74, 55, 40, 0.08);
+  --header-wash: #ffe4cc;
+  --gradient-from: #f47732;
+  --gradient-mid: #ff9147;
+  --gradient-to: #ffb347;
+  --shadow-soft: 0 2px 10px rgba(74, 55, 40, 0.05);
   --radius-card: 0.625rem;
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: light;

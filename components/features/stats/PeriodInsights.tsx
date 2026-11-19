@@ -452,7 +452,7 @@ function SimpleBars({
                 key={i}
                 fill={
                   mono
-                    ? colors[0] ?? "#f36d14"
+                    ? colors[0] ?? "#f47732"
                     : colors[i % colors.length]
                 }
               />
@@ -479,7 +479,7 @@ function CategoryBars({
     <ul className="space-y-2.5">
       {rows.map((row, i) => {
         const pct = total > 0 ? (row.value / total) * 100 : 0;
-        const color = colors[(i + colorOffset) % colors.length] ?? "#f36d14";
+        const color = colors[(i + colorOffset) % colors.length] ?? "#f47732";
         return (
           <li key={row.name} className="min-w-0">
             <div className="flex items-baseline justify-between gap-2 text-[12px]">

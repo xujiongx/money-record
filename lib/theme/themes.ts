@@ -23,7 +23,7 @@ export type ThemeMeta = {
 };
 
 export const THEME_LIST: ThemeMeta[] = [
-  { id: "warm", label: "布布暖橙", swatch: ["#f36d14", "#f5b56e"] },
+  { id: "warm", label: "布布暖橙", swatch: ["#f47732", "#ffb347"] },
   { id: "clay", label: "黏土手账", swatch: ["#c45c26", "#8b6b4a"] },
   { id: "moss", label: "苔绿清新", swatch: ["#5f8f6b", "#3f6b4f"] },
   { id: "ocean", label: "海盐蓝", swatch: ["#3b82f6", "#0ea5e9"] },
@@ -41,7 +41,7 @@ export function normalizeThemeId(value: string | null | undefined): ThemeId {
 
 /** 供切换时同步浏览器 / PWA 状态栏 */
 export const THEME_COLOR_META: Record<ThemeId, string> = {
-  warm: "#f36d14",
+  warm: "#f47732",
   clay: "#c45c26",
   moss: "#4f7f5b",
   ocean: "#2563eb",
@@ -61,16 +61,16 @@ export type ThemeChartPalette = {
 export const THEME_CHART_PALETTES: Record<ThemeId, ThemeChartPalette> = {
   warm: {
     series: [
-      "#f36d14",
-      "#f5b56e",
-      "#2f7a4a",
+      "#f47732",
+      "#ffb347",
+      "#52c41a",
       "#4f8fbf",
-      "#c93c3c",
+      "#ff4d4f",
       "#d4a017",
       "#8b6bb0",
     ],
-    trendExpense: "#c93c3c",
-    trendIncome: "#2f7a4a",
+    trendExpense: "#ff4d4f",
+    trendIncome: "#52c41a",
   },
   clay: {
     series: [

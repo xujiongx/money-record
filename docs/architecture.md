@@ -130,7 +130,7 @@ flowchart TB
 | 文件 | 职责 |
 |------|------|
 | **`app/ssgoi-provider.tsx`** | 根 **`Ssgoi`** + 过渡规则（一级 Tab **`slide`**，嵌套页 **`drill`**） |
-| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-background`（奶油底 `#fffbef`）** + **`.paper-header`** 顶带（登录页全屏暖橙洗），避免过渡时新旧页互相透出 |
+| **`app/ssgoi-route-boundary.tsx`** | `key={pathname}` + `data-ssgoi-transition`；页层 **`bg-background`（奶油底 `#fbf2e8`）** + **`.paper-header`** 顶带（登录页全屏暖橙洗），避免过渡时新旧页互相透出 |
 | **`app/layout.tsx`** | **`SsgoiProvider`** 包住 **`MobileShell`**；外壳加 **`overflow-x-clip`** |
 | **`MobileShell`** | 仅一级 Tab 显示悬浮圆角 TabBar / 小布；二级详情与登录隐藏；过渡壳 `overflow-x-clip`；氛围底见 `page-backgrounds` + `.shell-page-bg`；**`SsgoiRouteBoundary`** 页层 `bg-background` 防 drill 透底 |
 
@@ -173,6 +173,7 @@ flowchart TB
 | 日期 | 说明 |
 |------|------|
 | 2026-11-19 | Ponytail：去掉 `xiaobu-llm` 与未用 LLM 类；Action 直调 `getDefaultLlmClient()` |
+| 2026-11-19 | warm 改回亮奶油 `#fbf2e8` / `#f47732`（弃用羊皮纸） |
 | 2026-04-08 | 初版：RSC/CSR 分工、多家庭、缓存摘要、统计分包、安全边界 |
 | 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
 | 2026-04-08 | `lib/llm/xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |
