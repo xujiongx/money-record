@@ -55,17 +55,20 @@
 
 ## 2a. Server Actions — 管理后台（`app/actions/admin.ts`）
 
-会话 Cookie：`ledger_admin_session`（HMAC，密钥优先 `ADMIN_SESSION_SECRET`，否则回退 `SUPABASE_SERVICE_ROLE_KEY`），与家庭编码 Cookie 分离。中间件：未带 Cookie 访问 `/admin`（除 `/admin/login`）→ 登录页。
+会话 Cookie：`ledger_admin_session`（HMAC，密钥优先 `ADMIN_SESSION_SECRET`，否则回退 `SUPABASE_SERVICE_ROLE_KEY`），与家庭编码 Cookie 分离。中间件：未带 Cookie 访问 `/admin`（除 `/admin/login`）→ 登录页。UI 为 Astryx 桌面壳（仅 `/admin/**`，见 ADR-0002）；审核语义不变。
 
 | Action | 说明 |
 |--------|------|
 | `adminLogin` | 校验 `admin_users`；首次可种子 `xujiong`；写管理 Cookie |
 | `clearAdminSession` | 清管理 Cookie |
 | `getAdminSession` / `requireAdminSession` | 解析管理会话 |
-| `fetchPendingHouseholds` | 列出 `status=pending` |
-| `fetchActiveHouseholds` | 列出 `status=active`（管理页「已有家庭」） |
-| `approveHousehold` | pending → active |
+| `fetchPendingHouseholds` | 列出 `status=pending`（`/admin`「未审核」Tab） |
+| `fetchActiveHouseholds` | 列出 `status=active`（`/admin`「已审核」Tab） |
+| `approveHousehold` | pending → active；`revalidatePath` `/admin` 与 `/admin/ops` |
 | `rejectHousehold` | **删除** pending 家庭（级联成员等），释放编码 |
+| `fetchAdminOpsSummary` | 运营概览：待审/已审/近 7 日新建计数 + 本月全站日常收入/支出/笔数 + 家庭列表 |
+| `fetchAdminHouseholdDetail` | 家庭元数据 + 成员列表（`/admin/households/[id]`） |
+| `fetchAdminHouseholdTransactions` | 该家庭日常流水只读分页（页大小 50） |
 
 ## 3. Server Actions — 账本（`app/actions/ledger.ts`）
 
@@ -238,3 +241,4 @@ type MistralTextResult =
 | 2026-09-06 | **大事记账**：`major-events.ts`；表 `major_events` / `major_event_expenses`；路由 `/tools`、`/tools/events/**`；缓存标签 `major-events` |
 | 2026-11-16 | **预算 v1**：`budget.ts`（`fetch` / `upsert` / `clear` 全家月预算）；表 `budgets`；路由 `/tools/budget`；缓存标签 `budgets`；首页/统计进度 |
 | 2026-11-16 | **家庭创建审核**：`households.status`；`admin.ts` + `/admin`；创建不再自动登录；拒绝=删除；设置入口仅编码 `258099` |
+| 2026-11-19 | **管理后台扩展**：`fetchAdminOpsSummary` / `fetchAdminHouseholdDetail` / `fetchAdminHouseholdTransactions`；路由 `/admin/ops`、`/admin/households/[id]` |

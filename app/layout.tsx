@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { MobileShell } from "@/components/common/MobileShell";
+import { AppChrome } from "@/components/common/AppChrome";
 import { ThemeBootstrap } from "@/components/common/ThemeBootstrap";
-import { SsgoiProvider } from "@/app/ssgoi-provider";
 import {
   APP_DESCRIPTION,
   APP_DISPLAY_NAME,
@@ -44,11 +43,7 @@ export default function RootLayout({
     <html lang="zh-CN" data-theme="warm" className="h-full" suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <ThemeBootstrap />
-        <div className="paper-texture relative z-0 mx-auto min-h-dvh w-full min-w-0 max-w-md overflow-x-clip shadow-sm shadow-stone-900/5">
-          <SsgoiProvider>
-            <MobileShell>{children}</MobileShell>
-          </SsgoiProvider>
-        </div>
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   );

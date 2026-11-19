@@ -178,6 +178,7 @@ export async function approveHousehold(householdId: string): Promise<void> {
     if (error) throw new Error(error.message);
     if (!data) throw new Error("待审家庭不存在或已处理");
     revalidatePath("/admin");
+    revalidatePath("/admin/ops");
   } catch (e) {
     throw toAdminError(e);
   }
@@ -200,6 +201,203 @@ export async function rejectHousehold(householdId: string): Promise<void> {
     if (error) throw new Error(error.message);
     if (!data) throw new Error("待审家庭不存在或已处理");
     revalidatePath("/admin");
+    revalidatePath("/admin/ops");
+  } catch (e) {
+    throw toAdminError(e);
+  }
+}
+
+export type AdminOpsSummary = {
+  pendingCount: number;
+  activeCount: number;
+  createdLast7Days: number;
+  monthIncome: number;
+  monthExpense: number;
+  monthTxnCount: number;
+};
+
+export type AdminOpsHouseholdRow = AdminHouseholdListRow & {
+  status: "pending" | "active";
+};
+
+/** 运营概览：家庭计数 + 本月全站日常流水汇总 + 家庭列表 */
+export async function fetchAdminOpsSummary(): Promise<{
+  summary: AdminOpsSummary;
+  households: AdminOpsHouseholdRow[];
+}> {
+  try {
+    await requireAdminSession();
+    const supabase = createServiceClient();
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const [
+      pendingRes,
+      activeRes,
+      weekRes,
+      householdsRes,
+      txnRes,
+    ] = await Promise.all([
+      supabase
+        .from("households")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("households")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active"),
+      supabase
+        .from("households")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", weekAgo.toISOString()),
+      supabase
+        .from("households")
+        .select("id, name, code, created_at, status")
+        .in("status", ["pending", "active"])
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("transactions")
+        .select("amount, type")
+        .gte("occurred_at", monthStart.toISOString()),
+    ]);
+
+    for (const r of [pendingRes, activeRes, weekRes, householdsRes, txnRes]) {
+      if (r.error) throw new Error(r.error.message);
+    }
+
+    let monthIncome = 0;
+    let monthExpense = 0;
+    for (const row of txnRes.data ?? []) {
+      const amount = Number(row.amount) || 0;
+      if (row.type === "income") monthIncome += amount;
+      else monthExpense += amount;
+    }
+
+    return {
+      summary: {
+        pendingCount: pendingRes.count ?? 0,
+        activeCount: activeRes.count ?? 0,
+        createdLast7Days: weekRes.count ?? 0,
+        monthIncome,
+        monthExpense,
+        monthTxnCount: txnRes.data?.length ?? 0,
+      },
+      households: (householdsRes.data ?? []) as AdminOpsHouseholdRow[],
+    };
+  } catch (e) {
+    throw toAdminError(e);
+  }
+}
+
+export type AdminHouseholdDetail = {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  created_at: string;
+};
+
+export type AdminMemberRow = {
+  id: string;
+  name: string;
+  sort_order: number;
+};
+
+export type AdminTxnRow = {
+  id: string;
+  type: string;
+  category: string;
+  amount: number;
+  note: string | null;
+  occurred_at: string;
+  member_name: string | null;
+};
+
+/** 家庭详情：元数据 + 成员 */
+export async function fetchAdminHouseholdDetail(
+  householdId: string,
+): Promise<{
+  household: AdminHouseholdDetail;
+  members: AdminMemberRow[];
+}> {
+  try {
+    await requireAdminSession();
+    const id = householdId.trim();
+    if (!id) throw new Error("无效的家庭");
+    const supabase = createServiceClient();
+    const { data: household, error: hErr } = await supabase
+      .from("households")
+      .select("id, name, code, status, created_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (hErr) throw new Error(hErr.message);
+    if (!household) throw new Error("家庭不存在");
+
+    const { data: members, error: mErr } = await supabase
+      .from("members")
+      .select("id, name, sort_order")
+      .eq("household_id", id)
+      .order("sort_order", { ascending: true });
+    if (mErr) throw new Error(mErr.message);
+
+    return {
+      household: household as AdminHouseholdDetail,
+      members: (members ?? []) as AdminMemberRow[],
+    };
+  } catch (e) {
+    throw toAdminError(e);
+  }
+}
+
+const ADMIN_TXN_PAGE_SIZE = 50;
+
+/** 家庭日常流水（只读分页） */
+export async function fetchAdminHouseholdTransactions(
+  householdId: string,
+  page = 0,
+): Promise<{ rows: AdminTxnRow[]; total: number; pageSize: number }> {
+  try {
+    await requireAdminSession();
+    const id = householdId.trim();
+    if (!id) throw new Error("无效的家庭");
+    const offset = Math.max(0, page) * ADMIN_TXN_PAGE_SIZE;
+    const supabase = createServiceClient();
+    const { data, error, count } = await supabase
+      .from("transactions")
+      .select(
+        "id, type, category, amount, note, occurred_at, members ( id, name )",
+        { count: "exact" },
+      )
+      .eq("household_id", id)
+      .order("occurred_at", { ascending: false })
+      .range(offset, offset + ADMIN_TXN_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+
+    const rows: AdminTxnRow[] = (data ?? []).map((row) => {
+      const mem = row.members as
+        | { id: string; name: string }
+        | { id: string; name: string }[]
+        | null;
+      const member = Array.isArray(mem) ? mem[0] : mem;
+      return {
+        id: row.id as string,
+        type: row.type as string,
+        category: row.category as string,
+        amount: Number(row.amount) || 0,
+        note: (row.note as string | null) ?? null,
+        occurred_at: row.occurred_at as string,
+        member_name: member?.name ?? null,
+      };
+    });
+
+    return {
+      rows,
+      total: count ?? 0,
+      pageSize: ADMIN_TXN_PAGE_SIZE,
+    };
   } catch (e) {
     throw toAdminError(e);
   }

@@ -2,6 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { LogIn, Shield } from "lucide-react";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Center } from "@astryxdesign/core/Center";
+import { FormLayout } from "@astryxdesign/core/FormLayout";
+import { Heading } from "@astryxdesign/core/Heading";
+import { Icon } from "@astryxdesign/core/Icon";
+import { Text } from "@astryxdesign/core/Text";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { VStack } from "@astryxdesign/core/VStack";
 import { adminLogin } from "@/app/actions/admin";
 
 export function AdminLoginForm() {
@@ -25,52 +36,66 @@ export function AdminLoginForm() {
   };
 
   return (
-    <div className="space-y-4">
-      <header className="px-0.5">
-        <h1 className="page-title text-[1.65rem]">管理后台</h1>
-        <p className="mt-1 text-sm text-ink/70">账号密码登录，审核家庭创建</p>
-      </header>
+    <Center axis="both" height="100dvh" padding={4}>
+      <Card width="100%" maxWidth={420} padding={6}>
+        <VStack gap={5} hAlign="stretch">
+          <VStack gap={2} hAlign="center">
+            <Icon icon={Shield} size="lg" color="accent" label="管理后台" />
+            <VStack gap={1} hAlign="center">
+              <Text type="supporting" color="secondary">
+                家庭记账
+              </Text>
+              <Heading level={1}>管理后台</Heading>
+              <Text color="secondary">账号密码登录后审核家庭创建申请</Text>
+            </VStack>
+          </VStack>
 
-      <section className="paper-panel space-y-3 p-4">
-        <label className="block text-xs font-bold text-[color:var(--muted)]">
-          账号
-        </label>
-        <input
-          type="text"
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-4 py-3 text-ink outline-none focus:border-accent"
-          placeholder="用户名"
-        />
-        <label className="block text-xs font-bold text-[color:var(--muted)]">
-          密码
-        </label>
-        <input
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-4 py-3 text-ink outline-none focus:border-accent"
-          placeholder="密码"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submit();
-          }}
-        />
-        {error ? (
-          <p className="text-sm font-semibold text-expense" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          disabled={pending || !username.trim() || !password}
-          onClick={submit}
-          className="btn-primary w-full disabled:opacity-55"
-        >
-          {pending ? "登录中…" : "登录"}
-        </button>
-      </section>
-    </div>
+          {error ? (
+            <Banner
+              status="error"
+              title={error}
+              role="alert"
+              collapsible={false}
+            />
+          ) : null}
+
+          <FormLayout direction="vertical">
+            <TextInput
+              label="账号"
+              type="text"
+              htmlName="username"
+              value={username}
+              onChange={(value) => setUsername(value)}
+              placeholder="用户名"
+              isDisabled={pending}
+              width="100%"
+              hasAutoFocus
+            />
+            <TextInput
+              label="密码"
+              type="password"
+              htmlName="password"
+              value={password}
+              onChange={(value) => setPassword(value)}
+              placeholder="密码"
+              isDisabled={pending}
+              width="100%"
+              onEnter={submit}
+            />
+          </FormLayout>
+
+          <Button
+            label={pending ? "登录中…" : "登录"}
+            variant="primary"
+            size="lg"
+            icon={<Icon icon={LogIn} />}
+            isDisabled={pending || !username.trim() || !password}
+            isLoading={pending}
+            onClick={submit}
+            width="100%"
+          />
+        </VStack>
+      </Card>
+    </Center>
   );
 }

@@ -1,16 +1,39 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
+  Check,
+  ClipboardCheck,
+  Eye,
+  Inbox,
+  ShieldCheck,
+  X,
+} from "lucide-react";
+import { Badge } from "@astryxdesign/core/Badge";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Icon } from "@astryxdesign/core/Icon";
+import { Tab, TabList } from "@astryxdesign/core/TabList";
+import { Table, pixel, proportional } from "@astryxdesign/core/Table";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import {
   approveHousehold,
-  clearAdminSession,
   rejectHousehold,
   type AdminHouseholdListRow,
 } from "@/app/actions/admin";
-import { SubpageHeader } from "@/components/common/SubpageHeader";
+import { AdminShell } from "@/components/features/admin/AdminShell";
+
+type AdminTab = "pending" | "active";
+
+type HouseholdRow = AdminHouseholdListRow & Record<string, unknown>;
 
 function formatCreatedAt(iso: string) {
   return format(new Date(iso), "yyyy年M月d日 HH:mm", { locale: zhCN });
@@ -26,18 +49,11 @@ export function AdminModerationClient({
   initialActive: AdminHouseholdListRow[];
 }) {
   const router = useRouter();
+  const [tab, setTab] = useState<AdminTab>("pending");
   const [pendingRows, setPendingRows] = useState(initialPending);
   const [activeRows, setActiveRows] = useState(initialActive);
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
-
-  const logout = () => {
-    startTransition(async () => {
-      await clearAdminSession();
-      router.replace("/admin/login");
-      router.refresh();
-    });
-  };
 
   const approve = (id: string) => {
     setError(null);
@@ -47,7 +63,10 @@ export function AdminModerationClient({
         setPendingRows((prev) => {
           const row = prev.find((r) => r.id === id);
           if (row) {
-            setActiveRows((active) => [row, ...active.filter((a) => a.id !== id)]);
+            setActiveRows((active) => [
+              row,
+              ...active.filter((a) => a.id !== id),
+            ]);
           }
           return prev.filter((r) => r.id !== id);
         });
@@ -72,111 +91,173 @@ export function AdminModerationClient({
     });
   };
 
+  const rows: HouseholdRow[] = useMemo(
+    () => (tab === "pending" ? pendingRows : activeRows) as HouseholdRow[],
+    [tab, pendingRows, activeRows],
+  );
+
+  const columns = useMemo(
+    () => [
+      {
+        key: "name",
+        header: "家庭名称",
+        width: proportional(2, { minWidth: 140 }),
+        renderCell: (row: HouseholdRow) => (
+          <Text weight="semibold">{String(row.name)}</Text>
+        ),
+      },
+      {
+        key: "code",
+        header: "编码",
+        width: proportional(1, { minWidth: 96 }),
+        renderCell: (row: HouseholdRow) => (
+          <Text type="code">{String(row.code)}</Text>
+        ),
+      },
+      {
+        key: "created_at",
+        header: tab === "pending" ? "申请时间" : "创建时间",
+        width: proportional(2, { minWidth: 160 }),
+        renderCell: (row: HouseholdRow) => (
+          <Text color="secondary">{formatCreatedAt(String(row.created_at))}</Text>
+        ),
+      },
+      ...(tab === "pending"
+        ? [
+            {
+              key: "actions",
+              header: "操作",
+              width: pixel(200),
+              align: "end" as const,
+              renderCell: (row: HouseholdRow) => (
+                <HStack gap={2} justify="end">
+                  <Button
+                    label="通过"
+                    variant="primary"
+                    size="sm"
+                    icon={<Icon icon={Check} />}
+                    isDisabled={busy}
+                    onClick={() => approve(String(row.id))}
+                  />
+                  <Button
+                    label="拒绝"
+                    variant="destructive"
+                    size="sm"
+                    icon={<Icon icon={X} />}
+                    isDisabled={busy}
+                    onClick={() => reject(String(row.id))}
+                  />
+                </HStack>
+              ),
+            },
+          ]
+        : [
+            {
+              key: "actions",
+              header: "操作",
+              width: pixel(120),
+              align: "end" as const,
+              renderCell: (row: HouseholdRow) => (
+                <Button
+                  label="详情"
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon icon={Eye} />}
+                  onClick={() =>
+                    router.push(`/admin/households/${String(row.id)}`)
+                  }
+                />
+              ),
+            },
+          ]),
+    ],
+    [tab, busy, router],
+  );
+
   return (
-    <div className="space-y-4 pb-8">
-      <SubpageHeader
-        backHref="/members/settings"
-        title="管理后台"
-        historyBack
-        right={
-          <button
-            type="button"
-            onClick={logout}
-            className="text-[11px] font-bold text-accent"
-            disabled={busy}
-          >
-            退出
-          </button>
-        }
-      />
+    <AdminShell username={username}>
+      <VStack gap={5} className="max-w-[1100px] p-6">
+        {error ? (
+          <Banner
+            status="error"
+            title={error}
+            role="alert"
+            collapsible={false}
+            isDismissable
+            onDismiss={() => setError(null)}
+          />
+        ) : null}
 
-      <p className="px-0.5 text-xs text-[color:var(--muted)]">
-        已登录：<span className="font-semibold text-ink">{username}</span>
-      </p>
+        <VStack gap={1}>
+          <HStack gap={2} align="center">
+            <Icon icon={ClipboardCheck} color="accent" />
+            <Heading level={2}>家庭审核</Heading>
+          </HStack>
+          <Text color="secondary">
+            通过后可用编码加入；拒绝将删除申请并释放编码
+          </Text>
+        </VStack>
 
-      {error ? (
-        <p className="text-sm font-semibold text-expense" role="alert">
-          {error}
-        </p>
-      ) : null}
+        <TabList
+          value={tab}
+          onChange={(v) => setTab(v as AdminTab)}
+          role="tablist"
+          hasDivider
+          aria-label="审核状态"
+        >
+          <Tab
+            value="pending"
+            label="未审核"
+            icon={<Icon icon={Inbox} />}
+            endContent={
+              <Badge
+                label={String(pendingRows.length)}
+                variant={pendingRows.length > 0 ? "warning" : "neutral"}
+              />
+            }
+          />
+          <Tab
+            value="active"
+            label="已审核"
+            icon={<Icon icon={ShieldCheck} />}
+            endContent={
+              <Badge label={String(activeRows.length)} variant="success" />
+            }
+          />
+        </TabList>
 
-      <section className="paper-panel p-4">
-        <h2 className="text-sm font-extrabold text-ink">待审核创建</h2>
-        <p className="mt-1 text-[11px] text-[color:var(--muted)]">
-          通过后可用编码加入；拒绝将删除申请并释放编码
-        </p>
-
-        {pendingRows.length === 0 ? (
-          <p className="mt-4 text-sm text-ink/60">暂无待审家庭</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {pendingRows.map((row) => (
-              <li
-                key={row.id}
-                className="rounded-[var(--radius-card)] border border-[var(--line)] bg-background px-3 py-3"
-              >
-                <p className="font-extrabold text-ink">{row.name}</p>
-                <p className="mt-0.5 font-mono text-sm text-ink/80">
-                  {row.code}
-                </p>
-                <p className="mt-1 text-[11px] text-[color:var(--muted)]">
-                  申请于 {formatCreatedAt(row.created_at)}
-                </p>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => approve(row.id)}
-                    className="btn-primary flex-1 !py-2.5 text-sm disabled:opacity-55"
-                  >
-                    通过
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => reject(row.id)}
-                    className="pressable flex-1 rounded-full border border-expense/30 py-2.5 text-sm font-bold text-expense hover:bg-expense/10 disabled:opacity-55"
-                  >
-                    拒绝
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="paper-panel p-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-sm font-extrabold text-ink">已有家庭</h2>
-          <span className="text-[11px] font-semibold text-[color:var(--muted)]">
-            {activeRows.length} 个
-          </span>
-        </div>
-        <p className="mt-1 text-[11px] text-[color:var(--muted)]">
-          已通过审核、可用编码加入的家庭
-        </p>
-
-        {activeRows.length === 0 ? (
-          <p className="mt-4 text-sm text-ink/60">暂无已通过家庭</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-[var(--line)]">
-            {activeRows.map((row) => (
-              <li key={row.id} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="min-w-0">
-                  <p className="truncate font-extrabold text-ink">{row.name}</p>
-                  <p className="mt-0.5 font-mono text-sm text-ink/80">
-                    {row.code}
-                  </p>
-                </div>
-                <p className="shrink-0 text-right text-[11px] text-[color:var(--muted)]">
-                  {formatCreatedAt(row.created_at)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+        <Card padding={0} width="100%">
+          {rows.length === 0 ? (
+            <EmptyState
+              title={tab === "pending" ? "暂无待审家庭" : "暂无已通过家庭"}
+              description={
+                tab === "pending"
+                  ? "用户提交创建申请后会显示在这里"
+                  : "通过待审申请后会出现在此列表"
+              }
+              icon={
+                <Icon
+                  icon={tab === "pending" ? Inbox : ShieldCheck}
+                  size="lg"
+                  color="secondary"
+                />
+              }
+              isCompact
+              className="py-16"
+            />
+          ) : (
+            <Table
+              data={rows}
+              idKey="id"
+              columns={columns}
+              density="spacious"
+              dividers="rows"
+              hasHover
+              textOverflow="truncate"
+            />
+          )}
+        </Card>
+      </VStack>
+    </AdminShell>
   );
 }

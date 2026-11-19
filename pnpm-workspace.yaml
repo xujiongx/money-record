@@ -2,5 +2,7 @@ packages:
   - "."
 
 allowBuilds:
+  '@astryxdesign/cli': true
+  '@astryxdesign/core': true
   sharp: false
   unrs-resolver: false

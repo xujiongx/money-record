@@ -174,6 +174,7 @@ flowchart TB
 |------|------|
 | 2026-11-19 | Ponytail：去掉 `xiaobu-llm` 与未用 LLM 类；Action 直调 `getDefaultLlmClient()` |
 | 2026-11-19 | warm 改回亮奶油 `#fbf2e8` / `#f47732`（弃用羊皮纸） |
+| 2026-11-19 | `/admin` 全宽 Astryx 桌面壳（ADR-0002）；运营概览 + 家庭详情；账本仍 max-w-md |
 | 2026-04-08 | 初版：RSC/CSR 分工、多家庭、缓存摘要、统计分包、安全边界 |
 | 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
 | 2026-04-08 | `lib/llm/xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |

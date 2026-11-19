@@ -58,7 +58,7 @@ flowchart LR
 │   │   ├── chat-history.ts # 小布：chat_messages 拉取与落库
 │   │   └── mistral-chat.ts # 小布：多轮对话、本月与本年小结（经 getDefaultLlmClient）
 │   ├── login/page.tsx      # 登录 / 提交创建申请（EnterHouseholdCode）
-│   ├── admin/              # 超管登录与待审列表
+│   ├── admin/              # 超管桌面后台（Astryx；登录 / 审核 / ops / households/[id]）
 │   ├── page.tsx            # 仪表盘
 │   ├── loading.tsx         # 通用路由切换骨架
 │   ├── record/page.tsx

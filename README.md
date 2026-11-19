@@ -65,7 +65,9 @@ npm run dev
 | `/members/settings` | 设置：家庭编码、「我是谁」、切换家庭；编码 `258099` 可见管理后台入口 |
 | `/members/settings/categories` | 日常收支分类增删改查（按家庭；「其他」不可删） |
 | `/members/settings/theme` | 颜色主题（本机偏好） |
-| `/admin` · `/admin/login` | 超管：审核待创建家庭（通过 / 拒绝删除）；浏览已有家庭 |
+| `/admin` · `/admin/login` | 超管桌面后台（Astryx）：侧栏「家庭审核」（未审/已审 Tab）与「运营概览」 |
+| `/admin/ops` | 运营概览：家庭计数、本月全站日常收支汇总、家庭列表 |
+| `/admin/households/[id]` | 家庭详情：成员 + 日常流水分页（只读） |
 
 ## 部署
 
