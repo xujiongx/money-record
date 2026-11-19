@@ -61,11 +61,7 @@ export function fetchUpstream(url: string, init: UndiciRequestInit) {
   });
 }
 
-export function isProxyConfigured(): boolean {
-  return Boolean(resolveProxyUrl());
-}
-
-export function serializeFetchError(err: unknown): {
+function serializeFetchError(err: unknown): {
   message: string;
   cause?: string;
   code?: string;
@@ -88,19 +84,6 @@ export function serializeFetchError(err: unknown): {
       ? (e.cause as { code: string }).code
       : undefined;
   return { message, cause, code };
-}
-
-/** 开发环境拼进抛错，便于终端排查 */
-export function formatUpstreamDevDetail(cause?: string, code?: string): string {
-  if (process.env.NODE_ENV !== "development") return "";
-  const parts = [cause, code].filter(Boolean);
-  return parts.length > 0 ? ` [${parts.join(" · ")}]` : "";
-}
-
-export function mistralConnectHint(proxyUsed: boolean): string {
-  return proxyUsed
-    ? "已通过代理请求仍失败：请确认代理已开、端口与 .env.local 一致（可用 MISTRAL_PROXY_URL 单独指定），并查看日志中的 cause/code。"
-    : "无法连上 api.mistral.ai。请在 .env.local 设置 HTTPS_PROXY=http://127.0.0.1:7890（或 MISTRAL_PROXY_URL），并重启 npm run dev。";
 }
 
 type MistralErrorJson = {
@@ -164,7 +147,7 @@ export function formatMistralHttpErrorForUser(
   return "小布暂时连接不上智能服务，请检查网络后重试。";
 }
 
-/** 网络/超时等上游异常的用户文案（开发环境仍可在抛错处附加 mistralConnectHint） */
+/** 网络/超时等上游异常的用户文案 */
 export function formatMistralNetworkErrorForUser(err: unknown): string {
   const { message, code } = serializeFetchError(err);
   const m = message.toLowerCase();

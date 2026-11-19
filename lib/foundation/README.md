@@ -7,8 +7,8 @@
 | 目录 | 职责 |
 |------|------|
 | `llm/types.ts` | `LlmClient`、`LlmMessage`、`LlmCompleteOptions` |
-| `llm/factory.ts` | `createLlmClient()` / `getDefaultLlmClient()`（**仅服务端**引用） |
-| `llm/implementations/*` | **`MistralLlmClient`**、**`OpenRouterLlmClient`**、**`MistralThenOpenRouterLlmClient`**（默认链）；**`mistral-openrouter.ts`** 为兼容再导出 |
+| `llm/factory.ts` | `getDefaultLlmClient()`（**仅服务端**引用） |
+| `llm/implementations/*` | `attemptMistralCompletion` / `attemptOpenRouterCompletion`；默认链 **`MistralThenOpenRouterLlmClient`** |
 | `tts/types.ts` | `TtsEngine`、`TtsSessionState` |
 | `tts/factory.client.ts` | `createTtsEngine()`（**`"use client"`**，仅客户端） |
 | `tts/text/*` | 与合成无关的纯函数（如去 Markdown） |
@@ -20,7 +20,7 @@
 
 ## 服务端 / 客户端边界
 
-- **`lib/foundation/llm/**`**：不得被 Client Component 直接或间接 import（避免密钥与 Node 逻辑进浏览器包）。业务侧可继续通过 [`lib/llm/xiaobu-llm.ts`](../llm/xiaobu-llm.ts) 的 `xiaobuChatCompletion` 调用，其内部委托 `getDefaultLlmClient()`。
+- **`lib/foundation/llm/**`**：不得被 Client Component 直接或间接 import（避免密钥与 Node 逻辑进浏览器包）。业务侧（如 `app/actions/mistral-chat.ts`）直接调用 `getDefaultLlmClient().complete(...)`。
 - **`lib/foundation/tts/factory.client.ts`** 及其实现类：仅客户端使用；`NEXT_PUBLIC_TTS_PROVIDER` 选择实现（默认 `web-speech`，可选 `noop`）。
 - **`lib/foundation/asr/**`**：仅客户端；`NEXT_PUBLIC_ASR_PROVIDER` 选择实现（默认 `web-speech`，可选 `noop`）。**`ChatVoiceInputProvider`**（`components/features/chat/panel/ChatVoiceInput.tsx`）委托 **`createAsrEngine()`**。
 
@@ -31,6 +31,6 @@
 
 ## 新增实现
 
-1. **LLM**：新建 `llm/implementations/your-client.ts` 实现 `LlmClient`；可选导出 `attemptXxxCompletion` 返回 `LlmAttemptResult` 供链式组合。在 [`llm/factory.ts`](llm/factory.ts) 的 `createLlmClient()` 中按环境变量分支返回（或组合现有 **`MistralLlmClient`** / **`OpenRouterLlmClient`**）。
+1. **LLM**：新建 `llm/implementations/your-client.ts` 实现 `LlmClient`；可选导出 `attemptXxxCompletion` 返回 `LlmAttemptResult` 供链式组合。在 [`llm/factory.ts`](llm/factory.ts) 的 `getDefaultLlmClient()` 中按需切换实现。
 2. **TTS**：新建 `tts/implementations/your-engine.ts` 实现 `TtsEngine`，在 [`tts/factory.client.ts`](tts/factory.client.ts) 中注册 `NEXT_PUBLIC_TTS_PROVIDER` 取值。
 3. **ASR**：新建 `asr/implementations/your-asr.ts` 实现 `AsrEngine`（`start` / `stop` / `abort`），在 [`asr/factory.client.ts`](asr/factory.client.ts) 中注册 `NEXT_PUBLIC_ASR_PROVIDER` 取值。

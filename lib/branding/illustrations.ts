@@ -9,8 +9,6 @@
 export const ILLUSTRATIONS = {
   /** 首页本月模块顶上（布布 & 一二站立） */
   homeKpi: "/illustrations/home-kpi.png",
-  /** 今日小结点缀（一二）；当前首页不再内嵌，保留资源供他处复用 */
-  dailyTip: "/illustrations/daily-tip.png",
   /** 最近账单空态 */
   emptyNoRecords: "/illustrations/empty-no-records.png",
   /** 统计图表空态（布布放大镜） */

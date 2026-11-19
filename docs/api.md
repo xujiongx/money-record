@@ -13,7 +13,7 @@
 | 读成员 / 读流水 | `fetchMembers`、`fetchTransactions`、`fetchMemberTransactionsPage`、`fetchLedgerSnapshotData` | Server / Client（依赖 Cookie）；分页接口与小布快照不走列表用的 `unstable_cache` |
 | 手动清读缓存 | `refreshLedgerReadCache` | Client（首页 **`DashboardClient`**「刷新数据」；Action 后 **`router.refresh()`**） |
 | 写流水 | `createTransaction`、`updateTransaction`、`deleteTransaction` | Client |
-| 小布对话 / 小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`mistralChatAction`（纯文本，保留）、`generateMonthlySummaryAction`、`generateYearlySummaryAction` | Client（`FloatingChatBot`） |
+| 小布对话 / 小结 | `mistralLedgerChatAction`（主对话：JSON 槽位 + 可自动记账）、`generateMonthlySummaryAction`、`generateYearlySummaryAction` | Client（`FloatingChatBot`） |
 | 小布历史 | `fetchChatMessagesAction`、`persistChatExchangeAction` | Client（打开浮层拉取、每轮成功后落库） |
 | 预算 | `fetchHouseholdMonthBudget`、`upsertHouseholdMonthBudget`、`clearHouseholdMonthBudget` | Client / RSC（`/tools/budget`、首页、统计）；标签 **`budgets`** |
 
@@ -143,7 +143,7 @@
 
 ### 5.0 分层说明
 
-- **对话模型调用**：`app/actions/mistral-chat.ts` 经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`**，内部使用 **`lib/foundation/llm`** 的 **`getDefaultLlmClient()`**（默认 **`MistralThenOpenRouterLlmClient`**，兼容别名 **`MistralOpenRouterLlmClient`**）。行为与密钥约定不变：若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；失败且配置了 **`OPEN_ROUTER_API_KEY`** 时走 OpenRouter；**`XIAOBU_LLM_PROVIDER=openrouter`** 时仅 OpenRouter。详见 [**`lib/foundation/README.md`**](../lib/foundation/README.md)。**Client Component 不得 import `lib/foundation/llm`**。  
+- **对话模型调用**：`app/actions/mistral-chat.ts` 直接调用 **`lib/foundation/llm`** 的 **`getDefaultLlmClient()`**（默认 **`MistralThenOpenRouterLlmClient`**）。若配置了 **`MISTRAL_API_KEY`** 则先走 Mistral（`fetchUpstream`，见 **`lib/llm/mistral-fetch.ts`**）；失败且配置了 **`OPEN_ROUTER_API_KEY`** 时走 OpenRouter；**`XIAOBU_LLM_PROVIDER=openrouter`** 时仅 OpenRouter。详见 [**`lib/foundation/README.md`**](../lib/foundation/README.md)。**Client Component 不得 import `lib/foundation/llm`**。  
 - **助手播报（客户端）**：**`NEXT_PUBLIC_TTS_PROVIDER`**（`web-speech` | `noop`，默认 `web-speech`），由 **`lib/foundation/tts/factory.client.ts`** 的 **`createTtsEngine`** 选择实现。  
 - **语音输入 ASR（客户端）**：**`NEXT_PUBLIC_ASR_PROVIDER`**（`web-speech` | `noop`，默认 `web-speech`），由 **`lib/foundation/asr/factory.client.ts`** 的 **`createAsrEngine`** 选择实现；**`ChatVoiceInput`** 使用。  
 - **对话持久化**：`app/actions/chat-history.ts` — 读 Cookie 得 `household_id`，读写表 **`chat_messages`**（Service Role）。客户端在模型成功返回后调用 **`persistChatExchangeAction`**；打开浮层时 **`fetchChatMessagesAction`** 回填。
@@ -158,20 +158,11 @@ type MistralTextResult =
 
 - 网络 / API / 校验失败时返回 **`{ ok: false, error }`**，**不在 Action 边界 `throw`**，以免客户端收到整页 **500**（RSC POST）。
 
-### 5.2 `mistralChatAction(history, userMessage)`
+### 5.2 `mistralLedgerChatAction(history, userMessage)`
 
 | 参数 | 说明 |
 |------|------|
 | `history` | 已完成的 `{ role: 'user' \| 'assistant', content }[]`（不含当前句） |
-| `userMessage` | 当前用户输入（trim 后） |
-
-- 成功：`{ ok: true, data: 助手回复文本 }`。
-
-### 5.2b `mistralLedgerChatAction(history, userMessage)`
-
-| 参数 | 说明 |
-|------|------|
-| `history` | 同 4.2（不含当前句） |
 | `userMessage` | 当前用户输入（trim 后） |
 
 - **小布浮层主对话**使用本 Action。底层请求带 **`response_format: { type: "json_object" }`**（Mistral 与 OpenRouter 均尽量兼容），`temperature` 约 `0.2`。  
@@ -219,12 +210,13 @@ type MistralTextResult =
 | 多家庭隔离 | `households.code` + Cookie + 服务端解析 |
 | 浏览器直连 Supabase | 不使用（无 anon 业务读） |
 | 实时推送 | 多租户下弃用 Realtime；靠导航、`revalidatePath` / `revalidateTag("ledger")` 与首页 **`refreshLedgerReadCache`** 刷新 |
-| LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `lib/llm/xiaobu-llm` 封装；客户端只收 `MistralTextResult` 文本结果 |
+| LLM | Mistral（主）与 OpenRouter（备）仅服务端，经 `getDefaultLlmClient()`；客户端只收 `MistralTextResult` 文本结果 |
 
 ## 8. 变更记录
 
 | 日期 | 说明 |
 |------|------|
+| 2026-11-19 | Ponytail：去掉 `xiaobu-llm` / `mistralChatAction`；Action 直调 `getDefaultLlmClient()` |
 | 2026-04-02 | 多家庭、`household.ts`、Cookie 会话、弃用 Realtime 描述 |
 | 2026-04-02 | 首版 ledger 契约 |
 | 2026-04-08 | `updateTransaction`；`fetch*` 与 `unstable_cache` / `revalidateTag("ledger")`；`requireHouseholdId` 与 React `cache()` |

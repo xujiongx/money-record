@@ -53,7 +53,7 @@ flowchart TB
 | 动效 | Framer Motion（局部使用）；**[@ssgoi/react](https://ssgoi.dev/docs/frameworks/nextjs)**（路由页过渡） |
 | 图标 | [lucide-react](https://lucide.dev/)（底栏、返回、刷新、搜索等）；二级页统一 **`SubpageHeader`** |
 | 浮动拖动 | [react-draggable](https://github.com/react-grid-layout/react-draggable)（`DraggableFab`） |
-| 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/llm/xiaobu-llm.ts`） |
+| 外部 LLM | Mistral：`undici`（`lib/llm/mistral-fetch.ts`；`next.config` 中 `serverExternalPackages: ["undici"]`）；OpenRouter：`openai` SDK（`lib/foundation/llm/implementations/openrouter.ts`） |
 | 日期 | date-fns |
 
 ## 3. 渲染模型：服务端与客户端如何分工
@@ -139,7 +139,7 @@ flowchart TB
 ## 7. 小布助手（LLM 对话）
 
 - **入口**：`components/features/chat`（`FloatingChatBot.tsx`）编排状态与 Server Actions；`trigger/ChatFabTrigger`（`DraggableFab` + `mascot/ChatBotMascot`）、`panel/FloatingChatPanel`（Portal、消息列表、快捷「本月 / 本年小结」、标题栏 **播报** 开关与 **暂停/继续**）等子目录组件。  
-- **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`mistralChatAction` / `generateMonthlySummaryAction` / `generateYearlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`lib/llm/xiaobu-llm.ts`** 的 **`xiaobuChatCompletion`** 委托 **`lib/foundation/llm`**（默认 **`MistralThenOpenRouterLlmClient`**；独立实现 **`MistralLlmClient`** / **`OpenRouterLlmClient`**），`mistral-fetch` 仍为 Mistral 底层 HTTP；结构化记账契约见 **`lib/llm/chat-ledger.ts`**。  
+- **服务端**：`mistralLedgerChatAction`（主对话，JSON 槽位 + 可 `createTransaction`）、`generateMonthlySummaryAction` / `generateYearlySummaryAction`（`app/actions/mistral-chat.ts`）经 **`getDefaultLlmClient()`**（默认 **`MistralThenOpenRouterLlmClient`**），`mistral-fetch` 仍为 Mistral 底层 HTTP；结构化记账契约见 **`lib/llm/chat-ledger.ts`**。  
 - **客户端播报**：**`lib/foundation/tts`**（**`createTtsEngine`**、`WebSpeechSynthesisTts` / **`NoopTtsEngine`**，`NEXT_PUBLIC_TTS_PROVIDER`），由 **`useChatAssistantTts`** 持有引擎实例。  
 - **客户端语音识别（ASR）**：**`lib/foundation/asr`**（**`createAsrEngine`**、`WebSpeechRecognitionAsrEngine` / **`NoopAsrEngine`**，`NEXT_PUBLIC_ASR_PROVIDER`），由 **`ChatVoiceInputProvider`** 持有引擎实例。  
 - **每轮 DB 快照**：`mistralLedgerChatAction` 经 **`fetchLedgerSnapshotData`**（绕过列表 **`unstable_cache`**）拉流水与成员，用 **`computeMonthlyLedgerDigest`** 生成本月文本，并**拼在当前 user 消息顶部**（模型优先读最近 user）；统计类回答以该快照为准，不把 `chat_messages` 历史里的旧数字当真。  
@@ -172,6 +172,7 @@ flowchart TB
 
 | 日期 | 说明 |
 |------|------|
+| 2026-11-19 | Ponytail：去掉 `xiaobu-llm` 与未用 LLM 类；Action 直调 `getDefaultLlmClient()` |
 | 2026-04-08 | 初版：RSC/CSR 分工、多家庭、缓存摘要、统计分包、安全边界 |
 | 2026-04-08 | 小布助手：Mistral Actions、`mistral-fetch`、FloatingChatBot / DraggableFab、技术栈补充 |
 | 2026-04-08 | `lib/llm/xiaobu-llm`：Mistral 失败回退 OpenRouter；`openai` 依赖 |

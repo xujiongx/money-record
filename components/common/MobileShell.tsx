@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Home, PenLine, Users } from "lucide-react";
 import { SsgoiRouteBoundary } from "@/app/ssgoi-route-boundary";
-import { FloatingChatBot } from "@/components/features/chat";
+import { FloatingChatBot } from "@/components/features/chat/FloatingChatBot";
 import { usePrefetchAppTabs } from "@/components/common/usePrefetchAppTabs";
 import { preloadDefaultAvatars } from "@/lib/avatar/bitmap-cache";
 import { isPrimaryTabPath } from "@/lib/navigation/shell-tabs";

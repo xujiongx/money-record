@@ -2,7 +2,7 @@
  * Mistral Chat Completions（fetchUpstream）。仅服务端使用。
  */
 
-import type { LlmClient, LlmCompleteOptions, LlmMessage } from "@/lib/foundation/llm/types";
+import type { LlmCompleteOptions, LlmMessage } from "@/lib/foundation/llm/types";
 import type { LlmAttemptResult } from "@/lib/foundation/llm/implementations/attempt-result";
 import {
   fetchUpstream,
@@ -67,18 +67,4 @@ export async function attemptMistralCompletion(
     return { ok: false, userMessage: "小布没有生成有效内容，请重试。" };
   }
   return { ok: true, content };
-}
-
-export class MistralLlmClient implements LlmClient {
-  async complete(
-    messages: LlmMessage[],
-    options?: LlmCompleteOptions,
-  ): Promise<string> {
-    const r = await attemptMistralCompletion(messages, options);
-    if (r.ok) return r.content;
-    if (!r.userMessage) {
-      throw new Error("未配置 MISTRAL_API_KEY。");
-    }
-    throw new Error(r.userMessage);
-  }
 }

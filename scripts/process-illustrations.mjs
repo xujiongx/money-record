@@ -8,7 +8,6 @@ const OUT = "public/illustrations";
 
 const FILES = [
   "home-kpi",
-  "daily-tip",
   "empty-no-records",
   "empty-no-data",
   "success-saved",

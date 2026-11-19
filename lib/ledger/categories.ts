@@ -23,15 +23,7 @@ export const DEFAULT_INCOME_CATEGORIES = [
   "其他",
 ] as const;
 
-/** @deprecated 使用 DEFAULT_EXPENSE_CATEGORIES；保留别名以免遗漏引用 */
-export const EXPENSE_CATEGORIES = DEFAULT_EXPENSE_CATEGORIES;
-/** @deprecated 使用 DEFAULT_INCOME_CATEGORIES */
-export const INCOME_CATEGORIES = DEFAULT_INCOME_CATEGORIES;
-
 export const DEFAULT_LEDGER_CATEGORY = "其他";
-
-export type ExpenseCategory = (typeof DEFAULT_EXPENSE_CATEGORIES)[number];
-export type IncomeCategory = (typeof DEFAULT_INCOME_CATEGORIES)[number];
 
 export type LedgerCategoryRow = {
   id: string;

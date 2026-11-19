@@ -3,7 +3,7 @@
  */
 
 import OpenAI from "openai";
-import type { LlmClient, LlmCompleteOptions, LlmMessage } from "@/lib/foundation/llm/types";
+import type { LlmCompleteOptions, LlmMessage } from "@/lib/foundation/llm/types";
 import type { LlmAttemptResult } from "@/lib/foundation/llm/implementations/attempt-result";
 import { readEnv } from "@/lib/llm/mistral-fetch";
 
@@ -172,19 +172,5 @@ export async function attemptOpenRouterCompletion(
       responseFormatJsonObject: options?.responseFormatJsonObject,
     });
     return { ok: false, userMessage: formatOpenRouterError(e) };
-  }
-}
-
-export class OpenRouterLlmClient implements LlmClient {
-  async complete(
-    messages: LlmMessage[],
-    options?: LlmCompleteOptions,
-  ): Promise<string> {
-    const r = await attemptOpenRouterCompletion(messages, options);
-    if (r.ok) return r.content;
-    if (!r.userMessage) {
-      throw new Error("未配置 OPEN_ROUTER_API_KEY。");
-    }
-    throw new Error(r.userMessage);
   }
 }

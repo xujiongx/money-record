@@ -10,7 +10,7 @@ import {
   computeMonthlyLedgerDigest,
   computeYearlyLedgerDigest,
 } from "@/lib/ledger/monthly-digest";
-import { xiaobuChatCompletion } from "@/lib/llm/xiaobu-llm";
+import { getDefaultLlmClient } from "@/lib/foundation/llm/factory";
 import { format, getDaysInMonth } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import {
@@ -124,40 +124,8 @@ function buildYearSummaryTimeContext(anchor: Date): string {
   ].join("\n");
 }
 
-type CallXiaobuOptions = {
-  temperature?: number;
-  responseFormatJsonObject?: boolean;
-};
-
-async function callXiaobuLlm(
-  messages: { role: ChatRole; content: string }[],
-  options?: CallXiaobuOptions,
-) {
-  return xiaobuChatCompletion(messages, options);
-}
-
 const ASSISTANT_SYSTEM =
   "你是家庭记账应用里的助手「小布」，用简体中文、语气温暖简洁。回答与用户问题相关的内容。若系统在本轮消息中提供了账本/统计类事实块，凡涉金额、笔数、分类占比等**必须以该块（及当前用户消息）为准**；聊天历史里曾出现过的数字可能因用户事后改账而已错误，**不要沿用**。若无任何可信数据支撑（例如事实块显示无流水或用户未提供数字），据实说「暂无记录」或「当前没有该项数据」，**禁止推测、禁止编造示例金额**。回复可使用常见 Markdown（如 **粗体**、列表、`代码`、链接），便于阅读；避免滥用多级大标题。";
-
-/** 多轮对话：history 为已完成的 user/assistant 消息（不含当前这条） */
-export async function mistralChatAction(
-  history: MistralChatMessage[],
-  userMessage: string,
-): Promise<MistralTextResult> {
-  try {
-    const trimmed = userMessage.trim();
-    if (!trimmed) return { ok: false, error: "消息不能为空" };
-    const messages: { role: ChatRole; content: string }[] = [
-      { role: "system", content: ASSISTANT_SYSTEM },
-      ...history.map((m) => ({ role: m.role, content: m.content })),
-      { role: "user", content: trimmed },
-    ];
-    const data = await callXiaobuLlm(messages);
-    return { ok: true, data };
-  } catch (e) {
-    return { ok: false, error: toActionError(e) };
-  }
-}
 
 export type MistralLedgerChatResult =
   | { ok: true; reply: string; ledgerCreated?: boolean }
@@ -192,7 +160,7 @@ export async function mistralLedgerChatAction(
       { role: "user", content: userWithSnapshot },
     ];
 
-    const raw = await callXiaobuLlm(messages, {
+    const raw = await getDefaultLlmClient().complete(messages, {
       responseFormatJsonObject: true,
       temperature: 0.2,
     });
@@ -267,7 +235,7 @@ ${digest}
 7. 全文约 280～480 字，分段清晰；可使用 Markdown（**粗体**、列表、分段）增强可读性，少用一级「#」标题，必要时用二级「##」或加粗代替标题。
 8. 所有金额、笔数、分类均以摘要为准，不要编造未出现的数据。`;
 
-    const data = await callXiaobuLlm([
+    const data = await getDefaultLlmClient().complete([
       { role: "system", content: MONTHLY_SUMMARY_SYSTEM },
       { role: "user", content: userPrompt },
     ]);
@@ -300,7 +268,7 @@ ${digest}
 7. 全文约 400～720 字，分段清晰；可使用 Markdown（**粗体**、列表、分段）；少用一级「#」标题，必要时用二级「##」或加粗代替标题。
 8. 所有金额、笔数、分类均以摘要为准，不要编造未出现的数据。`;
 
-    const data = await callXiaobuLlm([
+    const data = await getDefaultLlmClient().complete([
       { role: "system", content: YEARLY_SUMMARY_SYSTEM },
       { role: "user", content: userPrompt },
     ]);

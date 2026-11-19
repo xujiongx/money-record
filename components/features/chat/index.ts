@@ -1,1 +1,0 @@
-export { FloatingChatBot } from "./FloatingChatBot";
