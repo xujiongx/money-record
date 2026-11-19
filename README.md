@@ -75,6 +75,10 @@ npm run dev
 
 当前 **RLS 无 anon 读策略**，账本数据**仅**通过服务端 **Service Role** 访问；浏览器携带的 **已通过审核的家庭编码** 相当于家庭口令，请勿向无关人员泄露。新家创建需超管在 `/admin` 审核；管理会话与家庭会话 Cookie 分离。若应用对公网开放，建议后续接入账号体系并改为按用户鉴权。
 
+## Agent 规则（Cursor）
+
+本仓库启用 **[Ponytail](https://github.com/DietrichGebert/ponytail)** 常驻规则（`.cursor/rules/ponytail.mdc`）：优先复用与少写新代码。说明见 [docs/agents/ponytail.md](./docs/agents/ponytail.md)。**新开 Chat** 后生效。
+
 ## 项目文档（中文）
 
 更完整的说明见 **[docs/](./docs/)** 目录，推荐优先阅读 [docs/development-guide.md](./docs/development-guide.md)（架构、目录结构、环境变量、FAQ）。

@@ -16,3 +16,4 @@
 | [deployment.md](./deployment.md) | 环境变量、上线步骤（无 Realtime 要求） |
 | [iteration-design.md](./iteration-design.md) | 迭代说明与 `change/` 约定 |
 | [change/](./change/) | **各迭代独立文档**（见 [change/README.md](./change/README.md)） |
+| [agents/ponytail.md](./agents/ponytail.md) | Cursor 常驻规则：[Ponytail](https://github.com/DietrichGebert/ponytail)（`.cursor/rules/ponytail.mdc`） |

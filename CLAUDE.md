@@ -13,3 +13,7 @@ Default five roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 ### Domain docs
 
 Single-context: root `GLOSSARY.md` + `docs/adr/` (created lazily). See `docs/agents/domain.md`.
+
+### Ponytail
+
+Cursor always-on lazy-senior ruleset: `.cursor/rules/ponytail.mdc`. See `docs/agents/ponytail.md`.
